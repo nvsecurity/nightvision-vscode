@@ -1,21 +1,27 @@
 //@ts-check
 
-"use strict";
+'use strict';
 
-const path = require("path");
+const path = require('path');
 
 const config = [
   {
-    name: "webview",
-    target: "web",
-    entry: "./src/webview/index.tsx",
+    name: 'webview',
+    target: 'web',
+    entry: './src/webview/index.tsx',
     output: {
-      filename: "webview.js",
-      path: path.resolve(__dirname, "../dist"),
+      filename: 'webview.js',
+      path: path.resolve(__dirname, '../dist'),
     },
-    devtool: "source-map",
+    devtool: 'source-map',
     resolve: {
-      extensions: [".ts", ".js", ".tsx", ".jsx"],
+      extensions: ['.ts', '.js', '.tsx', '.jsx'],
+      alias: {
+        '@components': path.resolve(__dirname, '../src/components/'),
+        '@pages': path.resolve(__dirname, '../src/pages/'),
+        '@utils': path.resolve(__dirname, '../src/utils/'),
+        '@styles': path.resolve(__dirname, '../src/styles/'),
+      },
     },
     module: {
       rules: [
@@ -24,13 +30,13 @@ const config = [
           exclude: /node_modules/,
           use: [
             {
-              loader: "ts-loader",
+              loader: 'ts-loader',
             },
           ],
         },
         {
           test: /\.css$/,
-          use: ["style-loader", "css-loader", "postcss-loader"],
+          use: ['style-loader', 'css-loader', 'postcss-loader'],
         },
       ],
     },
@@ -42,9 +48,9 @@ const config = [
       compress: true,
       port: 9000,
       hot: true,
-      allowedHosts: "all",
+      allowedHosts: 'all',
       headers: {
-        "Access-Control-Allow-Origin": "*",
+        'Access-Control-Allow-Origin': '*',
       },
     },
   },
@@ -54,8 +60,8 @@ module.exports = (env, argv) => {
   for (const configItem of config) {
     configItem.mode = argv.mode;
 
-    if (argv.mode === "production") {
-      configItem.devtool = "hidden-source-map";
+    if (argv.mode === 'production') {
+      configItem.devtool = 'hidden-source-map';
     }
   }
 

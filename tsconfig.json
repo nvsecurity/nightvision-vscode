@@ -7,6 +7,14 @@
     "sourceMap": true,
     "rootDir": "src",
     "strict": true,
-    "jsx": "react"
+    "jsx": "react",
+    "baseUrl": ".",
+    "paths": {
+      "@commands/*": ["./src/commands/*"],
+      "@components/*": ["./src/components/*"],
+      "@pages/*": ["./src/pages/*"],
+      "@utils/*": ["./src/utils/*"],
+      "@styles/*": ["./src/styles/*"]
+    }
   }
 }
