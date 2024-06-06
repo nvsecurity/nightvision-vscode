@@ -18,6 +18,8 @@ const config = [
       extensions: ['.ts', '.js', '.tsx', '.jsx'],
       alias: {
         '@components': path.resolve(__dirname, '../src/components/'),
+        '@contexts': path.resolve(__dirname, '../src/contexts/'),
+        '@hooks': path.resolve(__dirname, '../src/hooks/'),
         '@pages': path.resolve(__dirname, '../src/pages/'),
         '@utils': path.resolve(__dirname, '../src/utils/'),
         '@styles': path.resolve(__dirname, '../src/styles/'),
@@ -49,6 +51,9 @@ const config = [
       port: 9000,
       hot: true,
       allowedHosts: 'all',
+      // devMiddleware: {
+      //   writeToDisk: true,
+      // },
       headers: {
         'Access-Control-Allow-Origin': '*',
       },
