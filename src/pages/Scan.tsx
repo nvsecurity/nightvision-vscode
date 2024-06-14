@@ -56,7 +56,6 @@ export const Scan = () => {
     setToggled(null);
     setIssues([]);
 
-    await new Promise((resolve) => setTimeout(resolve, 3000));
     for await (const response of requestGenerator) {
       console.log('Received data:', response);
       switch (response.command) {
@@ -65,7 +64,6 @@ export const Scan = () => {
           setTimestamp(Date.now());
           setIsScanning(true);
           setIsLoading(false);
-          await new Promise((resolve) => setTimeout(resolve, 5000));
           break;
         }
         case 'issues': {
