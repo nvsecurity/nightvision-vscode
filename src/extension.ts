@@ -59,7 +59,7 @@ class SidebarProvider implements vscode.WebviewViewProvider {
           break;
         }
         case 'scan': {
-          const { applicationName, targetName, targetUrl } = payload;
+          const { applicationName, targetName } = payload;
 
           const scanCommand = new Command(
             `nightvision scan -a ${applicationName} -t ${targetName}`,
@@ -67,9 +67,20 @@ class SidebarProvider implements vscode.WebviewViewProvider {
             requestId
           );
 
+          scanCommand.handleStdout = (data) => {
+            const message = data.toString();
+
+            if (/Application .* does not exist within project/.test(message)) {
+              webviewView.webview.postMessage({
+                command: 'invalid-application',
+                requestId,
+              });
+            }
+          };
+
           scanCommand.handleStderr = (data) => {
             const message = data.toString();
-            console.log(message);
+
             if (/INFO Scan Details/.test(message)) {
               webviewView.webview.postMessage({
                 command: 'scan-id',
@@ -88,12 +99,16 @@ class SidebarProvider implements vscode.WebviewViewProvider {
                   return { name: i[1], severity: i[2] };
                 }),
               });
-            } else if (/INFO Scanning in progress/.test(message)) {
-              // webviewView.webview.postMessage({
-              //   command: 'test-command',
-              //   requestId,
-              //   payload: [{ name: 'test-issue', severity: 'low' }],
-              // });
+            } else if (/error validating target location/.test(message)) {
+              webviewView.webview.postMessage({
+                command: 'invalid-target',
+                requestId,
+              });
+            } else if (/target connectivity test failed/.test(message)) {
+              webviewView.webview.postMessage({
+                command: 'invalid-target',
+                requestId,
+              });
             }
           };
 

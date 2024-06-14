@@ -10,7 +10,7 @@ export const Overview = () => {
   return (
     <div className='flex flex-col space-y-4'>
       <h1 className='font-bold uppercase'>Overview</h1>
-      <Link to='scan'>
+      <Link to='/scan'>
         <button className='rounded text-white'>New Scan</button>
       </Link>
 

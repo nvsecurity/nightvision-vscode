@@ -2,14 +2,17 @@ import { v4 } from 'uuid';
 import * as React from 'react';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { Dropdown } from '@components/Dropdown';
 import { messageHandler } from '@utils/MessageHandler';
 
 type Severity = 'critical' | 'high' | 'medium' | 'low';
 
+const applicationNames = ['vuln_node_express', 'vuln_node_express2'];
+const targetNames = ['vuln_node_express', 'vulnweb', 'test-url-not-real'];
+
 export const Scan = () => {
-  const [applicationName, setApplicationName] = useState('vuln_node_express');
-  const [targetName, setTargetName] = useState('vuln_node_express');
-  const [targetUrl, setTargetUrl] = useState('http://localhost:3001');
+  const [applicationName, setApplicationName] = useState(applicationNames[0]);
+  const [targetName, setTargetName] = useState(targetNames[0]);
 
   const [requestId, setRequestId] = useState('');
   const [scanId, setScanId] = useState('');
@@ -44,7 +47,6 @@ export const Scan = () => {
     const requestGenerator = messageHandler.requestGenerator('scan', reqId, {
       applicationName,
       targetName,
-      targetUrl,
     });
 
     setDuration(0);
@@ -93,29 +95,6 @@ export const Scan = () => {
     return () => clearInterval(interval);
   }, [isScanning, timestamp]);
 
-  // useEffect(() => {
-  //   let interval: NodeJS.Timeout | undefined;
-  //   setLastUpdatedText?.(calculateTimeDiff(lastUpdated));
-  //   setTimeUntilReload(
-  //     parseInt(process.env.NEXT_PUBLIC_REVALIDATION_SECONDS ?? '600') -
-  //       Math.floor((new Date().getTime() - lastUpdated) / 1000)
-  //   );
-  //   clearInterval(interval);
-  //   interval = setInterval(() => {
-  //     setLastUpdatedText?.(calculateTimeDiff(lastUpdated));
-  //     setDisableRefresh(
-  //       new Date().getTime() - lastUpdated <
-  //         parseInt(process.env.NEXT_PUBLIC_REVALIDATION_SECONDS ?? '600') * 1000
-  //     );
-  //     setTimeUntilReload(
-  //       parseInt(process.env.NEXT_PUBLIC_REVALIDATION_SECONDS ?? '600') -
-  //         Math.floor((new Date().getTime() - lastUpdated) / 1000)
-  //     );
-  //   }, 1000);
-
-  //   return () => clearInterval(interval);
-  // }, [lastUpdated, setLastUpdatedText]);
-
   const hours = Math.floor(duration / 3600);
   const minutes = Math.floor((duration % 3600) / 60);
   const seconds = Math.floor(duration % 60);
@@ -152,13 +131,13 @@ export const Scan = () => {
             className='mb-1 text-sm uppercase opacity-50'
             htmlFor='application'
           >
-            Application Name {scanId}
+            Application Name
           </label>
-          <input
-            onChange={(e) => setApplicationName(e.target.value)}
-            value={applicationName}
-            className='w-full'
-            id='application'
+          <Dropdown
+            items={applicationNames}
+            name='Application'
+            route='/application'
+            handleChange={setApplicationName}
           />
         </div>
         <div>
@@ -168,37 +147,17 @@ export const Scan = () => {
           >
             Target Name
           </label>
-          <input
-            onChange={(e) => setTargetName(e.target.value)}
-            value={targetName}
-            className='w-full'
-            id='target-name'
+          <Dropdown
+            items={targetNames}
+            name='Target'
+            route='/target'
+            handleChange={setTargetName}
           />
         </div>
-        {/* <div>
-          <label
-            className='mb-1 text-sm uppercase opacity-50'
-            htmlFor='target-url'
-          >
-            Target URL
-          </label>
-          <input
-            onChange={(e) => setTargetUrl(e.target.value)}
-            value={targetUrl}
-            className='w-full'
-            id='target-url'
-          />
-        </div> */}
       </div>
-      {/* <select name='cars' id='cars' className='h-8 w-full bg-neutral-800'>
-        <option value='volvo'>Volvo</option>
-        <option value='saab'>Saab</option>
-        <option value='mercedes'>Mercedes</option>
-        <option value='audi'>Audi</option>
-      </select> */}
       <button
         onClick={handleScanClick}
-        className='rounded disabled:bg-neutral-800 hover:disabled:cursor-default'
+        className={`rounded disabled:bg-neutral-800 hover:disabled:cursor-default ${isScanning ? 'bg-red-500 hover:bg-red-500 hover:brightness-90' : ''}`}
         disabled={isLoading}
       >
         {isLoading ? 'Loading...' : isScanning ? 'Cancel' : 'Start Scan'}
@@ -269,12 +228,7 @@ export const Scan = () => {
             <span className='ml-2 font-bold'>{formattedTime}</span>
           </div>
         </div>
-        {/* <span>No issues</span> */}
         <div className='mt-4 grid auto-cols-min grid-cols-1 gap-3 min-[280px]:grid-cols-2'>
-          {/* <div className='efore:-translate-x-1/4 efore:-translate-y-1/4 efore:rotate-45 relative flex justify-between overflow-hidden before:absolute before:-top-5 before:right-0 before:-z-10 before:h-20 before:w-[20px] before:bg-red-600'>
-            <span>Critical</span>
-            <span>12</span>
-          </div> */}
           <IssueCard
             severity='critical'
             amount={
@@ -325,22 +279,6 @@ export const Scan = () => {
               : 'No issues found!'}
           </ul>
         )}
-        {/* <svg
-          width='18'
-          height='18'
-          viewBox='0 0 18 14'
-          fill='none'
-          xmlns='http://www.w3.org/2000/svg'
-          className='mx-auto my-10 h-20 w-20'
-        >
-          <path
-            d='M12.1804 3.82001C12.5987 4.23794 12.9307 4.73424 13.1571 5.28053C13.3836 5.82682 13.5001 6.41239 13.5001 7.00376C13.5001 7.59513 13.3836 8.1807 13.1571 8.72699C12.9307 9.27328 12.5987 9.76958 12.1804 10.1875M5.82035 10.18C5.40196 9.76208 5.07004 9.26578 4.84358 8.71949C4.61712 8.1732 4.50056 7.58763 4.50056 6.99626C4.50056 6.40489 4.61712 5.81932 4.84358 5.27303C5.07004 4.72674 5.40196 4.23044 5.82035 3.81251M14.3029 1.69751C15.7089 3.10397 16.4987 5.01128 16.4987 7.00001C16.4987 8.98874 15.7089 10.8961 14.3029 12.3025M3.69785 12.3025C2.29182 10.8961 1.50195 8.98874 1.50195 7.00001C1.50195 5.01128 2.29182 3.10397 3.69785 1.69751M10.5004 7.00001C10.5004 7.82844 9.82878 8.50001 9.00035 8.50001C8.17192 8.50001 7.50035 7.82844 7.50035 7.00001C7.50035 6.17158 8.17192 5.50001 9.00035 5.50001C9.82878 5.50001 10.5004 6.17158 10.5004 7.00001Z'
-            stroke='white'
-            stroke-width='1.5'
-            stroke-linecap='round'
-            stroke-linejoin='round'
-          ></path>
-        </svg> */}
       </div>
     </div>
   );
@@ -375,11 +313,6 @@ const IssueCard = ({
         }
         setToggled(severity);
       }}
-      // onMouseUp={() => {
-      //   if (isToggled) {
-      //     setToggled(null);
-      //   }
-      // }}
     >
       <span className='text-3xl font-bold'>{amount}</span>
       <span className='text-center font-medium capitalize brightness-50'>
