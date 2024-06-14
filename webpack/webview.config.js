@@ -3,6 +3,9 @@
 'use strict';
 
 const path = require('path');
+const dotenv = require('dotenv');
+
+dotenv.config();
 
 const config = [
   {
@@ -48,7 +51,7 @@ const config = [
     plugins: [],
     devServer: {
       compress: true,
-      port: 9000,
+      port: process.env.PORT,
       hot: true,
       allowedHosts: 'all',
       // devMiddleware: {

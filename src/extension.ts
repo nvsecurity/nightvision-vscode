@@ -179,7 +179,7 @@ class SidebarProvider implements vscode.WebviewViewProvider {
     webview: vscode.Webview
   ) {
     const jsFile = 'webview.js';
-    const localServerUrl = 'http://localhost:9000';
+    const localServerUrl = `http://localhost:${process.env.PORT}`;
 
     let scriptUrl = null;
 
