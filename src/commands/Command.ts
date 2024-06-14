@@ -16,8 +16,8 @@ export default class Command {
     const [cmd, ...args] = this.command.split(' ');
     const child = cp.spawn(cmd, args);
 
-    child.stdout.on('data', (data) => this.handleStdout(data));
-    child.stderr.on('data', (data) => this.handleStderr(data));
+    child.stdout.on('data', (data) => this.handleOutput(data));
+    child.stderr.on('data', (data) => this.handleOutput(data));
     child.on('exit', (code, signal) => {
       this.handleExit(code, signal);
     });
@@ -28,23 +28,8 @@ export default class Command {
     return child;
   }
 
-  handleStdout(data: any) {
+  handleOutput(data: any) {
     console.log(data.toString());
-  }
-
-  handleStderr(data: any) {
-    console.log(data.toString());
-    if (
-      /Please try to log in again by running `nightvision login`/.test(
-        data.toString()
-      )
-    ) {
-      this.webview.postMessage({
-        command: 'unauthorized-access',
-        requestId: this.requestId,
-        isFinal: true,
-      });
-    }
   }
 
   handleExit(code: number | null, signal: string | null) {
@@ -58,5 +43,19 @@ export default class Command {
 
   handleError(err: Error) {
     console.error(err);
+  }
+
+  isLoggedIn(message: string) {
+    if (
+      /Please try to log in again by running `nightvision login`/.test(message)
+    ) {
+      this.webview.postMessage({
+        command: 'unauthorized-access',
+        requestId: this.requestId,
+        isFinal: true,
+      });
+      return false;
+    }
+    return true;
   }
 }

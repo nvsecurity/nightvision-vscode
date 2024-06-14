@@ -2,7 +2,9 @@ import { ChildProcessWithoutNullStreams } from 'child_process';
 import { join } from 'path';
 import * as vscode from 'vscode';
 import { ExtensionContext, ExtensionMode, Uri } from 'vscode';
-import Command from '@commands/Command';
+import CreateApp from '@commands/CreateApp';
+import ListApp from '@commands/ListApp';
+import Scan from '@commands/Scan';
 
 export function activate(context: vscode.ExtensionContext) {
   const sidebarProvider = new SidebarProvider(context);
@@ -61,56 +63,12 @@ class SidebarProvider implements vscode.WebviewViewProvider {
         case 'scan': {
           const { applicationName, targetName } = payload;
 
-          const scanCommand = new Command(
-            `nightvision scan -a ${applicationName} -t ${targetName}`,
+          const scanCommand = new Scan(
             webviewView.webview,
-            requestId
+            requestId,
+            applicationName,
+            targetName
           );
-
-          scanCommand.handleStdout = (data) => {
-            const message = data.toString();
-
-            if (/Application .* does not exist within project/.test(message)) {
-              webviewView.webview.postMessage({
-                command: 'invalid-application',
-                requestId,
-              });
-            }
-          };
-
-          scanCommand.handleStderr = (data) => {
-            const message = data.toString();
-
-            if (/INFO Scan Details/.test(message)) {
-              webviewView.webview.postMessage({
-                command: 'scan-id',
-                requestId,
-                payload: message.match(/Scan ID: (.*)/)[1],
-              });
-            } else if (/INFO New Issue detected/.test(message)) {
-              webviewView.webview.postMessage({
-                command: 'issues',
-                requestId,
-                payload: [
-                  ...message.matchAll(
-                    /name=['"](.*)['"]\s+severity=(.*)\s+total.*/g
-                  ),
-                ].map((i) => {
-                  return { name: i[1], severity: i[2] };
-                }),
-              });
-            } else if (/error validating target location/.test(message)) {
-              webviewView.webview.postMessage({
-                command: 'invalid-target',
-                requestId,
-              });
-            } else if (/target connectivity test failed/.test(message)) {
-              webviewView.webview.postMessage({
-                command: 'invalid-target',
-                requestId,
-              });
-            }
-          };
 
           this._children[requestId] = scanCommand.execute();
           break;
@@ -118,55 +76,19 @@ class SidebarProvider implements vscode.WebviewViewProvider {
         case 'create-app': {
           const { applicationName } = payload;
 
-          const createAppCommand = new Command(
-            `nightvision app create -n ${applicationName}`,
+          const createAppCommand = new CreateApp(
             webviewView.webview,
-            requestId
+            requestId,
+            applicationName
           );
-
-          createAppCommand.handleStdout = (data) => {
-            const message = data.toString();
-
-            if (/Id:/.test(message)) {
-              webviewView.webview.postMessage({
-                command: 'created-app',
-                requestId,
-                payload: applicationName,
-              });
-            } else if (/ERROR name should have a max length/.test(message)) {
-              webviewView.webview.postMessage({
-                command: 'invalid-app-name',
-                requestId,
-              });
-            }
-          };
 
           this._children[requestId] = createAppCommand.execute();
           break;
         }
-        case 'app-list': {
-          const appListCommand = new Command(
-            'nightvision app list',
-            webviewView.webview,
-            requestId
-          );
+        case 'list-app': {
+          const listAppCommand = new ListApp(webviewView.webview, requestId);
 
-          appListCommand.handleStdout = (data) => {
-            const message = data.toString();
-            console.log(message);
-
-            if (/Number:/.test(message)) {
-              webviewView.webview.postMessage({
-                command: 'app-list',
-                requestId,
-                payload: [...message.matchAll(/^Name:\s*(.*)/gm)].map(
-                  (i) => i[1]
-                ),
-              });
-            }
-          };
-
-          this._children[requestId] = appListCommand.execute();
+          this._children[requestId] = listAppCommand.execute();
           break;
         }
       }

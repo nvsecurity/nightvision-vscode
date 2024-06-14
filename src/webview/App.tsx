@@ -36,13 +36,13 @@ export const App = () => {
     (async () => {
       const reqId = v4();
       const requestGenerator = messageHandler.requestGenerator(
-        'app-list',
+        'list-app',
         reqId
       );
       for await (const response of requestGenerator) {
         console.log('Received data:', response);
         switch (response.command) {
-          case 'app-list':
+          case 'list-app':
             if (!ignore) {
               setApps((prevState) => [...prevState, ...response.payload]);
             }
