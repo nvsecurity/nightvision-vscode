@@ -1,17 +1,19 @@
+import { useApps } from '@hooks/useApps';
 import { v4 } from 'uuid';
-import * as React from 'react';
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Dropdown } from '@components/Dropdown';
 import { messageHandler } from '@utils/MessageHandler';
 
 type Severity = 'critical' | 'high' | 'medium' | 'low';
 
-const applicationNames = ['vuln_node_express', 'vuln_node_express2'];
+// const applicationNames = ['vuln_node_express', 'vuln_node_express2'];
 const targetNames = ['vuln_node_express', 'vulnweb', 'test-url-not-real'];
 
 export const Scan = () => {
-  const [applicationName, setApplicationName] = useState(applicationNames[0]);
+  const { apps } = useApps();
+
+  const [applicationName, setApplicationName] = useState(apps[0]);
   const [targetName, setTargetName] = useState(targetNames[0]);
 
   const [requestId, setRequestId] = useState('');
@@ -131,7 +133,7 @@ export const Scan = () => {
             Application Name
           </label>
           <Dropdown
-            items={applicationNames}
+            items={apps}
             name='Application'
             route='/application'
             handleChange={setApplicationName}

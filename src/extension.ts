@@ -115,6 +115,60 @@ class SidebarProvider implements vscode.WebviewViewProvider {
           this._children[requestId] = scanCommand.execute();
           break;
         }
+        case 'create-app': {
+          const { applicationName } = payload;
+
+          const createAppCommand = new Command(
+            `nightvision app create -n ${applicationName}`,
+            webviewView.webview,
+            requestId
+          );
+
+          createAppCommand.handleStdout = (data) => {
+            const message = data.toString();
+
+            if (/Id:/.test(message)) {
+              webviewView.webview.postMessage({
+                command: 'created-app',
+                requestId,
+                payload: applicationName,
+              });
+            } else if (/ERROR name should have a max length/.test(message)) {
+              webviewView.webview.postMessage({
+                command: 'invalid-app-name',
+                requestId,
+              });
+            }
+          };
+
+          this._children[requestId] = createAppCommand.execute();
+          break;
+        }
+        case 'app-list': {
+          const appListCommand = new Command(
+            'nightvision app list',
+            webviewView.webview,
+            requestId
+          );
+
+          appListCommand.handleStdout = (data) => {
+            const message = data.toString();
+            console.log(message);
+
+            if (/Number:/.test(message)) {
+              webviewView.webview.postMessage({
+                command: 'app-list',
+                requestId,
+                payload: [...message.matchAll(/^Name:\s*(.*)/gm)].map(
+                  (i) => i[1]
+                ),
+              });
+            }
+          };
+
+          this._children[requestId] = appListCommand.execute();
+          break;
+        }
       }
       return;
     });

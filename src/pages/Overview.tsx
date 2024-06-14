@@ -1,6 +1,5 @@
 import { Scan, Severity } from '@contexts/ScanContext';
-import { useScans } from '@hooks/useScans';
-import * as React from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import formatDuration from '@utils/formatDuration';
 
