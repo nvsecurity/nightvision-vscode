@@ -59,14 +59,12 @@ export const Scan = () => {
     await new Promise((resolve) => setTimeout(resolve, 3000));
     for await (const response of requestGenerator) {
       console.log('Received data:', response);
-      if (!isScanning) {
-        setIsScanning(true);
-        setIsLoading(false);
-      }
       switch (response.command) {
         case 'scan-id': {
           setScanId(response.payload);
           setTimestamp(Date.now());
+          setIsScanning(true);
+          setIsLoading(false);
           await new Promise((resolve) => setTimeout(resolve, 5000));
           break;
         }
@@ -77,6 +75,7 @@ export const Scan = () => {
       }
     }
     setIsScanning(false);
+    setIsLoading(false);
   };
 
   useEffect(() => {
