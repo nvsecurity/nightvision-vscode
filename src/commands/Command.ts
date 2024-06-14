@@ -14,7 +14,7 @@ export default class Command {
 
   execute() {
     const [cmd, ...args] = this.command.split(' ');
-    const child = cp.spawn(cmd, args, { cwd: 'C:/Users/Sean' });
+    const child = cp.spawn(cmd, args);
 
     child.stdout.on('data', (data) => this.handleStdout(data));
     child.stderr.on('data', (data) => this.handleStderr(data));
