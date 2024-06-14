@@ -8,7 +8,7 @@ import React, {
 
 export type Severity = 'critical' | 'high' | 'medium' | 'low';
 
-interface Scan {
+export interface Scan {
   requestId: string;
   applicationName: string;
   targetName: string;

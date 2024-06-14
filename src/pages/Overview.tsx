@@ -1,11 +1,48 @@
-import { Severity } from '@contexts/ScanContext';
+import { Scan, Severity } from '@contexts/ScanContext';
 import { useScans } from '@hooks/useScans';
 import * as React from 'react';
 import { Link } from 'react-router-dom';
 import formatDuration from '@utils/formatDuration';
 
+const scans: { [scanId: string]: Scan } = {
+  'scan-id-1': {
+    applicationName: 'vuln_node_express',
+    duration: 565,
+    issues: [
+      { name: 'issue-1', severity: 'critical' },
+      { name: 'issue-1', severity: 'medium' },
+      { name: 'issue-1', severity: 'medium' },
+    ],
+    requestId: 'req-id',
+    targetName: 'vuln_node_express',
+    timestamp: Date.now(),
+    isScanning: true,
+    isError: false,
+  },
+  'scan-id-2': {
+    applicationName: 'vuln_node_express',
+    duration: 422,
+    issues: [{ name: 'issue-1', severity: 'high' }],
+    requestId: 'req-id',
+    targetName: 'vuln_node_express',
+    timestamp: 0,
+    isScanning: false,
+    isError: false,
+  },
+  'scan-id-3': {
+    applicationName: 'vuln_node_express',
+    duration: 378,
+    issues: [{ name: 'issue-1', severity: 'low' }],
+    requestId: 'req-id',
+    targetName: 'vuln_node_express',
+    timestamp: 0,
+    isScanning: false,
+    isError: false,
+  },
+};
+
 export const Overview = () => {
-  const { scans } = useScans();
+  // const { scans } = useScans();
 
   return (
     <div className='flex flex-col space-y-4'>
