@@ -4,7 +4,7 @@ export interface MessageData {
   command: string;
   payload?: any;
   requestId?: string;
-  error?: any;
+  error?: string;
   isFinal?: boolean;
 }
 

@@ -39,16 +39,21 @@ export const App = () => {
         'list-app',
         reqId
       );
-      for await (const response of requestGenerator) {
-        console.log('Received data:', response);
-        switch (response.command) {
-          case 'list-app':
-            if (!ignore) {
-              setApps((prevState) => [...prevState, ...response.payload]);
-            }
-            break;
+
+      try {
+        for await (const response of requestGenerator) {
+          switch (response.command) {
+            case 'list-app':
+              if (!ignore) {
+                setApps((prevState) => [...prevState, ...response.payload]);
+              }
+              break;
+          }
         }
+      } catch (err) {
+        console.error(err);
       }
+
       setIsLoading(false);
     })();
 

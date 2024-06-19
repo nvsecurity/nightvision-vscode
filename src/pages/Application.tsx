@@ -26,16 +26,19 @@ export const Application = () => {
 
     setIsLoading(true);
 
-    for await (const response of requestGenerator) {
-      console.log('Received data:', response);
-      switch (response.command) {
-        case 'created-app':
-          setApps((prevState) => [response.payload, ...prevState]);
-          break;
-        case 'invalid-app-name': {
-          break;
+    try {
+      for await (const response of requestGenerator) {
+        switch (response.command) {
+          case 'created-app':
+            setApps((prevState) => [response.payload, ...prevState]);
+            break;
+          case 'invalid-app-name': {
+            break;
+          }
         }
       }
+    } catch (err) {
+      console.error(err);
     }
 
     setIsLoading(false);

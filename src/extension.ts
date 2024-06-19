@@ -51,47 +51,57 @@ class SidebarProvider implements vscode.WebviewViewProvider {
         payload,
       }: { command: string; requestId: string; payload: any } = data;
 
-      switch (command) {
-        case 'kill': {
-          this._children[requestId]?.kill();
-          webviewView.webview.postMessage({
-            requestId,
-            isFinal: true,
-          });
-          break;
+      try {
+        switch (command) {
+          case 'kill': {
+            this._children[requestId]?.kill();
+            webviewView.webview.postMessage({
+              requestId,
+              isFinal: true,
+            });
+            break;
+          }
+          case 'scan': {
+            const { applicationName, targetName } = payload;
+
+            const scanCommand = new Scan(
+              webviewView.webview,
+              requestId,
+              applicationName,
+              targetName
+            );
+
+            this._children[requestId] = scanCommand.execute();
+            break;
+          }
+          case 'create-app': {
+            const { applicationName } = payload;
+
+            const createAppCommand = new CreateApp(
+              webviewView.webview,
+              requestId,
+              applicationName
+            );
+
+            this._children[requestId] = createAppCommand.execute();
+            break;
+          }
+          case 'list-app': {
+            const listAppCommand = new ListApp(webviewView.webview, requestId);
+
+            this._children[requestId] = listAppCommand.execute();
+            break;
+          }
         }
-        case 'scan': {
-          const { applicationName, targetName } = payload;
-
-          const scanCommand = new Scan(
-            webviewView.webview,
-            requestId,
-            applicationName,
-            targetName
-          );
-
-          this._children[requestId] = scanCommand.execute();
-          break;
-        }
-        case 'create-app': {
-          const { applicationName } = payload;
-
-          const createAppCommand = new CreateApp(
-            webviewView.webview,
-            requestId,
-            applicationName
-          );
-
-          this._children[requestId] = createAppCommand.execute();
-          break;
-        }
-        case 'list-app': {
-          const listAppCommand = new ListApp(webviewView.webview, requestId);
-
-          this._children[requestId] = listAppCommand.execute();
-          break;
-        }
+      } catch (err) {
+        webviewView.webview.postMessage({
+          command,
+          requestId,
+          isFinal: true,
+          error: err instanceof Error ? err.message : JSON.stringify(err),
+        });
       }
+
       return;
     });
   }

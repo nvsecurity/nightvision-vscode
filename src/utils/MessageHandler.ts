@@ -59,16 +59,19 @@ class MessageHandler {
       (resolve, reject) => {
         const queue: MessageData[] = [];
         let done = false;
+        let errorOccurred = false;
+        let errorMessage = '';
 
         const pushToQueue = (
           command: string,
           payload: any,
-          error: any,
+          error: string,
           isFinal: boolean
         ) => {
           if (error) {
             done = true;
-            reject(error);
+            errorOccurred = true;
+            errorMessage = error;
           } else {
             queue.push({
               command,
@@ -108,6 +111,9 @@ class MessageHandler {
               } else {
                 await new Promise((r) => setTimeout(r, 100));
               }
+            }
+            if (errorOccurred) {
+              throw new Error(errorMessage);
             }
           })()
         );
