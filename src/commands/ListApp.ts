@@ -1,6 +1,6 @@
-import * as cp from 'child_process';
 import * as vscode from 'vscode';
 import Command from '@commands/Command';
+import { LIST_APP } from '@commands/CommandConstants';
 
 export default class ListApp extends Command {
   constructor(webview: vscode.Webview, requestId: string) {
@@ -17,7 +17,7 @@ export default class ListApp extends Command {
 
     if (/Number:/.test(message)) {
       this.webview.postMessage({
-        command: 'list-app',
+        command: LIST_APP,
         requestId: this.requestId,
         payload: [...message.matchAll(/^Name:\s*(.*)/gm)].map((i) => i[1]),
       });

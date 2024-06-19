@@ -1,6 +1,6 @@
-import * as cp from 'child_process';
 import * as vscode from 'vscode';
 import Command from '@commands/Command';
+import { CREATE_APP, INVALID_APP_NAME } from '@commands/CommandConstants';
 
 export default class CreateApp extends Command {
   protected applicationName: string;
@@ -24,13 +24,13 @@ export default class CreateApp extends Command {
 
     if (/Id:/.test(message)) {
       this.webview.postMessage({
-        command: 'created-app',
+        command: CREATE_APP,
         requestId: this.requestId,
         payload: this.applicationName,
       });
     } else if (/ERROR name should have a max length/.test(message)) {
       this.webview.postMessage({
-        command: 'invalid-app-name',
+        command: INVALID_APP_NAME,
         requestId: this.requestId,
       });
     }

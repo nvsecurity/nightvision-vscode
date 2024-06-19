@@ -1,0 +1,11 @@
+export const CREATE_APP = 'create-app';
+export const EXIT = 'exit';
+export const INVALID_APP = 'invalid-app';
+export const INVALID_APP_NAME = 'invalid-app-name';
+export const INVALID_TARGET = 'invalid-target';
+export const ISSUES = 'issues';
+export const KILL = 'kill';
+export const LIST_APP = 'list-app';
+export const SCAN = 'scan';
+export const SCAN_ID = 'scan-id';
+export const UNAUTHORIZED_ACCESS = 'unauthorized-access';

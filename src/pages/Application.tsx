@@ -3,6 +3,7 @@ import { v4 } from 'uuid';
 import React from 'react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { CREATE_APP, INVALID_APP_NAME } from '@commands/CommandConstants';
 import { messageHandler } from '@utils/MessageHandler';
 
 export const Application = () => {
@@ -17,7 +18,7 @@ export const Application = () => {
 
     const reqId = v4();
     const requestGenerator = messageHandler.requestGenerator(
-      'create-app',
+      CREATE_APP,
       reqId,
       {
         applicationName,
@@ -29,10 +30,10 @@ export const Application = () => {
     try {
       for await (const response of requestGenerator) {
         switch (response.command) {
-          case 'created-app':
+          case CREATE_APP:
             setApps((prevState) => [response.payload, ...prevState]);
             break;
-          case 'invalid-app-name': {
+          case INVALID_APP_NAME: {
             break;
           }
         }

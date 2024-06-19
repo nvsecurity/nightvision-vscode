@@ -2,6 +2,7 @@ import { useApps } from '@hooks/useApps';
 import { v4 } from 'uuid';
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { ISSUES, KILL, SCAN, SCAN_ID } from '@commands/CommandConstants';
 import { Dropdown } from '@components/Dropdown';
 import { messageHandler } from '@utils/MessageHandler';
 
@@ -33,10 +34,7 @@ export const Scan = () => {
     e.preventDefault();
 
     if (isScanning) {
-      const requestGenerator = messageHandler.requestGenerator(
-        'kill',
-        requestId
-      );
+      const requestGenerator = messageHandler.requestGenerator(KILL, requestId);
       for await (const response of requestGenerator) {
         console.log('Received data:', response);
       }
@@ -46,7 +44,7 @@ export const Scan = () => {
     }
 
     const reqId = v4();
-    const requestGenerator = messageHandler.requestGenerator('scan', reqId, {
+    const requestGenerator = messageHandler.requestGenerator(SCAN, reqId, {
       applicationName,
       targetName,
     });
@@ -61,14 +59,14 @@ export const Scan = () => {
     for await (const response of requestGenerator) {
       console.log('Received data:', response);
       switch (response.command) {
-        case 'scan-id': {
+        case SCAN_ID: {
           setScanId(response.payload);
           setTimestamp(Date.now());
           setIsScanning(true);
           setIsLoading(false);
           break;
         }
-        case 'issues': {
+        case ISSUES: {
           setIssues((prevIssues) => [...response.payload, ...prevIssues]);
           break;
         }

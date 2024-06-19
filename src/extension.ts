@@ -2,6 +2,7 @@ import { ChildProcessWithoutNullStreams } from 'child_process';
 import { join } from 'path';
 import * as vscode from 'vscode';
 import { ExtensionContext, ExtensionMode, Uri } from 'vscode';
+import { CREATE_APP, KILL, LIST_APP, SCAN } from '@commands/CommandConstants';
 import CreateApp from '@commands/CreateApp';
 import ListApp from '@commands/ListApp';
 import Scan from '@commands/Scan';
@@ -53,7 +54,7 @@ class SidebarProvider implements vscode.WebviewViewProvider {
 
       try {
         switch (command) {
-          case 'kill': {
+          case KILL: {
             this._children[requestId]?.kill();
             webviewView.webview.postMessage({
               requestId,
@@ -61,7 +62,7 @@ class SidebarProvider implements vscode.WebviewViewProvider {
             });
             break;
           }
-          case 'scan': {
+          case SCAN: {
             const { applicationName, targetName } = payload;
 
             const scanCommand = new Scan(
@@ -74,7 +75,7 @@ class SidebarProvider implements vscode.WebviewViewProvider {
             this._children[requestId] = scanCommand.execute();
             break;
           }
-          case 'create-app': {
+          case CREATE_APP: {
             const { applicationName } = payload;
 
             const createAppCommand = new CreateApp(
@@ -86,7 +87,7 @@ class SidebarProvider implements vscode.WebviewViewProvider {
             this._children[requestId] = createAppCommand.execute();
             break;
           }
-          case 'list-app': {
+          case LIST_APP: {
             const listAppCommand = new ListApp(webviewView.webview, requestId);
 
             this._children[requestId] = listAppCommand.execute();

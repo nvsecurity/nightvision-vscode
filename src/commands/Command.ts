@@ -1,5 +1,6 @@
 import * as cp from 'child_process';
 import * as vscode from 'vscode';
+import { EXIT, UNAUTHORIZED_ACCESS } from '@commands/CommandConstants';
 
 export default class Command {
   protected command: string;
@@ -34,7 +35,7 @@ export default class Command {
 
   handleExit(code: number | null, signal: string | null) {
     this.webview.postMessage({
-      command: 'exit',
+      command: EXIT,
       requestId: this.requestId,
       payload: { code, signal },
       isFinal: true,
@@ -50,7 +51,7 @@ export default class Command {
       /Please try to log in again by running `nightvision login`/.test(message)
     ) {
       this.webview.postMessage({
-        command: 'unauthorized-access',
+        command: UNAUTHORIZED_ACCESS,
         requestId: this.requestId,
         isFinal: true,
       });

@@ -2,6 +2,7 @@ import { Context } from '@contexts/Context';
 import { v4 } from 'uuid';
 import React, { useEffect, useState } from 'react';
 import { RouterProvider, createMemoryRouter } from 'react-router-dom';
+import { LIST_APP } from '@commands/CommandConstants';
 import { Layout } from '@components/Layout';
 import { Application } from '@pages/Application';
 import { Overview } from '@pages/Overview';
@@ -35,15 +36,12 @@ export const App = () => {
 
     (async () => {
       const reqId = v4();
-      const requestGenerator = messageHandler.requestGenerator(
-        'list-app',
-        reqId
-      );
+      const requestGenerator = messageHandler.requestGenerator(LIST_APP, reqId);
 
       try {
         for await (const response of requestGenerator) {
           switch (response.command) {
-            case 'list-app':
+            case LIST_APP:
               if (!ignore) {
                 setApps((prevState) => [...prevState, ...response.payload]);
               }

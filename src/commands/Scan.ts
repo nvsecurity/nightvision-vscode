@@ -1,6 +1,11 @@
-import * as cp from 'child_process';
 import * as vscode from 'vscode';
 import Command from '@commands/Command';
+import {
+  INVALID_APP,
+  INVALID_TARGET,
+  ISSUES,
+  SCAN_ID,
+} from '@commands/CommandConstants';
 
 export default class Scan extends Command {
   constructor(
@@ -26,18 +31,18 @@ export default class Scan extends Command {
 
     if (/Application .* does not exist within project/.test(message)) {
       this.webview.postMessage({
-        command: 'invalid-application',
+        command: INVALID_APP,
         requestId: this.requestId,
       });
     } else if (/INFO Scan Details/.test(message)) {
       this.webview.postMessage({
-        command: 'scan-id',
+        command: SCAN_ID,
         requestId: this.requestId,
         payload: message.match(/Scan ID: (.*)/)[1],
       });
     } else if (/INFO New Issue detected/.test(message)) {
       this.webview.postMessage({
-        command: 'issues',
+        command: ISSUES,
         requestId: this.requestId,
         payload: [
           ...message.matchAll(/name=['"](.*)['"]\s+severity=(.*)\s+total.*/g),
@@ -47,12 +52,12 @@ export default class Scan extends Command {
       });
     } else if (/error validating target location/.test(message)) {
       this.webview.postMessage({
-        command: 'invalid-target',
+        command: INVALID_TARGET,
         requestId: this.requestId,
       });
     } else if (/target connectivity test failed/.test(message)) {
       this.webview.postMessage({
-        command: 'invalid-target',
+        command: INVALID_TARGET,
         requestId: this.requestId,
       });
     }
