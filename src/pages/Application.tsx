@@ -1,14 +1,20 @@
-import { useApps } from '@hooks/useApps';
+import { useApp } from '@hooks/useApp';
+import { useUser } from '@hooks/useUser';
 import { v4 } from 'uuid';
 import React from 'react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { CREATE_APP, INVALID_APP_NAME } from '@commands/CommandConstants';
+import {
+  CREATE_APP,
+  INVALID_APP_NAME,
+  UNAUTHORIZED_ACCESS,
+} from '@commands/CommandConstants';
 import { messageHandler } from '@utils/MessageHandler';
 
 export const Application = () => {
   const navigate = useNavigate();
-  const { apps, setApps } = useApps();
+  const { apps, setApps } = useApp();
+  const { setIsLoggedIn } = useUser();
 
   const [applicationName, setApplicationName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -36,6 +42,9 @@ export const Application = () => {
           case INVALID_APP_NAME: {
             break;
           }
+          case UNAUTHORIZED_ACCESS:
+            setIsLoggedIn(false);
+            break;
         }
       }
     } catch (err) {

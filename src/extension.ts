@@ -2,9 +2,16 @@ import { ChildProcessWithoutNullStreams } from 'child_process';
 import { join } from 'path';
 import * as vscode from 'vscode';
 import { ExtensionContext, ExtensionMode, Uri } from 'vscode';
-import { CREATE_APP, KILL, LIST_APP, SCAN } from '@commands/CommandConstants';
+import {
+  CREATE_APP,
+  KILL,
+  LIST_APP,
+  LOGIN,
+  SCAN,
+} from '@commands/CommandConstants';
 import CreateApp from '@commands/CreateApp';
 import ListApp from '@commands/ListApp';
+import Login from '@commands/Login';
 import Scan from '@commands/Scan';
 
 export function activate(context: vscode.ExtensionContext) {
@@ -91,6 +98,12 @@ class SidebarProvider implements vscode.WebviewViewProvider {
             const listAppCommand = new ListApp(webviewView.webview, requestId);
 
             this._children[requestId] = listAppCommand.execute();
+            break;
+          }
+          case LOGIN: {
+            const loginCommand = new Login(webviewView.webview, requestId);
+
+            this._children[requestId] = loginCommand.execute();
             break;
           }
         }

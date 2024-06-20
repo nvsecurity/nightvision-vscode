@@ -1,8 +1,15 @@
-import { useApps } from '@hooks/useApps';
+import { useApp } from '@hooks/useApp';
+import { useUser } from '@hooks/useUser';
 import { v4 } from 'uuid';
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ISSUES, KILL, SCAN, SCAN_ID } from '@commands/CommandConstants';
+import {
+  ISSUES,
+  KILL,
+  SCAN,
+  SCAN_ID,
+  UNAUTHORIZED_ACCESS,
+} from '@commands/CommandConstants';
 import { Dropdown } from '@components/Dropdown';
 import { messageHandler } from '@utils/MessageHandler';
 
@@ -12,7 +19,8 @@ type Severity = 'critical' | 'high' | 'medium' | 'low';
 const targetNames = ['vuln_node_express', 'vulnweb', 'test-url-not-real'];
 
 export const Scan = () => {
-  const { apps } = useApps();
+  const { apps } = useApp();
+  const { setIsLoggedIn } = useUser();
 
   const [applicationName, setApplicationName] = useState(apps[0]);
   const [targetName, setTargetName] = useState(targetNames[0]);
@@ -70,6 +78,9 @@ export const Scan = () => {
           setIssues((prevIssues) => [...response.payload, ...prevIssues]);
           break;
         }
+        case UNAUTHORIZED_ACCESS:
+          setIsLoggedIn(false);
+          break;
       }
     }
     setIsScanning(false);

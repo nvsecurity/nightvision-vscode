@@ -1,8 +1,13 @@
-import { Context } from '@contexts/Context';
+import { AppContext } from '@contexts/AppContext';
+import { UserContext } from '@contexts/UserContext';
 import { v4 } from 'uuid';
 import React, { useEffect, useState } from 'react';
 import { RouterProvider, createMemoryRouter } from 'react-router-dom';
-import { LIST_APP } from '@commands/CommandConstants';
+import {
+  LIST_APP,
+  LOGIN,
+  UNAUTHORIZED_ACCESS,
+} from '@commands/CommandConstants';
 import { Layout } from '@components/Layout';
 import { Application } from '@pages/Application';
 import { Overview } from '@pages/Overview';
@@ -30,9 +35,34 @@ const router = createMemoryRouter(
 export const App = () => {
   const [apps, setApps] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoggedIn, setIsLoggedIn] = useState(true);
+
+  const handleLogin = async () => {
+    const reqId = v4();
+    const requestGenerator = messageHandler.requestGenerator(LOGIN, reqId);
+
+    try {
+      for await (const response of requestGenerator) {
+        switch (response.command) {
+          case LOGIN:
+            setIsLoggedIn(true);
+            setIsLoading(true);
+            break;
+        }
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   useEffect(() => {
+    if (!isLoggedIn) {
+      return;
+    }
+
     let ignore = false;
+
+    setApps([]);
 
     (async () => {
       const reqId = v4();
@@ -46,6 +76,9 @@ export const App = () => {
                 setApps((prevState) => [...prevState, ...response.payload]);
               }
               break;
+            case UNAUTHORIZED_ACCESS:
+              setIsLoggedIn(false);
+              break;
           }
         }
       } catch (err) {
@@ -58,14 +91,24 @@ export const App = () => {
     return () => {
       ignore = true;
     };
-  }, []);
+  }, [isLoggedIn]);
 
   return (
     <React.StrictMode>
       <Layout>
-        <Context.Provider value={{ apps, setApps }}>
-          {isLoading ? 'Loading...' : <RouterProvider router={router} />}
-        </Context.Provider>
+        <UserContext.Provider value={{ setIsLoggedIn }}>
+          <AppContext.Provider value={{ apps, setApps }}>
+            {isLoggedIn ? (
+              isLoading ? (
+                <span>Loading...</span>
+              ) : (
+                <RouterProvider router={router} />
+              )
+            ) : (
+              <button onClick={handleLogin}>Log in to NightVision</button>
+            )}
+          </AppContext.Provider>
+        </UserContext.Provider>
       </Layout>
     </React.StrictMode>
   );
