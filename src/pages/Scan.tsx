@@ -193,13 +193,12 @@ export const Scan = () => {
             <svg
               xmlns='http://www.w3.org/2000/svg'
               viewBox='0 0 100 100'
-              className={`h-5 w-5 ${isScanning ? 'visible' : 'invisible'}`}
+              className={`h-5 w-5 stroke-[--vscode-foreground] ${isScanning ? 'visible' : 'invisible'}`}
             >
               <circle
                 cx='50'
                 cy='50'
                 fill='none'
-                stroke='#ffffff'
                 strokeWidth='8'
                 r='35'
                 strokeDasharray='164.93361431346415 56.97787143782138'
