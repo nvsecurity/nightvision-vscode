@@ -9,6 +9,7 @@ import {
   UNAUTHORIZED_ACCESS,
 } from '@commands/CommandConstants';
 import { Layout } from '@components/Layout';
+import { Loading } from '@components/Loading';
 import { Application } from '@pages/Application';
 import { Overview } from '@pages/Overview';
 import { Scan } from '@pages/Scan';
@@ -100,7 +101,7 @@ export const App = () => {
           <AppContext.Provider value={{ apps, setApps }}>
             {isLoggedIn ? (
               isLoading ? (
-                <span>Loading...</span>
+                <Loading />
               ) : (
                 <RouterProvider router={router} />
               )
