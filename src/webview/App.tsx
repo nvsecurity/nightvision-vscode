@@ -128,11 +128,13 @@ export const App = () => {
     };
   }, [isLoggedIn]);
 
+  const sortedApps = [...apps].sort();
+
   return (
     <React.StrictMode>
       <Layout>
         <UserContext.Provider value={{ setIsLoggedIn }}>
-          <AppContext.Provider value={{ apps, setApps }}>
+          <AppContext.Provider value={{ apps: sortedApps, setApps }}>
             <TargetContext.Provider
               value={{
                 targets: targetNames
