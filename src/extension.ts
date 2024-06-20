@@ -4,13 +4,17 @@ import * as vscode from 'vscode';
 import { ExtensionContext, ExtensionMode, Uri } from 'vscode';
 import {
   CREATE_APP,
+  CREATE_TARGET,
   KILL,
   LIST_APP,
+  LIST_TARGET,
   LOGIN,
   SCAN,
 } from '@commands/CommandConstants';
 import CreateApp from '@commands/CreateApp';
+import CreateTarget from '@commands/CreateTarget';
 import ListApp from '@commands/ListApp';
+import ListTarget from '@commands/ListTarget';
 import Login from '@commands/Login';
 import Scan from '@commands/Scan';
 
@@ -98,6 +102,28 @@ class SidebarProvider implements vscode.WebviewViewProvider {
             const listAppCommand = new ListApp(webviewView.webview, requestId);
 
             this._children[requestId] = listAppCommand.execute();
+            break;
+          }
+          case CREATE_TARGET: {
+            const { targetName, targetUrl } = payload;
+
+            const createTargetCommand = new CreateTarget(
+              webviewView.webview,
+              requestId,
+              targetName,
+              targetUrl
+            );
+
+            this._children[requestId] = createTargetCommand.execute();
+            break;
+          }
+          case LIST_TARGET: {
+            const listTargetCommand = new ListTarget(
+              webviewView.webview,
+              requestId
+            );
+
+            this._children[requestId] = listTargetCommand.execute();
             break;
           }
           case LOGIN: {

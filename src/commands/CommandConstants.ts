@@ -1,11 +1,16 @@
 export const CREATE_APP = 'create-app';
+export const CREATE_TARGET = 'create-target';
+export const DUPLICATE_TARGET = 'duplicate-target';
 export const EXIT = 'exit';
 export const INVALID_APP = 'invalid-app';
 export const INVALID_APP_NAME = 'invalid-app-name';
 export const INVALID_TARGET = 'invalid-target';
+export const INVALID_TARGET_NAME = 'invalid-target-name';
+export const INVALID_URL = 'invalid-url-name';
 export const ISSUES = 'issues';
 export const KILL = 'kill';
 export const LIST_APP = 'list-app';
+export const LIST_TARGET = 'list-target';
 export const LOGIN = 'login';
 export const SCAN = 'scan';
 export const SCAN_ID = 'scan-id';

@@ -1,4 +1,5 @@
 import { useApp } from '@hooks/useApp';
+import { useTarget } from '@hooks/useTarget';
 import { useUser } from '@hooks/useUser';
 import { v4 } from 'uuid';
 import React, { useEffect, useState } from 'react';
@@ -15,15 +16,13 @@ import { messageHandler } from '@utils/MessageHandler';
 
 type Severity = 'critical' | 'high' | 'medium' | 'low';
 
-// const applicationNames = ['vuln_node_express', 'vuln_node_express2'];
-const targetNames = ['vuln_node_express', 'vulnweb', 'test-url-not-real'];
-
 export const Scan = () => {
   const { apps } = useApp();
+  const { targets } = useTarget();
   const { setIsLoggedIn } = useUser();
 
   const [applicationName, setApplicationName] = useState(apps[0]);
-  const [targetName, setTargetName] = useState(targetNames[0]);
+  const [targetName, setTargetName] = useState(targets[0].name);
 
   const [requestId, setRequestId] = useState('');
   const [scanId, setScanId] = useState('');
@@ -156,7 +155,7 @@ export const Scan = () => {
             Target Name
           </label>
           <Dropdown
-            items={targetNames}
+            items={targets.map((target) => target.name)}
             name='Target'
             route='/target'
             handleChange={setTargetName}
