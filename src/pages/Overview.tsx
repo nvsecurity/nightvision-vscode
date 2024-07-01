@@ -1,47 +1,23 @@
-import { Scan, Severity } from '@contexts/ScanContext';
-import React from 'react';
+import { Severity } from '@contexts/ScanContext';
+import { useScan } from '@hooks/useScan';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import formatDuration from '@utils/formatDuration';
 
-const scans: { [scanId: string]: Scan } = {
-  'scan-id-1': {
-    applicationName: 'vuln_node_express',
-    duration: 565,
-    issues: [
-      { name: 'issue-1', severity: 'critical' },
-      { name: 'issue-1', severity: 'medium' },
-      { name: 'issue-1', severity: 'medium' },
-    ],
-    requestId: 'req-id',
-    targetName: 'vuln_node_express',
-    timestamp: Date.now(),
-    isScanning: true,
-    isError: false,
-  },
-  'scan-id-2': {
-    applicationName: 'vuln_node_express',
-    duration: 422,
-    issues: [{ name: 'issue-1', severity: 'high' }],
-    requestId: 'req-id',
-    targetName: 'vuln_node_express',
-    timestamp: 0,
-    isScanning: false,
-    isError: false,
-  },
-  'scan-id-3': {
-    applicationName: 'vuln_node_express',
-    duration: 378,
-    issues: [{ name: 'issue-1', severity: 'low' }],
-    requestId: 'req-id',
-    targetName: 'vuln_node_express',
-    timestamp: 0,
-    isScanning: false,
-    isError: false,
-  },
-};
-
 export const Overview = () => {
-  // const { scans } = useScans();
+  const { scans } = useScan();
+
+  const [currentTime, setCurrentTime] = useState(new Date());
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout | undefined;
+    clearInterval(interval);
+    interval = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 500);
+
+    return () => clearInterval(interval);
+  }, [currentTime]);
 
   return (
     <div className='flex flex-col space-y-4'>
@@ -54,60 +30,60 @@ export const Overview = () => {
         {Object.entries(scans).map(([scanId, scan]) => {
           const severityCounts: Record<Severity, number> = scan.issues.reduce(
             (counts, issue) => {
-              counts[issue.severity] = (counts[issue.severity] || 0) + 1;
+              counts[issue.severity] += 1;
               return counts;
             },
             { critical: 0, high: 0, medium: 0, low: 0 }
           );
-
-          const critical = severityCounts.critical || 0;
-          const high = severityCounts.high || 0;
-          const medium = severityCounts.medium || 0;
-          const low = severityCounts.low || 0;
           return (
-            <div
+            <Link
+              to={`/scan/${scanId}`}
               key={scan.applicationName + scanId}
-              className='relative flex h-24 flex-col justify-between px-4 py-2 before:absolute before:inset-0 before:-z-10 before:rounded before:bg-[--vscode-input-background] hover:cursor-pointer before:hover:brightness-75'
+              className='relative flex h-24 flex-col justify-between px-4 py-2 text-[--vscode-foreground] before:absolute before:inset-0 before:-z-10 before:rounded before:bg-[--vscode-input-background] hover:cursor-pointer hover:text-[--vscode-foreground] before:hover:brightness-75'
             >
               <div className='flex justify-between'>
                 <span className='mr-2 overflow-hidden text-ellipsis font-bold'>
                   {scan.applicationName}
                 </span>
-                <span>{formatDuration(scan.duration)}</span>
+                <span>
+                  {formatDuration(
+                    (scan.endedAt?.getTime() || currentTime.getTime()) -
+                      scan.createdAt.getTime()
+                  )}
+                </span>
               </div>
               <div className='flex items-end justify-between'>
                 <span className='mr-2 overflow-hidden text-ellipsis'>
-                  {/* {scan.project} */}
-                  Sean_s_Default_Project
+                  {scan.projectName}
                 </span>
                 <div className='flex justify-between space-x-3'>
-                  {!!critical && (
+                  {!!severityCounts.critical && (
                     <div className='flex items-center justify-between space-x-0.5'>
                       <div className='mt-0.5 h-2 w-2 rounded-full bg-orange-600' />
-                      <span>{critical}</span>
+                      <span>{severityCounts.critical}</span>
                     </div>
                   )}
-                  {!!high && (
+                  {!!severityCounts.high && (
                     <div className='flex items-center justify-between space-x-0.5'>
                       <div className='mt-0.5 h-2 w-2 rounded-full bg-orange-600' />
-                      <span>{high}</span>
+                      <span>{severityCounts.high}</span>
                     </div>
                   )}
-                  {!!medium && (
+                  {!!severityCounts.medium && (
                     <div className='flex items-center justify-between space-x-0.5'>
                       <div className='mt-0.5 h-2 w-2 rounded-full bg-yellow-600' />
-                      <span>{medium}</span>
+                      <span>{severityCounts.medium}</span>
                     </div>
                   )}
-                  {!!low && (
+                  {!!severityCounts.low && (
                     <div className='flex items-center justify-between space-x-0.5'>
                       <div className='mt-0.5 h-2 w-2 rounded-full bg-green-600' />
-                      <span>{low}</span>
+                      <span>{severityCounts.low}</span>
                     </div>
                   )}
                 </div>
               </div>
-            </div>
+            </Link>
           );
         })}
       </div>

@@ -66,10 +66,11 @@ class SidebarProvider implements vscode.WebviewViewProvider {
       try {
         switch (command) {
           case KILL: {
-            this._children[requestId]?.kill();
+            this._children[requestId]?.kill('SIGINT');
+            this._children[requestId]?.kill('SIGTERM');
             webviewView.webview.postMessage({
+              command: KILL,
               requestId,
-              isFinal: true,
             });
             break;
           }

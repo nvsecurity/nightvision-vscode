@@ -14,4 +14,5 @@ export const LIST_TARGET = 'list-target';
 export const LOGIN = 'login';
 export const SCAN = 'scan';
 export const SCAN_ID = 'scan-id';
+export const SCAN_FINISHED = 'scan-finished';
 export const UNAUTHORIZED_ACCESS = 'unauthorized-access';

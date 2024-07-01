@@ -1,4 +1,5 @@
 import { AppContext } from '@contexts/AppContext';
+import { ScanContext, ScanType } from '@contexts/ScanContext';
 import { TargetContext } from '@contexts/TargetContext';
 import { UserContext } from '@contexts/UserContext';
 import { v4 } from 'uuid';
@@ -25,7 +26,7 @@ const router = createMemoryRouter(
       element: <Overview />,
     },
     {
-      path: '/scan',
+      path: '/scan/:scanId?',
       element: <Scan />,
     },
     {
@@ -42,8 +43,10 @@ const router = createMemoryRouter(
 
 export const App = () => {
   const [apps, setApps] = useState<string[]>([]);
+  const [scans, setScans] = useState<{ [scanId: string]: ScanType }>({});
   const [targetNames, setTargetNames] = useState<string[]>([]);
   const [targetUrls, setTargetUrls] = useState<string[]>([]);
+
   const [isLoading, setIsLoading] = useState(true);
   const [isLoggedIn, setIsLoggedIn] = useState(true);
 
@@ -135,28 +138,30 @@ export const App = () => {
       <Layout>
         <UserContext.Provider value={{ setIsLoggedIn }}>
           <AppContext.Provider value={{ apps: sortedApps, setApps }}>
-            <TargetContext.Provider
-              value={{
-                targets: targetNames
-                  .map((name, index) => ({
-                    name,
-                    url: targetUrls[index],
-                  }))
-                  .sort((a, b) => a.name.localeCompare(b.name)),
-                setTargetNames,
-                setTargetUrls,
-              }}
-            >
-              {isLoggedIn ? (
-                isLoading ? (
-                  <Loading />
+            <ScanContext.Provider value={{ scans, setScans }}>
+              <TargetContext.Provider
+                value={{
+                  targets: targetNames
+                    .map((name, index) => ({
+                      name,
+                      url: targetUrls[index],
+                    }))
+                    .sort((a, b) => a.name.localeCompare(b.name)),
+                  setTargetNames,
+                  setTargetUrls,
+                }}
+              >
+                {isLoggedIn ? (
+                  isLoading ? (
+                    <Loading />
+                  ) : (
+                    <RouterProvider router={router} />
+                  )
                 ) : (
-                  <RouterProvider router={router} />
-                )
-              ) : (
-                <button onClick={handleLogin}>Log in to NightVision</button>
-              )}
-            </TargetContext.Provider>
+                  <button onClick={handleLogin}>Log in to NightVision</button>
+                )}
+              </TargetContext.Provider>
+            </ScanContext.Provider>
           </AppContext.Provider>
         </UserContext.Provider>
       </Layout>

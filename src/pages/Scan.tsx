@@ -1,52 +1,71 @@
+import { ScanType, Severity } from '@contexts/ScanContext';
 import { useApp } from '@hooks/useApp';
+import { useScan } from '@hooks/useScan';
 import { useTarget } from '@hooks/useTarget';
 import { useUser } from '@hooks/useUser';
 import { v4 } from 'uuid';
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import {
   ISSUES,
   KILL,
   SCAN,
+  SCAN_FINISHED,
   SCAN_ID,
   UNAUTHORIZED_ACCESS,
 } from '@commands/CommandConstants';
 import { Dropdown } from '@components/Dropdown';
 import { messageHandler } from '@utils/MessageHandler';
-
-type Severity = 'critical' | 'high' | 'medium' | 'low';
+import formatDuration from '@utils/formatDuration';
 
 export const Scan = () => {
+  const navigate = useNavigate();
+  const { scanId } = useParams();
+
   const { apps } = useApp();
   const { targets } = useTarget();
+  const { scans, setScans } = useScan();
   const { setIsLoggedIn } = useUser();
+
+  const scan = scanId ? scans[scanId] : undefined;
 
   const [applicationName, setApplicationName] = useState(apps[0]);
   const [targetName, setTargetName] = useState(targets[0].name);
-
   const [requestId, setRequestId] = useState('');
-  const [scanId, setScanId] = useState('');
-  const [timestamp, setTimestamp] = useState(0);
-  const [duration, setDuration] = useState(0);
-  const [isScanning, setIsScanning] = useState(false);
-  const [isError, setIsError] = useState(false);
+  const [duration, setDuration] = useState(
+    scan
+      ? (scan.endedAt?.getTime() || new Date().getTime()) -
+          scan.createdAt.getTime()
+      : 0
+  );
   const [isLoading, setIsLoading] = useState(false);
   const [toggled, setToggled] = useState<Severity | null>(null);
 
-  const [issues, setIssues] = useState<{ name: string; severity: Severity }[]>(
-    []
-  );
+  const toggledIssues =
+    scan?.issues.filter((issue) => issue.severity.toLowerCase() === toggled) ??
+    [];
 
   const handleScanClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
 
-    if (isScanning) {
+    let tempScanId = scanId ?? '';
+
+    if (scan?.isScanning) {
       const requestGenerator = messageHandler.requestGenerator(KILL, requestId);
       for await (const response of requestGenerator) {
         console.log('Received data:', response);
+        if (response.command === KILL) {
+          setScans((prevState) => ({
+            ...prevState,
+            [tempScanId]: {
+              ...prevState[tempScanId],
+              endedAt: new Date(),
+              isScanning: false,
+              isError: true,
+            },
+          }));
+        }
       }
-      setIsError(true);
-      setIsScanning(false);
       return;
     }
 
@@ -56,25 +75,52 @@ export const Scan = () => {
       targetName,
     });
 
-    setDuration(0);
     setRequestId(reqId);
+    setDuration(0);
     setIsLoading(true);
-    setIsError(false);
     setToggled(null);
-    setIssues([]);
 
     for await (const response of requestGenerator) {
       console.log('Received data:', response);
       switch (response.command) {
         case SCAN_ID: {
-          setScanId(response.payload);
-          setTimestamp(Date.now());
-          setIsScanning(true);
+          tempScanId = response.payload;
+
+          const newScan: ScanType = {
+            applicationName,
+            targetName,
+            projectName: 'Default_Project',
+            createdAt: new Date(),
+            isScanning: true,
+            isError: false,
+            issues: [],
+          };
+
+          navigate(`/scan/${tempScanId}`, { replace: true });
           setIsLoading(false);
+          setScans((prevState) => ({ [tempScanId]: newScan, ...prevState }));
           break;
         }
         case ISSUES: {
-          setIssues((prevIssues) => [...response.payload, ...prevIssues]);
+          setScans((prevState) => ({
+            ...prevState,
+            [tempScanId]: {
+              ...prevState[tempScanId],
+              issues: [...response.payload, ...prevState[tempScanId].issues],
+            },
+          }));
+          break;
+        }
+        case SCAN_FINISHED: {
+          setScans((prevState) => ({
+            ...prevState,
+            [tempScanId]: {
+              ...prevState[tempScanId],
+              endedAt: new Date(),
+              isScanning: false,
+              isError: response.payload !== 'SUCCEEDED',
+            },
+          }));
           break;
         }
         case UNAUTHORIZED_ACCESS:
@@ -82,39 +128,35 @@ export const Scan = () => {
           break;
       }
     }
-    setIsScanning(false);
     setIsLoading(false);
+    setScans((prevState) => ({
+      ...prevState,
+      [tempScanId]: {
+        ...prevState[tempScanId],
+        endedAt: new Date(),
+        isScanning: false,
+      },
+    }));
   };
 
   useEffect(() => {
     let interval: NodeJS.Timeout | undefined;
     clearInterval(interval);
     interval = setInterval(() => {
-      if (!isScanning) {
+      if (!scan?.isScanning) {
         clearInterval(interval);
         return;
       }
-      if (timestamp) {
-        setDuration((Date.now() - timestamp) / 1000);
-      }
+      setDuration(Date.now() - scan?.createdAt.getTime());
     }, 500);
 
     return () => clearInterval(interval);
-  }, [isScanning, timestamp]);
-
-  const hours = Math.floor(duration / 3600);
-  const minutes = Math.floor((duration % 3600) / 60);
-  const seconds = Math.floor(duration % 60);
-  const formattedTime = `${hours ? hours + ':' : ''}${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-
-  const toggledIssues = issues.filter(
-    (issue) => issue.severity.toLowerCase() === toggled
-  );
+  }, [scan?.isScanning, scan?.createdAt]);
 
   return (
     <div className='flex flex-col space-y-4'>
       <div className='flex items-center space-x-2'>
-        <Link to={'/'} title='To Overview'>
+        <Link to={isLoading ? '.' : '/'} title='To Overview'>
           <svg
             width='16'
             height='16'
@@ -143,7 +185,7 @@ export const Scan = () => {
           <Dropdown
             items={apps}
             name='Application'
-            route='/application'
+            route={isLoading ? '.' : `/application`}
             handleChange={setApplicationName}
           />
         </div>
@@ -157,22 +199,20 @@ export const Scan = () => {
           <Dropdown
             items={targets.map((target) => target.name)}
             name='Target'
-            route='/target'
+            route={isLoading ? '.' : `/target`}
             handleChange={setTargetName}
           />
         </div>
       </div>
       <button
         onClick={handleScanClick}
-        className={`rounded disabled:bg-neutral-800 hover:disabled:cursor-default ${isScanning ? 'bg-red-500 hover:bg-red-500 hover:brightness-90' : ''}`}
+        className={`rounded disabled:bg-neutral-800 hover:disabled:cursor-default ${scan?.isScanning ? 'bg-red-500 hover:bg-red-500 hover:brightness-90' : ''}`}
         disabled={isLoading}
       >
-        {isLoading ? 'Loading...' : isScanning ? 'Cancel' : 'Start Scan'}
+        {isLoading ? 'Loading...' : scan?.isScanning ? 'Cancel' : 'Start Scan'}
       </button>
 
-      <div
-        className={`${(isScanning || scanId) && !isLoading ? 'visible' : 'invisible'}`}
-      >
+      <div className={`${scan && !isLoading ? 'visible' : 'invisible'}`}>
         <div className='mt-4 flex items-center justify-between'>
           <a
             href={`https://app.nightvision.net/scans/${scanId}/findings`}
@@ -193,7 +233,7 @@ export const Scan = () => {
             <svg
               xmlns='http://www.w3.org/2000/svg'
               viewBox='0 0 100 100'
-              className={`h-5 w-5 stroke-[--vscode-foreground] ${isScanning ? 'visible' : 'invisible'}`}
+              className={`h-5 w-5 stroke-[--vscode-foreground] ${scan?.isScanning ? 'visible' : 'invisible'}`}
             >
               <circle
                 cx='50'
@@ -214,7 +254,7 @@ export const Scan = () => {
               </circle>
             </svg>
 
-            {isError && (
+            {scan?.isError && (
               <svg
                 width='16'
                 height='16'
@@ -231,16 +271,16 @@ export const Scan = () => {
               </svg>
             )}
 
-            <span className='ml-2 font-bold'>{formattedTime}</span>
+            <span className='ml-2 font-bold'>{formatDuration(duration)}</span>
           </div>
         </div>
         <div className='mt-4 grid auto-cols-min grid-cols-1 gap-3 min-[280px]:grid-cols-2'>
           <IssueCard
             severity='critical'
             amount={
-              issues.filter(
+              scan?.issues.filter(
                 (issue) => issue.severity.toLowerCase() === 'critical'
-              ).length
+              ).length ?? 0
             }
             toggled={toggled}
             setToggled={setToggled}
@@ -248,8 +288,9 @@ export const Scan = () => {
           <IssueCard
             severity='high'
             amount={
-              issues.filter((issue) => issue.severity.toLowerCase() === 'high')
-                .length
+              scan?.issues.filter(
+                (issue) => issue.severity.toLowerCase() === 'high'
+              ).length ?? 0
             }
             toggled={toggled}
             setToggled={setToggled}
@@ -257,9 +298,9 @@ export const Scan = () => {
           <IssueCard
             severity='medium'
             amount={
-              issues.filter(
+              scan?.issues.filter(
                 (issue) => issue.severity.toLowerCase() === 'medium'
-              ).length
+              ).length ?? 0
             }
             toggled={toggled}
             setToggled={setToggled}
@@ -267,8 +308,9 @@ export const Scan = () => {
           <IssueCard
             severity='low'
             amount={
-              issues.filter((issue) => issue.severity.toLowerCase() === 'low')
-                .length
+              scan?.issues.filter(
+                (issue) => issue.severity.toLowerCase() === 'low'
+              ).length ?? 0
             }
             toggled={toggled}
             setToggled={setToggled}

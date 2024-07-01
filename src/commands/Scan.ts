@@ -4,6 +4,7 @@ import {
   INVALID_APP,
   INVALID_TARGET,
   ISSUES,
+  SCAN_FINISHED,
   SCAN_ID,
 } from '@commands/CommandConstants';
 
@@ -47,8 +48,14 @@ export default class Scan extends Command {
         payload: [
           ...message.matchAll(/name=['"](.*)['"]\s+severity=(.*)\s+total.*/g),
         ].map((i) => {
-          return { name: i[1], severity: i[2] };
+          return { name: i[1], severity: i[2].toLowerCase() };
         }),
+      });
+    } else if (/INFO Scan Finished/.test(message)) {
+      this.webview.postMessage({
+        command: SCAN_FINISHED,
+        requestId: this.requestId,
+        payload: message.match(/(?<!Login\s)Status:\s([^\n\r]+)/)[1],
       });
     } else if (/error validating target location/.test(message)) {
       this.webview.postMessage({
