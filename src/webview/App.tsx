@@ -19,10 +19,11 @@ import {
 } from '@commands/CommandConstants';
 import { Layout } from '@components/Layout';
 import { Loading } from '@components/Loading';
-import { Application } from '@pages/Application';
+import { Applications } from '@pages/Applications';
 import { Overview } from '@pages/Overview';
 import { Scan } from '@pages/Scan';
-import { Target } from '@pages/Target';
+import { Scans } from '@pages/Scans';
+import { Targets } from '@pages/Targets';
 import { messageHandler } from '@utils/MessageHandler';
 
 const Error = () => {
@@ -44,16 +45,20 @@ const router = createMemoryRouter(
       children: [
         { path: '/', element: <Overview /> },
         {
-          path: '/scan/:scanId?',
+          path: '/scans',
+          element: <Scans />,
+        },
+        {
+          path: '/scans/:scanId?',
           element: <Scan />,
         },
         {
-          path: '/application',
-          element: <Application />,
+          path: '/applications',
+          element: <Applications />,
         },
         {
-          path: '/target',
-          element: <Target />,
+          path: '/targets',
+          element: <Targets />,
         },
       ],
     },

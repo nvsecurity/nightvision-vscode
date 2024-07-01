@@ -1,26 +1,22 @@
-import { useTarget } from '@hooks/useTarget';
+import { useApp } from '@hooks/useApp';
 import { useUser } from '@hooks/useUser';
 import { v4 } from 'uuid';
 import React from 'react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  CREATE_TARGET,
-  DUPLICATE_TARGET,
-  INVALID_TARGET_NAME,
-  INVALID_URL,
+  CREATE_APP,
+  INVALID_APP_NAME,
   UNAUTHORIZED_ACCESS,
 } from '@commands/CommandConstants';
 import { messageHandler } from '@utils/MessageHandler';
 
-export const Target = () => {
+export const Applications = () => {
   const navigate = useNavigate();
-  const { targets, setTargetNames, setTargetUrls } = useTarget();
+  const { apps, setApps } = useApp();
   const { setIsLoggedIn } = useUser();
 
-  console.log(targets);
-  const [targetName, setTargetName] = useState('');
-  const [targetUrl, setTargetUrl] = useState('');
+  const [applicationName, setApplicationName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
   const handleCreateApp = async (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -28,11 +24,10 @@ export const Target = () => {
 
     const reqId = v4();
     const requestGenerator = messageHandler.requestGenerator(
-      CREATE_TARGET,
+      CREATE_APP,
       reqId,
       {
-        targetName,
-        targetUrl,
+        applicationName,
       }
     );
 
@@ -41,29 +36,10 @@ export const Target = () => {
     try {
       for await (const response of requestGenerator) {
         switch (response.command) {
-          case CREATE_TARGET:
-            setTargetNames((prevState) => [
-              ...prevState,
-              response.payload.targetName,
-            ]);
-            setTargetUrls((prevState) => [
-              ...prevState,
-              response.payload.targetName,
-            ]);
+          case CREATE_APP:
+            setApps((prevState) => [response.payload, ...prevState]);
             break;
-          case DUPLICATE_TARGET: {
-            // TODO
-            console.log(DUPLICATE_TARGET);
-            break;
-          }
-          case INVALID_TARGET_NAME: {
-            // TODO
-            console.log(INVALID_TARGET_NAME);
-            break;
-          }
-          case INVALID_URL: {
-            // TODO
-            console.log(INVALID_URL);
+          case INVALID_APP_NAME: {
             break;
           }
           case UNAUTHORIZED_ACCESS:
@@ -101,37 +77,22 @@ export const Target = () => {
             />
           </svg>
         </a>
-        <h1 className='font-bold uppercase'>Target</h1>
+        <h1 className='font-bold uppercase'>Application</h1>
       </div>
       <div className='flex flex-col space-y-1'>
         <div>
           <label
             className='mb-1 text-sm uppercase opacity-50'
-            htmlFor='target-name'
+            htmlFor='application'
           >
-            Target Name
+            Application Name
           </label>
 
           <input
-            onChange={(e) => setTargetName(e.target.value)}
-            value={targetName}
+            onChange={(e) => setApplicationName(e.target.value)}
+            value={applicationName}
             className='w-full'
-            id='target-name'
-          />
-        </div>
-        <div>
-          <label
-            className='mb-1 text-sm uppercase opacity-50'
-            htmlFor='target-url'
-          >
-            Target URL
-          </label>
-
-          <input
-            onChange={(e) => setTargetUrl(e.target.value)}
-            value={targetUrl}
-            className='w-full'
-            id='target-url'
+            id='application'
           />
         </div>
       </div>
@@ -140,12 +101,12 @@ export const Target = () => {
         className='rounded disabled:bg-neutral-800 hover:disabled:cursor-default'
         disabled={isLoading}
       >
-        {isLoading ? 'Creating...' : 'Create Target'}
+        {isLoading ? 'Creating...' : 'Create Application'}
       </button>
 
       <ul className='mt-4 pl-0'>
-        {targets.map((target) => {
-          return <li key={target.name}>{target.name}</li>;
+        {apps.map((app) => {
+          return <li key={app}>{app}</li>;
         })}
       </ul>
     </div>

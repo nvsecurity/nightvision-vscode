@@ -96,7 +96,7 @@ export const Scan = () => {
             issues: [],
           };
 
-          navigate(`/scan/${tempScanId}`, { replace: true });
+          navigate(`/scans/${tempScanId}`, { replace: true });
           setIsLoading(false);
           setScans((prevState) => ({ [tempScanId]: newScan, ...prevState }));
           break;
@@ -156,7 +156,7 @@ export const Scan = () => {
   return (
     <div className='flex flex-col space-y-4'>
       <div className='flex items-center space-x-2'>
-        <Link to={isLoading ? '.' : '/'} title='To Overview'>
+        <Link to={isLoading ? '.' : '/scans'} title='To Scans'>
           <svg
             width='16'
             height='16'
@@ -185,7 +185,7 @@ export const Scan = () => {
           <Dropdown
             items={apps}
             name='Application'
-            route={isLoading ? '.' : `/application`}
+            route={isLoading ? '.' : `/applications`}
             handleChange={setApplicationName}
           />
         </div>
@@ -199,7 +199,7 @@ export const Scan = () => {
           <Dropdown
             items={targets.map((target) => target.name)}
             name='Target'
-            route={isLoading ? '.' : `/target`}
+            route={isLoading ? '.' : `/targets`}
             handleChange={setTargetName}
           />
         </div>
