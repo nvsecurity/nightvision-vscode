@@ -4,7 +4,13 @@ import { TargetContext } from '@contexts/TargetContext';
 import { UserContext } from '@contexts/UserContext';
 import { v4 } from 'uuid';
 import React, { useEffect, useState } from 'react';
-import { RouterProvider, createMemoryRouter } from 'react-router-dom';
+import {
+  Link,
+  Outlet,
+  RouterProvider,
+  createMemoryRouter,
+  useRouteError,
+} from 'react-router-dom';
 import {
   LIST_APP,
   LIST_TARGET,
@@ -19,23 +25,37 @@ import { Scan } from '@pages/Scan';
 import { Target } from '@pages/Target';
 import { messageHandler } from '@utils/MessageHandler';
 
+const Error = () => {
+  const error = useRouteError();
+  console.error(error);
+  return (
+    <span>
+      Something went wrong! Return to <Link to='/'>Overview</Link>.
+    </span>
+  );
+};
+
 const router = createMemoryRouter(
   [
     {
-      path: '/',
-      element: <Overview />,
-    },
-    {
-      path: '/scan/:scanId?',
-      element: <Scan />,
-    },
-    {
-      path: '/application',
-      element: <Application />,
-    },
-    {
-      path: '/target',
-      element: <Target />,
+      path: '',
+      element: <Outlet />,
+      errorElement: <Error />,
+      children: [
+        { path: '/', element: <Overview /> },
+        {
+          path: '/scan/:scanId?',
+          element: <Scan />,
+        },
+        {
+          path: '/application',
+          element: <Application />,
+        },
+        {
+          path: '/target',
+          element: <Target />,
+        },
+      ],
     },
   ],
   { initialEntries: ['/'] }
