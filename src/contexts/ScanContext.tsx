@@ -6,20 +6,20 @@ export interface ScanType {
   applicationName: string;
   targetName: string;
   projectName: string;
-  createdAt: Date;
-  endedAt?: Date;
+  createdAt: number;
+  endedAt?: number;
   isScanning: boolean;
   isError: boolean;
   issues: { name: string; severity: Severity }[];
 }
 
+export interface ScansType {
+  [scanId: string]: ScanType;
+}
+
 interface ScanContextType {
-  scans: { [scanId: string]: ScanType };
-  setScans: Dispatch<
-    SetStateAction<{
-      [scanId: string]: ScanType;
-    }>
-  >;
+  scans: ScansType;
+  setScans: Dispatch<SetStateAction<ScansType>>;
 }
 
 export const ScanContext = createContext<ScanContextType>({

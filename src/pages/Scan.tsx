@@ -33,10 +33,7 @@ export const Scan = () => {
   const [targetName, setTargetName] = useState(targets[0].name);
   const [requestId, setRequestId] = useState('');
   const [duration, setDuration] = useState(
-    scan
-      ? (scan.endedAt?.getTime() || new Date().getTime()) -
-          scan.createdAt.getTime()
-      : 0
+    scan ? (scan.endedAt || new Date().getTime()) - scan.createdAt : 0
   );
   const [isLoading, setIsLoading] = useState(false);
   const [toggled, setToggled] = useState<Severity | null>(null);
@@ -59,7 +56,7 @@ export const Scan = () => {
             ...prevState,
             [tempScanId]: {
               ...prevState[tempScanId],
-              endedAt: new Date(),
+              endedAt: new Date().getTime(),
               isScanning: false,
               isError: true,
             },
@@ -90,7 +87,7 @@ export const Scan = () => {
             applicationName,
             targetName,
             projectName: 'Default_Project',
-            createdAt: new Date(),
+            createdAt: new Date().getTime(),
             isScanning: true,
             isError: false,
             issues: [],
@@ -116,7 +113,7 @@ export const Scan = () => {
             ...prevState,
             [tempScanId]: {
               ...prevState[tempScanId],
-              endedAt: new Date(),
+              endedAt: new Date().getTime(),
               isScanning: false,
               isError: response.payload !== 'SUCCEEDED',
             },
@@ -133,7 +130,7 @@ export const Scan = () => {
       ...prevState,
       [tempScanId]: {
         ...prevState[tempScanId],
-        endedAt: new Date(),
+        endedAt: new Date().getTime(),
         isScanning: false,
       },
     }));
@@ -147,7 +144,7 @@ export const Scan = () => {
         clearInterval(interval);
         return;
       }
-      setDuration(Date.now() - scan?.createdAt.getTime());
+      setDuration(Date.now() - scan?.createdAt);
     }, 500);
 
     return () => clearInterval(interval);
@@ -271,7 +268,11 @@ export const Scan = () => {
               </svg>
             )}
 
-            <span className='ml-2 font-bold'>{formatDuration(duration)}</span>
+            <span className='ml-2 font-bold'>
+              {scan?.isError && !scan?.endedAt
+                ? '00:00'
+                : formatDuration(duration)}
+            </span>
           </div>
         </div>
         <div className='mt-4 grid auto-cols-min grid-cols-1 gap-3 min-[280px]:grid-cols-2'>

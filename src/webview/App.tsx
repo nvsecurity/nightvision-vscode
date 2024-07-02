@@ -1,5 +1,5 @@
 import { AppContext } from '@contexts/AppContext';
-import { ScanContext, ScanType } from '@contexts/ScanContext';
+import { ScanContext, ScanType, ScansType } from '@contexts/ScanContext';
 import { TargetContext } from '@contexts/TargetContext';
 import { UserContext } from '@contexts/UserContext';
 import { v4 } from 'uuid';
@@ -12,9 +12,11 @@ import {
   useRouteError,
 } from 'react-router-dom';
 import {
+  GET_SCANS,
   LIST_APP,
   LIST_TARGET,
   LOGIN,
+  SAVE_SCAN,
   UNAUTHORIZED_ACCESS,
 } from '@commands/CommandConstants';
 import { Layout } from '@components/Layout';
@@ -144,6 +146,19 @@ export const App = () => {
             }
           }
         }
+
+        const scans: ScansType = await messageHandler.request(GET_SCANS);
+        const newScans = Object.fromEntries(
+          Object.entries(scans).map(([scanId, scanData]) => [
+            scanId,
+            {
+              ...scanData,
+              isScanning: false,
+              isError: scanData.isError || scanData.isScanning,
+            },
+          ])
+        );
+        setScans(newScans);
       } catch (err) {
         console.error(err);
       }
@@ -155,6 +170,14 @@ export const App = () => {
       ignore = true;
     };
   }, [isLoggedIn]);
+
+  useEffect(() => {
+    (async () => {
+      if (Object.keys(scans).length > 0) {
+        await messageHandler.request(SAVE_SCAN, { scans });
+      }
+    })();
+  }, [scans]);
 
   const sortedApps = [...apps].sort();
 

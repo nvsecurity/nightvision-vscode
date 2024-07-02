@@ -64,10 +64,11 @@ export const Scans = () => {
                   {scan.applicationName}
                 </span>
                 <span>
-                  {formatDuration(
-                    (scan.endedAt?.getTime() || currentTime.getTime()) -
-                      scan.createdAt.getTime()
-                  )}
+                  {scan.isError && !scan.endedAt
+                    ? '00:00'
+                    : formatDuration(
+                        (scan.endedAt || currentTime.getTime()) - scan.createdAt
+                      )}
                 </span>
               </div>
               <div className='flex items-end justify-between'>

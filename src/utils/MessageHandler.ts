@@ -32,7 +32,12 @@ class MessageHandler {
     const requestId = v4();
 
     return new Promise((resolve, reject) => {
-      MessageHandler.listeners[requestId] = (payload: any, error: any) => {
+      MessageHandler.listeners[requestId] = (
+        command: string,
+        payload: any,
+        error: string,
+        isFinal: boolean
+      ) => {
         if (error) {
           reject(error);
         } else {

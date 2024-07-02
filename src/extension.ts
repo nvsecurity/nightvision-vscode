@@ -5,10 +5,12 @@ import { ExtensionContext, ExtensionMode, Uri } from 'vscode';
 import {
   CREATE_APP,
   CREATE_TARGET,
+  GET_SCANS,
   KILL,
   LIST_APP,
   LIST_TARGET,
   LOGIN,
+  SAVE_SCAN,
   SCAN,
 } from '@commands/CommandConstants';
 import CreateApp from '@commands/CreateApp';
@@ -131,6 +133,25 @@ class SidebarProvider implements vscode.WebviewViewProvider {
             const loginCommand = new Login(webviewView.webview, requestId);
 
             this._children[requestId] = loginCommand.execute();
+            break;
+          }
+          case GET_SCANS: {
+            const storedScans =
+              this._extensionContext.globalState.get<string>('scans');
+            const scans = storedScans ? JSON.parse(storedScans) : {};
+
+            webviewView.webview.postMessage({
+              command: GET_SCANS,
+              requestId,
+              payload: scans,
+            });
+            break;
+          }
+          case SAVE_SCAN: {
+            this._extensionContext.globalState.update(
+              'scans',
+              JSON.stringify(payload.scans)
+            );
             break;
           }
         }
