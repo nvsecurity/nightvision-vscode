@@ -8,6 +8,7 @@ export const Dropdown = ({
   route,
   handleChange,
   id,
+  disabled = false,
 }: {
   defaultItem?: string;
   items: string[];
@@ -15,6 +16,7 @@ export const Dropdown = ({
   route?: string;
   handleChange: (value: string) => void;
   id?: string;
+  disabled?: boolean;
 }) => {
   return (
     <div className='flex flex-nowrap items-center space-x-2'>
@@ -23,6 +25,7 @@ export const Dropdown = ({
         value={defaultItem}
         onChange={(e) => handleChange(e.target.value)}
         id={id}
+        disabled={disabled}
       >
         {items.map((item) => (
           <option key={item} value={item} className=''>
@@ -30,7 +33,7 @@ export const Dropdown = ({
           </option>
         ))}
       </select>
-      {route && (
+      {route && !disabled && (
         <Link to={route} title={name ? 'Create new ' + name : ''}>
           <svg
             xmlns='http://www.w3.org/2000/svg'

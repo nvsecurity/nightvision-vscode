@@ -186,6 +186,7 @@ export const Scan = () => {
             route={isLoading ? '.' : `/applications`}
             handleChange={setCurrentApp}
             id='application'
+            disabled={!!scan || isLoading}
           />
         </div>
         <div>
@@ -202,19 +203,26 @@ export const Scan = () => {
             route={isLoading ? '.' : `/targets`}
             handleChange={setCurrentTarget}
             id='target-name'
+            disabled={!!scan || isLoading}
           />
         </div>
       </div>
-      <button
-        onClick={handleScanClick}
-        className={`rounded disabled:bg-neutral-800 hover:disabled:cursor-default ${scan?.isScanning ? 'bg-red-500 hover:bg-red-500 hover:brightness-90' : ''}`}
-        disabled={isLoading}
-      >
-        {isLoading ? 'Loading...' : scan?.isScanning ? 'Cancel' : 'Start Scan'}
-      </button>
+      {(!scan || scan?.isScanning) && (
+        <button
+          onClick={handleScanClick}
+          className={`rounded disabled:bg-neutral-800 hover:disabled:cursor-default ${scan?.isScanning ? 'bg-red-500 hover:bg-red-500 hover:brightness-90' : ''}`}
+          disabled={isLoading}
+        >
+          {isLoading
+            ? 'Loading...'
+            : scan?.isScanning
+              ? 'Cancel'
+              : 'Start Scan'}
+        </button>
+      )}
 
       <div className={`${scan && !isLoading ? 'visible' : 'invisible'}`}>
-        <div className='mt-4 flex items-center justify-between'>
+        <div className='flex items-center justify-between'>
           <a
             href={`https://app.nightvision.net/scans/${scanId}/findings`}
             title='View in Browser'
