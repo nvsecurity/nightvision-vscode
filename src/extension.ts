@@ -6,13 +6,17 @@ import {
   CREATE_APP,
   CREATE_PROJECT,
   CREATE_TARGET,
+  CURRENT_APP,
   CURRENT_PROJECT,
+  CURRENT_TARGET,
   GET_SCANS,
   KILL,
   LIST_APP,
   LIST_PROJECT,
   LIST_TARGET,
   LOGIN,
+  SAVE_CURRENT_APP,
+  SAVE_CURRENT_TARGET,
   SAVE_SCAN,
   SCAN,
 } from '@commands/CommandConstants';
@@ -107,6 +111,27 @@ class SidebarProvider implements vscode.WebviewViewProvider {
             this._children[requestId] = createAppCommand.execute();
             break;
           }
+          case CURRENT_APP: {
+            const app = this._extensionContext.globalState.get<string>('app');
+
+            webviewView.webview.postMessage({
+              command: CURRENT_APP,
+              requestId,
+              payload: app,
+            });
+            break;
+          }
+          case SAVE_CURRENT_APP: {
+            const { applicationName } = payload;
+
+            this._extensionContext.globalState.update('app', applicationName);
+
+            webviewView.webview.postMessage({
+              command: SAVE_CURRENT_APP,
+              requestId,
+            });
+            break;
+          }
           case LIST_APP: {
             const listAppCommand = new ListApp(webviewView.webview, requestId);
 
@@ -154,6 +179,28 @@ class SidebarProvider implements vscode.WebviewViewProvider {
             );
 
             this._children[requestId] = createTargetCommand.execute();
+            break;
+          }
+          case CURRENT_TARGET: {
+            const target =
+              this._extensionContext.globalState.get<string>('target');
+
+            webviewView.webview.postMessage({
+              command: CURRENT_TARGET,
+              requestId,
+              payload: target,
+            });
+            break;
+          }
+          case SAVE_CURRENT_TARGET: {
+            const { targetName } = payload;
+
+            this._extensionContext.globalState.update('target', targetName);
+
+            webviewView.webview.postMessage({
+              command: SAVE_CURRENT_TARGET,
+              requestId,
+            });
             break;
           }
           case LIST_TARGET: {

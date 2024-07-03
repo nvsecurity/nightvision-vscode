@@ -23,16 +23,14 @@ export const Scan = () => {
   const navigate = useNavigate();
   const { scanId } = useParams();
 
-  const { apps } = useApp();
-  const { targets } = useTarget();
+  const { apps, currentApp, setCurrentApp } = useApp();
+  const { targets, currentTarget, setCurrentTarget } = useTarget();
   const { currentProject } = useProject();
   const { scans, setScans } = useScan();
   const { setIsLoggedIn } = useUser();
 
   const scan = scanId ? scans[scanId] : undefined;
 
-  const [applicationName, setApplicationName] = useState(apps[0]);
-  const [targetName, setTargetName] = useState(targets[0].name);
   const [requestId, setRequestId] = useState('');
   const [duration, setDuration] = useState(
     scan ? (scan.endedAt || new Date().getTime()) - scan.createdAt : 0
@@ -70,8 +68,8 @@ export const Scan = () => {
 
     const reqId = v4();
     const requestGenerator = messageHandler.requestGenerator(SCAN, reqId, {
-      applicationName,
-      targetName,
+      applicationName: currentApp,
+      targetName: currentTarget,
     });
 
     setRequestId(reqId);
@@ -86,8 +84,8 @@ export const Scan = () => {
           tempScanId = response.payload;
 
           const newScan: ScanType = {
-            applicationName,
-            targetName,
+            applicationName: currentApp,
+            targetName: currentTarget,
             projectName: currentProject,
             createdAt: new Date().getTime(),
             isScanning: true,
@@ -182,10 +180,11 @@ export const Scan = () => {
             Application Name
           </label>
           <Dropdown
+            defaultItem={currentApp}
             items={apps}
             name='Application'
             route={isLoading ? '.' : `/applications`}
-            handleChange={setApplicationName}
+            handleChange={setCurrentApp}
             id='application'
           />
         </div>
@@ -197,10 +196,11 @@ export const Scan = () => {
             Target Name
           </label>
           <Dropdown
+            defaultItem={currentTarget}
             items={targets.map((target) => target.name)}
             name='Target'
             route={isLoading ? '.' : `/targets`}
-            handleChange={setTargetName}
+            handleChange={setCurrentTarget}
             id='target-name'
           />
         </div>

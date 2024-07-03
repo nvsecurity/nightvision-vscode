@@ -13,7 +13,7 @@ export const Dropdown = ({
   items: string[];
   name?: string;
   route?: string;
-  handleChange: Dispatch<SetStateAction<string>>;
+  handleChange: (value: string) => void;
   id?: string;
 }) => {
   return (

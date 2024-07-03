@@ -13,12 +13,16 @@ import {
   useRouteError,
 } from 'react-router-dom';
 import {
+  CURRENT_APP,
   CURRENT_PROJECT,
+  CURRENT_TARGET,
   GET_SCANS,
   LIST_APP,
   LIST_PROJECT,
   LIST_TARGET,
   LOGIN,
+  SAVE_CURRENT_APP,
+  SAVE_CURRENT_TARGET,
   SAVE_SCAN,
   UNAUTHORIZED_ACCESS,
 } from '@commands/CommandConstants';
@@ -78,11 +82,13 @@ const router = createMemoryRouter(
 
 export const App = () => {
   const [apps, setApps] = useState<string[]>([]);
+  const [currentApp, setCurrentApp] = useState('');
   const [scans, setScans] = useState<{ [scanId: string]: ScanType }>({});
   const [projects, setProjects] = useState<string[]>([]);
   const [currentProject, setCurrentProject] = useState<string>('');
   const [targetNames, setTargetNames] = useState<string[]>([]);
   const [targetUrls, setTargetUrls] = useState<string[]>([]);
+  const [currentTarget, setCurrentTarget] = useState<string>('');
 
   const [isLoading, setIsLoading] = useState(true);
   const [isLoggedIn, setIsLoggedIn] = useState(true);
@@ -103,6 +109,16 @@ export const App = () => {
     } catch (err) {
       console.error(err);
     }
+  };
+
+  const handleAppChange = async (applicationName: string) => {
+    setCurrentApp(applicationName);
+    await messageHandler.request(SAVE_CURRENT_APP, { applicationName });
+  };
+
+  const handleTargetChange = async (targetName: string) => {
+    setCurrentTarget(targetName);
+    await messageHandler.request(SAVE_CURRENT_TARGET, { targetName });
   };
 
   useEffect(() => {
@@ -199,6 +215,13 @@ export const App = () => {
           ])
         );
         setScans(newScans);
+
+        const currentApp: string = await messageHandler.request(CURRENT_APP);
+        setCurrentApp(currentApp);
+
+        const currentTarget: string =
+          await messageHandler.request(CURRENT_TARGET);
+        setCurrentTarget(currentTarget);
       } catch (err) {
         console.error(err);
       }
@@ -225,7 +248,14 @@ export const App = () => {
     <React.StrictMode>
       <Layout>
         <UserContext.Provider value={{ setIsLoggedIn }}>
-          <AppContext.Provider value={{ apps: sortedApps, setApps }}>
+          <AppContext.Provider
+            value={{
+              apps: sortedApps,
+              setApps,
+              currentApp,
+              setCurrentApp: handleAppChange,
+            }}
+          >
             <ScanContext.Provider value={{ scans, setScans }}>
               <ProjectContext.Provider
                 value={{
@@ -245,6 +275,8 @@ export const App = () => {
                       .sort((a, b) => a.name.localeCompare(b.name)),
                     setTargetNames,
                     setTargetUrls,
+                    currentTarget,
+                    setCurrentTarget: handleTargetChange,
                   }}
                 >
                   {isLoggedIn ? (
