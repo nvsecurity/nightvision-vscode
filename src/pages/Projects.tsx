@@ -1,37 +1,37 @@
-import { useTarget } from '@hooks/useTarget';
+import { useProject } from '@hooks/useProject';
 import { useUser } from '@hooks/useUser';
 import { v4 } from 'uuid';
 import React from 'react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  CREATE_TARGET,
-  DUPLICATE_TARGET,
-  INVALID_TARGET_NAME,
-  INVALID_URL,
+  CREATE_PROJECT,
+  INVALID_PROJECT_NAME,
   UNAUTHORIZED_ACCESS,
 } from '@commands/CommandConstants';
+import { Dropdown } from '@components/Dropdown';
 import { messageHandler } from '@utils/MessageHandler';
 
-export const Targets = () => {
+export const Projects = () => {
   const navigate = useNavigate();
-  const { targets, setTargetNames, setTargetUrls } = useTarget();
+  const { projects, setProjects, currentProject, setCurrentProject } =
+    useProject();
   const { setIsLoggedIn } = useUser();
 
-  const [targetName, setTargetName] = useState('');
-  const [targetUrl, setTargetUrl] = useState('');
+  const [projectName, setProjectName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleCreateApp = async (e: React.MouseEvent<HTMLButtonElement>) => {
+  const handleCreateProject = async (
+    e: React.MouseEvent<HTMLButtonElement>
+  ) => {
     e.preventDefault();
 
     const reqId = v4();
     const requestGenerator = messageHandler.requestGenerator(
-      CREATE_TARGET,
+      CREATE_PROJECT,
       reqId,
       {
-        targetName,
-        targetUrl,
+        projectName,
       }
     );
 
@@ -40,29 +40,11 @@ export const Targets = () => {
     try {
       for await (const response of requestGenerator) {
         switch (response.command) {
-          case CREATE_TARGET:
-            setTargetNames((prevState) => [
-              ...prevState,
-              response.payload.targetName,
-            ]);
-            setTargetUrls((prevState) => [
-              ...prevState,
-              response.payload.targetName,
-            ]);
+          case CREATE_PROJECT:
+            setProjects((prevState) => [response.payload, ...prevState]);
             break;
-          case DUPLICATE_TARGET: {
+          case INVALID_PROJECT_NAME: {
             // TODO
-            console.log(DUPLICATE_TARGET);
-            break;
-          }
-          case INVALID_TARGET_NAME: {
-            // TODO
-            console.log(INVALID_TARGET_NAME);
-            break;
-          }
-          case INVALID_URL: {
-            // TODO
-            console.log(INVALID_URL);
             break;
           }
           case UNAUTHORIZED_ACCESS:
@@ -100,51 +82,51 @@ export const Targets = () => {
             />
           </svg>
         </a>
-        <h1 className='font-bold uppercase'>Target</h1>
+        <h1 className='font-bold uppercase'>Project</h1>
       </div>
       <div className='flex flex-col space-y-1'>
         <div>
           <label
             className='mb-1 text-sm uppercase opacity-50'
-            htmlFor='target-name'
+            htmlFor='current-project'
           >
-            Target Name
+            Current Project
           </label>
-
-          <input
-            onChange={(e) => setTargetName(e.target.value)}
-            value={targetName}
-            className='w-full'
-            id='target-name'
+          <Dropdown
+            defaultItem={currentProject}
+            items={projects}
+            name='Project'
+            handleChange={setCurrentProject}
+            id='current-project'
           />
         </div>
         <div>
           <label
             className='mb-1 text-sm uppercase opacity-50'
-            htmlFor='target-url'
+            htmlFor='project-name'
           >
-            Target URL
+            Project Name
           </label>
 
           <input
-            onChange={(e) => setTargetUrl(e.target.value)}
-            value={targetUrl}
+            onChange={(e) => setProjectName(e.target.value)}
+            value={projectName}
             className='w-full'
-            id='target-url'
+            id='project-name'
           />
         </div>
       </div>
       <button
-        onClick={handleCreateApp}
+        onClick={handleCreateProject}
         className='rounded disabled:bg-neutral-800 hover:disabled:cursor-default'
         disabled={isLoading}
       >
-        {isLoading ? 'Creating...' : 'Create Target'}
+        {isLoading ? 'Creating...' : 'Create Project'}
       </button>
 
       <ul className='mt-4 pl-0'>
-        {targets.map((target) => {
-          return <li key={target.name}>{target.name}</li>;
+        {projects.map((project) => {
+          return <li key={project}>{project}</li>;
         })}
       </ul>
     </div>

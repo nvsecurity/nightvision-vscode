@@ -1,5 +1,6 @@
 import { ScanType, Severity } from '@contexts/ScanContext';
 import { useApp } from '@hooks/useApp';
+import { useProject } from '@hooks/useProject';
 import { useScan } from '@hooks/useScan';
 import { useTarget } from '@hooks/useTarget';
 import { useUser } from '@hooks/useUser';
@@ -24,6 +25,7 @@ export const Scan = () => {
 
   const { apps } = useApp();
   const { targets } = useTarget();
+  const { currentProject } = useProject();
   const { scans, setScans } = useScan();
   const { setIsLoggedIn } = useUser();
 
@@ -86,7 +88,7 @@ export const Scan = () => {
           const newScan: ScanType = {
             applicationName,
             targetName,
-            projectName: 'Default_Project',
+            projectName: currentProject,
             createdAt: new Date().getTime(),
             isScanning: true,
             isError: false,
@@ -184,6 +186,7 @@ export const Scan = () => {
             name='Application'
             route={isLoading ? '.' : `/applications`}
             handleChange={setApplicationName}
+            id='application'
           />
         </div>
         <div>
@@ -198,6 +201,7 @@ export const Scan = () => {
             name='Target'
             route={isLoading ? '.' : `/targets`}
             handleChange={setTargetName}
+            id='target-name'
           />
         </div>
       </div>

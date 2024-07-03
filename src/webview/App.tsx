@@ -1,4 +1,5 @@
 import { AppContext } from '@contexts/AppContext';
+import { ProjectContext } from '@contexts/ProjectContext';
 import { ScanContext, ScanType, ScansType } from '@contexts/ScanContext';
 import { TargetContext } from '@contexts/TargetContext';
 import { UserContext } from '@contexts/UserContext';
@@ -12,8 +13,10 @@ import {
   useRouteError,
 } from 'react-router-dom';
 import {
+  CURRENT_PROJECT,
   GET_SCANS,
   LIST_APP,
+  LIST_PROJECT,
   LIST_TARGET,
   LOGIN,
   SAVE_SCAN,
@@ -23,6 +26,7 @@ import { Layout } from '@components/Layout';
 import { Loading } from '@components/Loading';
 import { Applications } from '@pages/Applications';
 import { Overview } from '@pages/Overview';
+import { Projects } from '@pages/Projects';
 import { Scan } from '@pages/Scan';
 import { Scans } from '@pages/Scans';
 import { Targets } from '@pages/Targets';
@@ -59,6 +63,10 @@ const router = createMemoryRouter(
           element: <Applications />,
         },
         {
+          path: '/projects',
+          element: <Projects />,
+        },
+        {
           path: '/targets',
           element: <Targets />,
         },
@@ -71,6 +79,8 @@ const router = createMemoryRouter(
 export const App = () => {
   const [apps, setApps] = useState<string[]>([]);
   const [scans, setScans] = useState<{ [scanId: string]: ScanType }>({});
+  const [projects, setProjects] = useState<string[]>([]);
+  const [currentProject, setCurrentProject] = useState<string>('');
   const [targetNames, setTargetNames] = useState<string[]>([]);
   const [targetUrls, setTargetUrls] = useState<string[]>([]);
 
@@ -103,10 +113,15 @@ export const App = () => {
     let ignore = false;
 
     setApps([]);
+    setScans({});
+    setProjects([]);
+    setCurrentProject('');
+    setTargetNames([]);
+    setTargetUrls([]);
 
     (async () => {
       try {
-        const appGenerator = messageHandler.requestGenerator(LIST_APP, v4());
+        const appGenerator = messageHandler.requestGenerator(LIST_APP);
         for await (const response of appGenerator) {
           switch (response.command) {
             case LIST_APP:
@@ -120,11 +135,36 @@ export const App = () => {
           }
         }
 
-        const targetGenerator = messageHandler.requestGenerator(
-          LIST_TARGET,
-          v4()
-        );
+        const projectGenerator = messageHandler.requestGenerator(LIST_PROJECT);
+        for await (const response of projectGenerator) {
+          switch (response.command) {
+            case LIST_PROJECT:
+              if (!ignore) {
+                setProjects((prevState) => [...prevState, ...response.payload]);
+              }
+              break;
+            case UNAUTHORIZED_ACCESS:
+              setIsLoggedIn(false);
+              break;
+          }
+        }
 
+        const currentProjectGenerator =
+          messageHandler.requestGenerator(CURRENT_PROJECT);
+        for await (const response of currentProjectGenerator) {
+          switch (response.command) {
+            case CURRENT_PROJECT:
+              if (!ignore) {
+                setCurrentProject(response.payload);
+              }
+              break;
+            case UNAUTHORIZED_ACCESS:
+              setIsLoggedIn(false);
+              break;
+          }
+        }
+
+        const targetGenerator = messageHandler.requestGenerator(LIST_TARGET);
         for await (const response of targetGenerator) {
           switch (response.command) {
             case LIST_TARGET: {
@@ -162,7 +202,6 @@ export const App = () => {
       } catch (err) {
         console.error(err);
       }
-
       setIsLoading(false);
     })();
 
@@ -179,7 +218,8 @@ export const App = () => {
     })();
   }, [scans]);
 
-  const sortedApps = [...apps].sort();
+  const sortedApps = [...apps].sort((a, b) => a.localeCompare(b));
+  const sortedProjects = [...projects].sort((a, b) => a.localeCompare(b));
 
   return (
     <React.StrictMode>
@@ -187,28 +227,37 @@ export const App = () => {
         <UserContext.Provider value={{ setIsLoggedIn }}>
           <AppContext.Provider value={{ apps: sortedApps, setApps }}>
             <ScanContext.Provider value={{ scans, setScans }}>
-              <TargetContext.Provider
+              <ProjectContext.Provider
                 value={{
-                  targets: targetNames
-                    .map((name, index) => ({
-                      name,
-                      url: targetUrls[index],
-                    }))
-                    .sort((a, b) => a.name.localeCompare(b.name)),
-                  setTargetNames,
-                  setTargetUrls,
+                  projects: sortedProjects,
+                  setProjects,
+                  currentProject,
+                  setCurrentProject,
                 }}
               >
-                {isLoggedIn ? (
-                  isLoading ? (
-                    <Loading />
+                <TargetContext.Provider
+                  value={{
+                    targets: targetNames
+                      .map((name, index) => ({
+                        name,
+                        url: targetUrls[index],
+                      }))
+                      .sort((a, b) => a.name.localeCompare(b.name)),
+                    setTargetNames,
+                    setTargetUrls,
+                  }}
+                >
+                  {isLoggedIn ? (
+                    isLoading ? (
+                      <Loading />
+                    ) : (
+                      <RouterProvider router={router} />
+                    )
                   ) : (
-                    <RouterProvider router={router} />
-                  )
-                ) : (
-                  <button onClick={handleLogin}>Log in to NightVision</button>
-                )}
-              </TargetContext.Provider>
+                    <button onClick={handleLogin}>Log in to NightVision</button>
+                  )}
+                </TargetContext.Provider>
+              </ProjectContext.Provider>
             </ScanContext.Provider>
           </AppContext.Provider>
         </UserContext.Provider>

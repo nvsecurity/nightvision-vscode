@@ -4,18 +4,24 @@ import * as vscode from 'vscode';
 import { ExtensionContext, ExtensionMode, Uri } from 'vscode';
 import {
   CREATE_APP,
+  CREATE_PROJECT,
   CREATE_TARGET,
+  CURRENT_PROJECT,
   GET_SCANS,
   KILL,
   LIST_APP,
+  LIST_PROJECT,
   LIST_TARGET,
   LOGIN,
   SAVE_SCAN,
   SCAN,
 } from '@commands/CommandConstants';
 import CreateApp from '@commands/CreateApp';
+import CreateProject from '@commands/CreateProject';
 import CreateTarget from '@commands/CreateTarget';
+import CurrentProject from '@commands/CurrentProject';
 import ListApp from '@commands/ListApp';
+import ListProject from '@commands/ListProject';
 import ListTarget from '@commands/ListTarget';
 import Login from '@commands/Login';
 import Scan from '@commands/Scan';
@@ -105,6 +111,36 @@ class SidebarProvider implements vscode.WebviewViewProvider {
             const listAppCommand = new ListApp(webviewView.webview, requestId);
 
             this._children[requestId] = listAppCommand.execute();
+            break;
+          }
+          case CREATE_PROJECT: {
+            const { projectName } = payload;
+
+            const createProjectCommand = new CreateProject(
+              webviewView.webview,
+              requestId,
+              projectName
+            );
+
+            this._children[requestId] = createProjectCommand.execute();
+            break;
+          }
+          case CURRENT_PROJECT: {
+            const currentProjectCommand = new CurrentProject(
+              webviewView.webview,
+              requestId
+            );
+
+            this._children[requestId] = currentProjectCommand.execute();
+            break;
+          }
+          case LIST_PROJECT: {
+            const listProjectCommand = new ListProject(
+              webviewView.webview,
+              requestId
+            );
+
+            this._children[requestId] = listProjectCommand.execute();
             break;
           }
           case CREATE_TARGET: {
