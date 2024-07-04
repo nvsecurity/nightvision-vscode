@@ -126,14 +126,16 @@ export const Scan = () => {
       }
     }
     setIsLoading(false);
-    setScans((prevState) => ({
-      ...prevState,
-      [tempScanId]: {
-        ...prevState[tempScanId],
-        endedAt: new Date().getTime(),
-        isScanning: false,
-      },
-    }));
+    if (tempScanId in scans) {
+      setScans((prevState) => ({
+        ...prevState,
+        [tempScanId]: {
+          ...prevState[tempScanId],
+          endedAt: new Date().getTime(),
+          isScanning: false,
+        },
+      }));
+    }
   };
 
   useEffect(() => {
