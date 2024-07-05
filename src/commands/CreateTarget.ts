@@ -39,8 +39,8 @@ export default class CreateTarget extends Command {
         requestId: this.requestId,
         payload: {
           id: message.match(/^Id:\s*(.*)/)[1],
-          name: message.match(/^Name:\s*(.*)/)[1],
-          url: message.match(/^Location:\s*(.*)/)[1],
+          name: this.targetName,
+          url: this.targetUrl,
         },
       });
     } else if (/already exists in the Project/.test(message)) {

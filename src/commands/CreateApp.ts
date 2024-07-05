@@ -26,7 +26,10 @@ export default class CreateApp extends Command {
       this.webview.postMessage({
         command: CREATE_APP,
         requestId: this.requestId,
-        payload: this.applicationName,
+        payload: {
+          id: message.match(/Id:\s*(.*)/)[1],
+          name: this.applicationName,
+        },
       });
     } else if (/ERROR name should have a max length/.test(message)) {
       this.webview.postMessage({
