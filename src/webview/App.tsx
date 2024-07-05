@@ -1,7 +1,7 @@
-import { AppContext } from '@contexts/AppContext';
-import { ProjectContext } from '@contexts/ProjectContext';
+import { AppContext, Application } from '@contexts/AppContext';
+import { Project, ProjectContext } from '@contexts/ProjectContext';
 import { ScanContext, ScanType, ScansType } from '@contexts/ScanContext';
-import { TargetContext } from '@contexts/TargetContext';
+import { Target, TargetContext } from '@contexts/TargetContext';
 import { UserContext } from '@contexts/UserContext';
 import { v4 } from 'uuid';
 import React, { useEffect, useState } from 'react';
@@ -13,15 +13,16 @@ import {
   useRouteError,
 } from 'react-router-dom';
 import {
-  CURRENT_APP,
-  CURRENT_PROJECT,
-  CURRENT_TARGET,
+  GET_CURRENT_APP,
+  GET_CURRENT_PROJECT,
+  GET_CURRENT_TARGET,
   GET_SCANS,
   LIST_APP,
   LIST_PROJECT,
   LIST_TARGET,
   LOGIN,
   SAVE_CURRENT_APP,
+  SAVE_CURRENT_PROJECT,
   SAVE_CURRENT_TARGET,
   SAVE_SCAN,
   UNAUTHORIZED_ACCESS,
@@ -81,14 +82,13 @@ const router = createMemoryRouter(
 );
 
 export const App = () => {
-  const [apps, setApps] = useState<string[]>([]);
-  const [currentApp, setCurrentApp] = useState('');
+  const [apps, setApps] = useState<Application[]>([]);
+  const [currentApp, setCurrentApp] = useState<Application>();
   const [scans, setScans] = useState<{ [scanId: string]: ScanType }>({});
-  const [projects, setProjects] = useState<string[]>([]);
-  const [currentProject, setCurrentProject] = useState<string>('');
-  const [targetNames, setTargetNames] = useState<string[]>([]);
-  const [targetUrls, setTargetUrls] = useState<string[]>([]);
-  const [currentTarget, setCurrentTarget] = useState<string>('');
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [currentProject, setCurrentProject] = useState<Project>();
+  const [targets, setTargets] = useState<Target[]>([]);
+  const [currentTarget, setCurrentTarget] = useState<Target>();
 
   const [isLoading, setIsLoading] = useState(true);
   const [isLoggedIn, setIsLoggedIn] = useState(true);
@@ -111,14 +111,121 @@ export const App = () => {
     }
   };
 
-  const handleAppChange = async (applicationName: string) => {
-    setCurrentApp(applicationName);
-    await messageHandler.request(SAVE_CURRENT_APP, { applicationName });
+  const handleAppChange = async (application: Application) => {
+    setCurrentApp(application);
+    await messageHandler.request(SAVE_CURRENT_APP, { ...application });
   };
 
-  const handleTargetChange = async (targetName: string) => {
-    setCurrentTarget(targetName);
-    await messageHandler.request(SAVE_CURRENT_TARGET, { targetName });
+  const handleTargetChange = async (target: Target) => {
+    setCurrentTarget(target);
+    await messageHandler.request(SAVE_CURRENT_TARGET, { ...target });
+  };
+
+  const handleProjectChange = async (project: Project) => {
+    setCurrentProject(project);
+    await messageHandler.request(SAVE_CURRENT_PROJECT, { ...project });
+    await Promise.all([listApps(false), listTargets(false)]);
+  };
+
+  const getCurrentApp = async (ignore: boolean) => {
+    const currentAppGenerator =
+      messageHandler.requestGenerator(GET_CURRENT_APP);
+    for await (const response of currentAppGenerator) {
+      switch (response.command) {
+        case GET_CURRENT_APP:
+          if (!ignore) {
+            setCurrentApp(response.payload);
+          }
+          break;
+        case UNAUTHORIZED_ACCESS:
+          setIsLoggedIn(false);
+          break;
+      }
+    }
+  };
+
+  const getCurrentProject = async (ignore: boolean) => {
+    const currentProjectGenerator =
+      messageHandler.requestGenerator(GET_CURRENT_PROJECT);
+    for await (const response of currentProjectGenerator) {
+      switch (response.command) {
+        case GET_CURRENT_PROJECT:
+          if (!ignore) {
+            setCurrentProject(response.payload);
+          }
+          break;
+        case UNAUTHORIZED_ACCESS:
+          setIsLoggedIn(false);
+          break;
+      }
+    }
+  };
+
+  const getCurrentTarget = async (ignore: boolean) => {
+    const currentProjectGenerator =
+      messageHandler.requestGenerator(GET_CURRENT_TARGET);
+    for await (const response of currentProjectGenerator) {
+      switch (response.command) {
+        case GET_CURRENT_TARGET:
+          if (!ignore) {
+            setCurrentTarget(response.payload);
+          }
+          break;
+        case UNAUTHORIZED_ACCESS:
+          setIsLoggedIn(false);
+          break;
+      }
+    }
+  };
+
+  const listApps = async (ignore: boolean) => {
+    const appGenerator = messageHandler.requestGenerator(LIST_APP);
+    for await (const response of appGenerator) {
+      switch (response.command) {
+        case LIST_APP:
+          if (!ignore) {
+            setApps(response.payload);
+          }
+          break;
+        case UNAUTHORIZED_ACCESS:
+          setIsLoggedIn(false);
+          break;
+      }
+    }
+  };
+
+  const listProjects = async (ignore: boolean) => {
+    const projectGenerator = messageHandler.requestGenerator(LIST_PROJECT);
+    for await (const response of projectGenerator) {
+      switch (response.command) {
+        case LIST_PROJECT:
+          if (!ignore) {
+            setProjects(response.payload);
+          }
+          break;
+        case UNAUTHORIZED_ACCESS:
+          setIsLoggedIn(false);
+          break;
+      }
+    }
+  };
+
+  const listTargets = async (ignore: boolean) => {
+    const targetGenerator = messageHandler.requestGenerator(LIST_TARGET);
+    for await (const response of targetGenerator) {
+      switch (response.command) {
+        case LIST_TARGET: {
+          if (!ignore) {
+            setTargets(response.payload);
+          }
+          break;
+        }
+        case UNAUTHORIZED_ACCESS: {
+          setIsLoggedIn(false);
+          break;
+        }
+      }
+    }
   };
 
   useEffect(() => {
@@ -129,79 +236,23 @@ export const App = () => {
     let ignore = false;
 
     setApps([]);
-    setScans({});
+    setCurrentApp(undefined);
     setProjects([]);
-    setCurrentProject('');
-    setTargetNames([]);
-    setTargetUrls([]);
+    setCurrentProject(undefined);
+    setTargets([]);
+    setCurrentTarget(undefined);
+    setScans({});
 
     (async () => {
       try {
-        const appGenerator = messageHandler.requestGenerator(LIST_APP);
-        for await (const response of appGenerator) {
-          switch (response.command) {
-            case LIST_APP:
-              if (!ignore) {
-                setApps((prevState) => [...prevState, ...response.payload]);
-              }
-              break;
-            case UNAUTHORIZED_ACCESS:
-              setIsLoggedIn(false);
-              break;
-          }
-        }
-
-        const projectGenerator = messageHandler.requestGenerator(LIST_PROJECT);
-        for await (const response of projectGenerator) {
-          switch (response.command) {
-            case LIST_PROJECT:
-              if (!ignore) {
-                setProjects((prevState) => [...prevState, ...response.payload]);
-              }
-              break;
-            case UNAUTHORIZED_ACCESS:
-              setIsLoggedIn(false);
-              break;
-          }
-        }
-
-        const currentProjectGenerator =
-          messageHandler.requestGenerator(CURRENT_PROJECT);
-        for await (const response of currentProjectGenerator) {
-          switch (response.command) {
-            case CURRENT_PROJECT:
-              if (!ignore) {
-                setCurrentProject(response.payload);
-              }
-              break;
-            case UNAUTHORIZED_ACCESS:
-              setIsLoggedIn(false);
-              break;
-          }
-        }
-
-        const targetGenerator = messageHandler.requestGenerator(LIST_TARGET);
-        for await (const response of targetGenerator) {
-          switch (response.command) {
-            case LIST_TARGET: {
-              if (!ignore) {
-                setTargetNames((prevState) => [
-                  ...prevState,
-                  ...response.payload.targetNames,
-                ]);
-                setTargetUrls((prevState) => [
-                  ...prevState,
-                  ...response.payload.targetUrls,
-                ]);
-              }
-              break;
-            }
-            case UNAUTHORIZED_ACCESS: {
-              setIsLoggedIn(false);
-              break;
-            }
-          }
-        }
+        await Promise.all([
+          listApps(ignore),
+          listProjects(ignore),
+          listTargets(ignore),
+          getCurrentApp(ignore),
+          getCurrentProject(ignore),
+          getCurrentTarget(ignore),
+        ]);
 
         const scans: ScansType = await messageHandler.request(GET_SCANS);
         const newScans = Object.fromEntries(
@@ -215,13 +266,6 @@ export const App = () => {
           ])
         );
         setScans(newScans);
-
-        const currentApp: string = await messageHandler.request(CURRENT_APP);
-        setCurrentApp(currentApp);
-
-        const currentTarget: string =
-          await messageHandler.request(CURRENT_TARGET);
-        setCurrentTarget(currentTarget);
       } catch (err) {
         console.error(err);
       }
@@ -241,8 +285,17 @@ export const App = () => {
     })();
   }, [scans]);
 
-  const sortedApps = [...apps].sort((a, b) => a.localeCompare(b));
-  const sortedProjects = [...projects].sort((a, b) => a.localeCompare(b));
+  if (isLoading || !currentProject) {
+    return <Loading />;
+  }
+
+  const sortedApps = [...apps].sort((a, b) => a.name.localeCompare(b.name));
+  const sortedProjects = [...projects].sort((a, b) =>
+    a.name.localeCompare(b.name)
+  );
+  const sortedTargets = [...targets].sort((a, b) =>
+    a.name.localeCompare(b.name)
+  );
 
   return (
     <React.StrictMode>
@@ -262,29 +315,19 @@ export const App = () => {
                   projects: sortedProjects,
                   setProjects,
                   currentProject,
-                  setCurrentProject,
+                  setCurrentProject: handleProjectChange,
                 }}
               >
                 <TargetContext.Provider
                   value={{
-                    targets: targetNames
-                      .map((name, index) => ({
-                        name,
-                        url: targetUrls[index],
-                      }))
-                      .sort((a, b) => a.name.localeCompare(b.name)),
-                    setTargetNames,
-                    setTargetUrls,
+                    targets: sortedTargets,
+                    setTargets,
                     currentTarget,
                     setCurrentTarget: handleTargetChange,
                   }}
                 >
                   {isLoggedIn ? (
-                    isLoading ? (
-                      <Loading />
-                    ) : (
-                      <RouterProvider router={router} />
-                    )
+                    <RouterProvider router={router} />
                   ) : (
                     <button onClick={handleLogin}>Log in to NightVision</button>
                   )}

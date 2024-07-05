@@ -1,3 +1,5 @@
+import { Project } from '@contexts/ProjectContext';
+import useClickOutside from '@hooks/useClickOutside';
 import { useProject } from '@hooks/useProject';
 import { useUser } from '@hooks/useUser';
 import { v4 } from 'uuid';
@@ -6,10 +8,15 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   CREATE_PROJECT,
+  DELETE_PROJECT,
+  INVALID_PROJECT,
+  INVALID_PROJECT_DELETE,
   INVALID_PROJECT_NAME,
+  RENAME_PROJECT,
   UNAUTHORIZED_ACCESS,
 } from '@commands/CommandConstants';
 import { Dropdown } from '@components/Dropdown';
+import { Modal } from '@components/Modal';
 import { messageHandler } from '@utils/MessageHandler';
 
 export const Projects = () => {
@@ -18,8 +25,109 @@ export const Projects = () => {
     useProject();
   const { setIsLoggedIn } = useUser();
 
+  const {
+    componentRef: renameRef,
+    showComponent: showRenameModal,
+    setShowComponent: setShowRenameModal,
+  } = useClickOutside();
+  const {
+    componentRef: deleteRef,
+    showComponent: showDeleteModal,
+    setShowComponent: setShowDeleteModal,
+  } = useClickOutside();
+
   const [projectName, setProjectName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedProject, setSelectedProject] = useState<Project>();
+  const [rename, setRename] = useState<string>();
+  const [isRenameLoading, setIsRenameLoading] = useState(false);
+  const [isDeleteLoading, setIsDeleteLoading] = useState(false);
+
+  const handleRename = async (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+
+    setIsRenameLoading(true);
+
+    const requestGenerator = messageHandler.requestGenerator(
+      RENAME_PROJECT,
+      v4(),
+      { id: selectedProject?.id, name: rename }
+    );
+
+    try {
+      for await (const response of requestGenerator) {
+        switch (response.command) {
+          case RENAME_PROJECT: {
+            setProjects((prevState) =>
+              prevState.map((project) =>
+                project.id === selectedProject?.id
+                  ? { ...project, name: response.payload.name }
+                  : project
+              )
+            );
+            break;
+          }
+          case INVALID_PROJECT: {
+            // TODO
+            break;
+          }
+          case INVALID_PROJECT_NAME: {
+            // TODO
+            break;
+          }
+          case UNAUTHORIZED_ACCESS:
+            setIsLoggedIn(false);
+            break;
+        }
+      }
+    } catch (err) {
+      console.error(err);
+    }
+    setIsRenameLoading(false);
+  };
+
+  const handleDelete = async (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+
+    setIsDeleteLoading(true);
+
+    const requestGenerator = messageHandler.requestGenerator(
+      DELETE_PROJECT,
+      v4(),
+      { id: selectedProject?.id }
+    );
+
+    try {
+      for await (const response of requestGenerator) {
+        switch (response.command) {
+          case DELETE_PROJECT: {
+            setProjects((prevState) =>
+              prevState.filter((project) => project.id !== response.payload.id)
+            );
+            setShowDeleteModal(false);
+            setShowRenameModal(false);
+            break;
+          }
+          case INVALID_PROJECT: {
+            // TODO
+            console.log(INVALID_PROJECT);
+            break;
+          }
+          case INVALID_PROJECT_DELETE: {
+            // TODO
+            console.log(INVALID_PROJECT_DELETE);
+            break;
+          }
+          case UNAUTHORIZED_ACCESS:
+            setIsLoggedIn(false);
+            break;
+        }
+      }
+    } catch (err) {
+      console.error(err);
+    }
+    setIsDeleteLoading(false);
+  };
 
   const handleCreateProject = async (
     e: React.MouseEvent<HTMLButtonElement>
@@ -60,75 +168,212 @@ export const Projects = () => {
   };
 
   return (
-    <div className='flex flex-col space-y-4'>
-      <div className='flex items-center space-x-2'>
-        <a
-          onClick={() => navigate(-1)}
-          className='hover:cursor-pointer'
-          href='#'
-        >
-          <svg
-            width='16'
-            height='16'
-            viewBox='0 0 16 16'
-            xmlns='http://www.w3.org/2000/svg'
-            fill='currentColor'
-            className='h-5 w-5'
+    <>
+      <div className='flex flex-col space-y-4'>
+        <div className='flex items-center space-x-2'>
+          <a
+            onClick={() => navigate(-1)}
+            className='hover:cursor-pointer'
+            href='#'
           >
-            <path
-              fillRule='evenodd'
-              clipRule='evenodd'
-              d='M7 3.093l-5 5V8.8l5 5 .707-.707-4.146-4.147H14v-1H3.56L7.708 3.8 7 3.093z'
+            <svg
+              width='16'
+              height='16'
+              viewBox='0 0 16 16'
+              xmlns='http://www.w3.org/2000/svg'
+              fill='currentColor'
+              className='h-5 w-5'
+            >
+              <path
+                fillRule='evenodd'
+                clipRule='evenodd'
+                d='M7 3.093l-5 5V8.8l5 5 .707-.707-4.146-4.147H14v-1H3.56L7.708 3.8 7 3.093z'
+              />
+            </svg>
+          </a>
+          <h1 className='font-bold uppercase'>Project</h1>
+        </div>
+        <div className='flex flex-col space-y-1'>
+          <div>
+            <label
+              className='mb-1 text-sm uppercase opacity-50'
+              htmlFor='current-project'
+            >
+              Current Project
+            </label>
+            <Dropdown
+              defaultItem={currentProject}
+              items={projects}
+              name='Project'
+              handleChange={setCurrentProject}
+              id='current-project'
             />
-          </svg>
-        </a>
-        <h1 className='font-bold uppercase'>Project</h1>
-      </div>
-      <div className='flex flex-col space-y-1'>
-        <div>
-          <label
-            className='mb-1 text-sm uppercase opacity-50'
-            htmlFor='current-project'
-          >
-            Current Project
-          </label>
-          <Dropdown
-            defaultItem={currentProject}
-            items={projects}
-            name='Project'
-            handleChange={setCurrentProject}
-            id='current-project'
-          />
-        </div>
-        <div>
-          <label
-            className='mb-1 text-sm uppercase opacity-50'
-            htmlFor='project-name'
-          >
-            Project Name
-          </label>
+          </div>
+          <div>
+            <label
+              className='mb-1 text-sm uppercase opacity-50'
+              htmlFor='project-name'
+            >
+              Project Name
+            </label>
 
-          <input
-            onChange={(e) => setProjectName(e.target.value)}
-            value={projectName}
-            className='w-full'
-            id='project-name'
-          />
+            <input
+              onChange={(e) => setProjectName(e.target.value)}
+              value={projectName}
+              className='w-full'
+              id='project-name'
+            />
+          </div>
         </div>
-      </div>
-      <button
-        onClick={handleCreateProject}
-        className='rounded disabled:bg-neutral-800 hover:disabled:cursor-default'
-        disabled={isLoading}
-      >
-        {isLoading ? 'Creating...' : 'Create Project'}
-      </button>
+        <button
+          onClick={handleCreateProject}
+          className='rounded disabled:bg-neutral-800 hover:disabled:cursor-default'
+          disabled={isLoading}
+        >
+          {isLoading ? 'Creating...' : 'Create Project'}
+        </button>
 
-      <ul className='mt-4 pl-0'>
-        {projects.map((project) => {
-          return <li key={project}>{project}</li>;
-        })}
-      </ul>
-    </div>
+        <ul className='mt-4 pl-0'>
+          {projects.map((project) => {
+            return (
+              <li
+                key={project.id}
+                onClick={() => {
+                  setShowRenameModal((prevState) => !prevState);
+                  setRename(project.name);
+                  setSelectedProject({
+                    id: project.id,
+                    name: project.name,
+                  });
+                }}
+                className='relative cursor-pointer py-1.5 before:absolute before:-inset-x-6 before:inset-y-0 before:-z-50 before:hover:bg-[--vscode-list-hoverBackground]'
+              >
+                {project.name}
+              </li>
+            );
+          })}
+        </ul>
+      </div>
+
+      {showRenameModal && (
+        <Modal componentRef={renameRef} visible={!showDeleteModal}>
+          <div className='flex flex-col space-y-4'>
+            <div className='flex items-center justify-between'>
+              <span className='font-bold uppercase'>Rename Project</span>
+              <div className='flex items-center justify-center space-x-2'>
+                <button
+                  className='unstyled'
+                  onClick={() => setShowDeleteModal(true)}
+                >
+                  <svg
+                    viewBox='0 0 16 16'
+                    xmlns='http://www.w3.org/2000/svg'
+                    fill='currentColor'
+                    className='mt-0.5 h-5 w-5 fill-[--vscode-foreground]'
+                  >
+                    <path
+                      fillRule='evenodd'
+                      clipRule='evenodd'
+                      d='M10 3h3v1h-1v9l-1 1H4l-1-1V4H2V3h3V2a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1v1zM9 2H6v1h3V2zM4 13h7V4H4v9zm2-8H5v7h1V5zm1 0h1v7H7V5zm2 0h1v7H9V5z'
+                    />
+                  </svg>
+                </button>
+                <button
+                  className='unstyled'
+                  onClick={() => setShowRenameModal(false)}
+                >
+                  <svg
+                    viewBox='0 0 16 16'
+                    xmlns='http://www.w3.org/2000/svg'
+                    className='h-6 w-6 fill-[--vscode-foreground]'
+                  >
+                    <path
+                      fillRule='evenodd'
+                      clipRule='evenodd'
+                      d='M8 8.707l3.646 3.647.708-.707L8.707 8l3.647-3.646-.707-.708L8 7.293 4.354 3.646l-.707.708L7.293 8l-3.646 3.646.707.708L8 8.707z'
+                    />
+                  </svg>
+                </button>
+              </div>
+            </div>
+            <div>
+              <label
+                className='mb-1 text-sm uppercase opacity-50'
+                htmlFor='new-project-name'
+              >
+                New Project Name
+              </label>
+              <input
+                onChange={(e) => setRename(e.target.value)}
+                value={rename}
+                className='w-full'
+                id='new-project-name'
+              />
+            </div>
+            <button
+              onClick={handleRename}
+              disabled={isRenameLoading}
+              className='rounded disabled:bg-neutral-800 hover:disabled:cursor-default'
+            >
+              {isRenameLoading ? 'Renaming...' : 'Rename'}
+            </button>
+          </div>
+          {showDeleteModal && (
+            <Modal componentRef={deleteRef}>
+              <div className='flex flex-col space-y-4'>
+                <div className='flex items-center justify-between'>
+                  <span className='font-bold uppercase'>Delete Project</span>
+                  <button
+                    className='unstyled'
+                    onClick={() => setShowDeleteModal(false)}
+                  >
+                    <svg
+                      viewBox='0 0 16 16'
+                      xmlns='http://www.w3.org/2000/svg'
+                      fill='currentColor'
+                      className='h-6 w-6 fill-[--vscode-foreground]'
+                    >
+                      <path
+                        fillRule='evenodd'
+                        clipRule='evenodd'
+                        d='M8 8.707l3.646 3.647.708-.707L8.707 8l3.647-3.646-.707-.708L8 7.293 4.354 3.646l-.707.708L7.293 8l-3.646 3.646.707.708L8 8.707z'
+                      />
+                    </svg>
+                  </button>
+                </div>
+                <p>
+                  Are you sure you want to delete{' '}
+                  <strong>{selectedProject?.name}</strong>?
+                </p>
+                <p>
+                  This action is irreversible and will remove all shared access
+                  to this project.
+                </p>
+                <p>
+                  This will also delete all the targets, applications and
+                  credentials associated with this project.
+                </p>
+                <div className='flex space-x-2'>
+                  <button
+                    onClick={() => setShowDeleteModal(false)}
+                    className='rounded bg-neutral-800 hover:bg-neutral-800 hover:brightness-90  hover:disabled:cursor-default hover:disabled:brightness-100'
+                    disabled={isDeleteLoading}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleDelete}
+                    disabled={isDeleteLoading}
+                    className='rounded bg-red-500 hover:bg-red-500 hover:brightness-90 disabled:bg-neutral-800 hover:disabled:cursor-default hover:disabled:brightness-100'
+                  >
+                    {isDeleteLoading ? 'Deleting...' : 'Delete'}
+                  </button>
+                </div>
+              </div>
+            </Modal>
+          )}
+        </Modal>
+      )}
+    </>
   );
 };

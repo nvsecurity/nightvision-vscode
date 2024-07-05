@@ -1,4 +1,5 @@
-import React, { Dispatch, SetStateAction } from 'react';
+import { IdAndName } from '@contexts/ProjectContext';
+import React from 'react';
 import { Link } from 'react-router-dom';
 
 export const Dropdown = ({
@@ -10,11 +11,11 @@ export const Dropdown = ({
   id,
   disabled = false,
 }: {
-  defaultItem?: string;
-  items: string[];
+  defaultItem?: IdAndName;
+  items: IdAndName[];
   name?: string;
   route?: string;
-  handleChange: (value: string) => void;
+  handleChange: (value: IdAndName) => void;
   id?: string;
   disabled?: boolean;
 }) => {
@@ -22,14 +23,17 @@ export const Dropdown = ({
     <div className='flex flex-nowrap items-center space-x-2'>
       <select
         className='w-full bg-[--vscode-settings-dropdownBackground] px-0.5 py-1.5'
-        value={defaultItem}
-        onChange={(e) => handleChange(e.target.value)}
+        value={defaultItem?.id}
+        onChange={(e) => {
+          const item = items.filter((item) => item.id === e.target.value)[0];
+          handleChange(item);
+        }}
         id={id}
         disabled={disabled}
       >
         {items.map((item) => (
-          <option key={item} value={item} className=''>
-            {item}
+          <option key={item.id} value={item.id} className=''>
+            {item.name}
           </option>
         ))}
       </select>

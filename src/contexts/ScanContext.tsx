@@ -1,13 +1,17 @@
+import { Application } from '@contexts/AppContext';
+import { Project } from '@contexts/ProjectContext';
+import { Target } from '@contexts/TargetContext';
 import { Dispatch, SetStateAction, createContext } from 'react';
 
 export type Severity = 'critical' | 'high' | 'medium' | 'low';
 
 export interface ScanType {
-  applicationName: string;
-  targetName: string;
-  projectName: string;
+  application: Application;
+  target: Target;
+  project: Project;
   createdAt: number;
   endedAt?: number;
+  requestId: string;
   isScanning: boolean;
   isError: boolean;
   issues: { name: string; severity: Severity }[];

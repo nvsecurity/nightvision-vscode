@@ -36,9 +36,10 @@ export const Applications = () => {
     try {
       for await (const response of requestGenerator) {
         switch (response.command) {
-          case CREATE_APP:
+          case CREATE_APP: {
             setApps((prevState) => [response.payload, ...prevState]);
             break;
+          }
           case INVALID_APP_NAME: {
             break;
           }
@@ -106,7 +107,7 @@ export const Applications = () => {
 
       <ul className='mt-4 pl-0'>
         {apps.map((app) => {
-          return <li key={app}>{app}</li>;
+          return <li key={app.id}>{app.name}</li>;
         })}
       </ul>
     </div>

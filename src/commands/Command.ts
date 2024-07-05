@@ -19,8 +19,8 @@ export default class Command {
 
     child.stdout.on('data', (data) => this.handleOutput(data));
     child.stderr.on('data', (data) => this.handleOutput(data));
-    child.on('exit', (code, signal) => {
-      this.handleExit(code, signal);
+    child.on('close', (code, signal) => {
+      this.handleClose(code, signal);
     });
     child.on('error', (err) => {
       this.handleError(err);
@@ -33,7 +33,8 @@ export default class Command {
     console.log(data.toString());
   }
 
-  handleExit(code: number | null, signal: string | null) {
+  handleClose(code: number | null, signal: string | null) {
+    this.cleanup();
     this.webview.postMessage({
       command: EXIT,
       requestId: this.requestId,
@@ -45,6 +46,8 @@ export default class Command {
   handleError(err: Error) {
     console.error(err);
   }
+
+  cleanup() {}
 
   isLoggedIn(message: string) {
     if (

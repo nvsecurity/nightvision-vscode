@@ -6,16 +6,19 @@ import {
   CREATE_APP,
   CREATE_PROJECT,
   CREATE_TARGET,
-  CURRENT_APP,
-  CURRENT_PROJECT,
-  CURRENT_TARGET,
+  DELETE_PROJECT,
+  GET_CURRENT_APP,
+  GET_CURRENT_PROJECT,
+  GET_CURRENT_TARGET,
   GET_SCANS,
   KILL,
   LIST_APP,
   LIST_PROJECT,
   LIST_TARGET,
   LOGIN,
+  RENAME_PROJECT,
   SAVE_CURRENT_APP,
+  SAVE_CURRENT_PROJECT,
   SAVE_CURRENT_TARGET,
   SAVE_SCAN,
   SCAN,
@@ -23,11 +26,16 @@ import {
 import CreateApp from '@commands/CreateApp';
 import CreateProject from '@commands/CreateProject';
 import CreateTarget from '@commands/CreateTarget';
-import CurrentProject from '@commands/CurrentProject';
+import DeleteProject from '@commands/DeleteProject';
+import GetCurrentApp from '@commands/GetCurrentApp';
+import GetCurrentProject from '@commands/GetCurrentProject';
 import ListApp from '@commands/ListApp';
 import ListProject from '@commands/ListProject';
 import ListTarget from '@commands/ListTarget';
 import Login from '@commands/Login';
+import RenameProject from '@commands/RenameProject';
+import SaveCurrentApp from '@commands/SaveCurrentApp';
+import SaveCurrentProject from '@commands/SaveCurrentProject';
 import Scan from '@commands/Scan';
 
 export function activate(context: vscode.ExtensionContext) {
@@ -111,25 +119,26 @@ class SidebarProvider implements vscode.WebviewViewProvider {
             this._children[requestId] = createAppCommand.execute();
             break;
           }
-          case CURRENT_APP: {
-            const app = this._extensionContext.globalState.get<string>('app');
+          case GET_CURRENT_APP: {
+            const getCurrentAppCommand = new GetCurrentApp(
+              webviewView.webview,
+              requestId
+            );
 
-            webviewView.webview.postMessage({
-              command: CURRENT_APP,
-              requestId,
-              payload: app,
-            });
+            this._children[requestId] = getCurrentAppCommand.execute();
             break;
           }
           case SAVE_CURRENT_APP: {
-            const { applicationName } = payload;
+            const { id, name } = payload;
 
-            this._extensionContext.globalState.update('app', applicationName);
-
-            webviewView.webview.postMessage({
-              command: SAVE_CURRENT_APP,
+            const saveCurrentAppCommand = new SaveCurrentApp(
+              webviewView.webview,
               requestId,
-            });
+              id,
+              name
+            );
+
+            this._children[requestId] = saveCurrentAppCommand.execute();
             break;
           }
           case LIST_APP: {
@@ -150,13 +159,24 @@ class SidebarProvider implements vscode.WebviewViewProvider {
             this._children[requestId] = createProjectCommand.execute();
             break;
           }
-          case CURRENT_PROJECT: {
-            const currentProjectCommand = new CurrentProject(
+          case GET_CURRENT_PROJECT: {
+            const getCurrentProjectCommand = new GetCurrentProject(
               webviewView.webview,
               requestId
             );
 
-            this._children[requestId] = currentProjectCommand.execute();
+            this._children[requestId] = getCurrentProjectCommand.execute();
+            break;
+          }
+          case DELETE_PROJECT: {
+            const { id } = payload;
+            const deleteProjectCommand = new DeleteProject(
+              webviewView.webview,
+              requestId,
+              id
+            );
+
+            this._children[requestId] = deleteProjectCommand.execute();
             break;
           }
           case LIST_PROJECT: {
@@ -166,6 +186,31 @@ class SidebarProvider implements vscode.WebviewViewProvider {
             );
 
             this._children[requestId] = listProjectCommand.execute();
+            break;
+          }
+          case RENAME_PROJECT: {
+            const { id, name } = payload;
+            const renameProjectCommand = new RenameProject(
+              webviewView.webview,
+              requestId,
+              id,
+              name
+            );
+
+            this._children[requestId] = renameProjectCommand.execute();
+            break;
+          }
+          case SAVE_CURRENT_PROJECT: {
+            const { id, name } = payload;
+
+            const saveCurrentProjectCommand = new SaveCurrentProject(
+              webviewView.webview,
+              requestId,
+              id,
+              name
+            );
+
+            this._children[requestId] = saveCurrentProjectCommand.execute();
             break;
           }
           case CREATE_TARGET: {
@@ -181,25 +226,29 @@ class SidebarProvider implements vscode.WebviewViewProvider {
             this._children[requestId] = createTargetCommand.execute();
             break;
           }
-          case CURRENT_TARGET: {
-            const target =
+          case GET_CURRENT_TARGET: {
+            const storedTarget =
               this._extensionContext.globalState.get<string>('target');
+            const target = storedTarget ? JSON.parse(storedTarget) : {};
 
             webviewView.webview.postMessage({
-              command: CURRENT_TARGET,
+              command: GET_CURRENT_TARGET,
               requestId,
               payload: target,
+              isFinal: true,
             });
             break;
           }
           case SAVE_CURRENT_TARGET: {
-            const { targetName } = payload;
-
-            this._extensionContext.globalState.update('target', targetName);
+            this._extensionContext.globalState.update(
+              'target',
+              JSON.stringify(payload)
+            );
 
             webviewView.webview.postMessage({
               command: SAVE_CURRENT_TARGET,
               requestId,
+              isFinal: true,
             });
             break;
           }
@@ -227,6 +276,7 @@ class SidebarProvider implements vscode.WebviewViewProvider {
               command: GET_SCANS,
               requestId,
               payload: scans,
+              isFinal: true,
             });
             break;
           }
@@ -235,6 +285,12 @@ class SidebarProvider implements vscode.WebviewViewProvider {
               'scans',
               JSON.stringify(payload.scans)
             );
+
+            webviewView.webview.postMessage({
+              command: SAVE_SCAN,
+              requestId,
+              isFinal: true,
+            });
             break;
           }
         }

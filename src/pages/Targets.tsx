@@ -15,7 +15,7 @@ import { messageHandler } from '@utils/MessageHandler';
 
 export const Targets = () => {
   const navigate = useNavigate();
-  const { targets, setTargetNames, setTargetUrls } = useTarget();
+  const { targets, setTargets } = useTarget();
   const { setIsLoggedIn } = useUser();
 
   const [targetName, setTargetName] = useState('');
@@ -40,16 +40,10 @@ export const Targets = () => {
     try {
       for await (const response of requestGenerator) {
         switch (response.command) {
-          case CREATE_TARGET:
-            setTargetNames((prevState) => [
-              ...prevState,
-              response.payload.targetName,
-            ]);
-            setTargetUrls((prevState) => [
-              ...prevState,
-              response.payload.targetName,
-            ]);
+          case CREATE_TARGET: {
+            setTargets((prevState) => [response.payload, ...prevState]);
             break;
+          }
           case DUPLICATE_TARGET: {
             // TODO
             console.log(DUPLICATE_TARGET);

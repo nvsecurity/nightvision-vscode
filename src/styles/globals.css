@@ -147,3 +147,11 @@ input::placeholder,
 textarea::placeholder {
   color: var(--vscode-input-placeholderForeground);
 }
+
+button.unstyled {
+  border: initial;
+  padding: initial;
+  width: initial;
+  text-align: initial;
+  background: initial;
+}

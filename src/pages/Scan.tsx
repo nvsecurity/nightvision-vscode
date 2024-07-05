@@ -1,3 +1,4 @@
+import { IdAndName } from '@contexts/ProjectContext';
 import { ScanType, Severity } from '@contexts/ScanContext';
 import { useApp } from '@hooks/useApp';
 import { useProject } from '@hooks/useProject';
@@ -45,10 +46,17 @@ export const Scan = () => {
   const handleScanClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
 
+    if (!currentApp || !currentTarget) {
+      return;
+    }
+
     let tempScanId = scanId ?? '';
 
     if (scan?.isScanning) {
-      const requestGenerator = messageHandler.requestGenerator(KILL, requestId);
+      const requestGenerator = messageHandler.requestGenerator(
+        KILL,
+        scan?.requestId
+      );
       for await (const response of requestGenerator) {
         console.log('Received data:', response);
         if (response.command === KILL) {
@@ -84,10 +92,11 @@ export const Scan = () => {
           tempScanId = response.payload;
 
           const newScan: ScanType = {
-            applicationName: currentApp,
-            targetName: currentTarget,
-            projectName: currentProject,
+            application: currentApp,
+            target: currentTarget,
+            project: currentProject,
             createdAt: new Date().getTime(),
+            requestId: reqId,
             isScanning: true,
             isError: false,
             issues: [],
@@ -200,10 +209,10 @@ export const Scan = () => {
           </label>
           <Dropdown
             defaultItem={currentTarget}
-            items={targets.map((target) => target.name)}
+            items={targets}
             name='Target'
             route={isLoading ? '.' : `/targets`}
-            handleChange={setCurrentTarget}
+            handleChange={setCurrentTarget as (value: IdAndName) => void}
             id='target-name'
             disabled={!!scan || isLoading}
           />

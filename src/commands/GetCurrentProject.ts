@@ -1,8 +1,8 @@
 import * as vscode from 'vscode';
 import Command from '@commands/Command';
-import { CURRENT_PROJECT } from '@commands/CommandConstants';
+import { GET_CURRENT_PROJECT } from '@commands/CommandConstants';
 
-export default class CurrentProject extends Command {
+export default class GetCurrentProject extends Command {
   constructor(webview: vscode.Webview, requestId: string) {
     super('nightvision project show', webview, requestId);
   }
@@ -14,11 +14,14 @@ export default class CurrentProject extends Command {
       return;
     }
 
-    if (/Name:/.test(message)) {
+    if (/Id:/.test(message)) {
       this.webview.postMessage({
-        command: CURRENT_PROJECT,
+        command: GET_CURRENT_PROJECT,
         requestId: this.requestId,
-        payload: message.match(/Name:\s*(.*)/)[1],
+        payload: {
+          id: message.match(/Id:\s*(.*)/)[1],
+          name: message.match(/Name:\s*(.*)/)[1],
+        },
       });
     }
   }

@@ -1,17 +1,19 @@
+import { IdAndName } from '@contexts/ProjectContext';
 import { Dispatch, SetStateAction, createContext } from 'react';
 
+export interface Target extends IdAndName {
+  url: string;
+}
 interface TargetContextType {
-  targets: { name: string; url: string }[];
-  setTargetNames: Dispatch<SetStateAction<string[]>>;
-  setTargetUrls: Dispatch<SetStateAction<string[]>>;
-  currentTarget: string;
-  setCurrentTarget: (app: string) => void;
+  targets: Target[];
+  setTargets: Dispatch<SetStateAction<Target[]>>;
+  currentTarget?: Target;
+  setCurrentTarget: (target: Target) => void;
 }
 
 export const TargetContext = createContext<TargetContextType>({
   targets: [],
-  setTargetNames: () => {},
-  setTargetUrls: () => {},
-  currentTarget: '',
+  setTargets: () => {},
+  currentTarget: undefined,
   setCurrentTarget: () => {},
 });

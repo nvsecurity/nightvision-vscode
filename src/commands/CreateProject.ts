@@ -24,7 +24,7 @@ export default class CreateProject extends Command {
       this.webview.postMessage({
         command: CREATE_PROJECT,
         requestId: this.requestId,
-        payload: this.projectName,
+        payload: { id: message.match(/Id:\s*(.*)/)[1], name: this.projectName },
       });
     } else if (/ERROR name should have a max length/.test(message)) {
       this.webview.postMessage({

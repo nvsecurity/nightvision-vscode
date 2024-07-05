@@ -56,12 +56,12 @@ export const Scans = () => {
           return (
             <Link
               to={`/scans/${scanId}`}
-              key={scan.applicationName + scanId}
+              key={scan.application.id + scanId}
               className='relative flex h-24 flex-col justify-between px-4 py-2 text-[--vscode-foreground] before:absolute before:inset-0 before:-z-10 before:rounded before:bg-[--vscode-input-background] hover:cursor-pointer hover:text-[--vscode-foreground] before:hover:brightness-75'
             >
               <div className='flex justify-between'>
                 <span className='mr-2 overflow-hidden text-ellipsis font-bold'>
-                  {scan.applicationName}
+                  {scan.application.name}
                 </span>
                 <span>
                   {scan.isError && !scan.endedAt
@@ -73,7 +73,7 @@ export const Scans = () => {
               </div>
               <div className='flex items-end justify-between'>
                 <span className='mr-2 overflow-hidden text-ellipsis'>
-                  {scan.projectName}
+                  {scan.project.name}
                 </span>
                 <div className='flex justify-between space-x-3'>
                   {!!severityCounts.critical && (

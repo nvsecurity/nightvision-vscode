@@ -1,29 +1,24 @@
 import * as vscode from 'vscode';
 import Command from '@commands/Command';
 import {
-  CREATE_TARGET,
-  DUPLICATE_TARGET,
-  INVALID_TARGET_NAME,
-  INVALID_URL,
+  INVALID_PROJECT,
+  INVALID_PROJECT_NAME,
+  INVALID_UUID,
+  RENAME_PROJECT,
 } from '@commands/CommandConstants';
 
-export default class CreateTarget extends Command {
-  protected targetName: string;
-  protected targetUrl: string;
-
+export default class RenameProject extends Command {
   constructor(
     webview: vscode.Webview,
     requestId: string,
-    targetName: string,
-    targetUrl: string
+    projectId: string,
+    newProjectName: string
   ) {
     super(
-      `nightvision target create -n ${targetName} -u ${targetUrl}`,
+      `nightvision project update -P ${projectId} -n ${newProjectName}`,
       webview,
       requestId
     );
-    this.targetName = targetName;
-    this.targetUrl = targetUrl;
   }
 
   handleOutput(data: any) {
@@ -35,27 +30,28 @@ export default class CreateTarget extends Command {
 
     if (/Id:/.test(message)) {
       this.webview.postMessage({
-        command: CREATE_TARGET,
+        command: RENAME_PROJECT,
         requestId: this.requestId,
         payload: {
-          id: message.match(/^Id:\s*(.*)/)[1],
-          name: message.match(/^Name:\s*(.*)/)[1],
-          url: message.match(/^Location:\s*(.*)/)[1],
+          id: message.match(/Id:\s*(.*)/)[1],
+          name: message.match(/Name:\s*(.*)/)[1],
         },
       });
-    } else if (/already exists in the Project/.test(message)) {
+    } else if (
+      /This Project does not exist or is not shared with you/.test(message)
+    ) {
       this.webview.postMessage({
-        command: DUPLICATE_TARGET,
+        command: INVALID_PROJECT,
         requestId: this.requestId,
       });
     } else if (/ERROR name should have a max length/.test(message)) {
       this.webview.postMessage({
-        command: INVALID_TARGET_NAME,
+        command: INVALID_PROJECT_NAME,
         requestId: this.requestId,
       });
-    } else if (/Enter a valid URL/.test(message)) {
+    } else if (/is not a valid UUID/.test(message)) {
       this.webview.postMessage({
-        command: INVALID_URL,
+        command: INVALID_UUID,
         requestId: this.requestId,
       });
     }

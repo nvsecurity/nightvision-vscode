@@ -1,15 +1,17 @@
+import { IdAndName } from '@contexts/ProjectContext';
 import { Dispatch, SetStateAction, createContext } from 'react';
 
+export interface Application extends IdAndName {}
 interface AppContextType {
-  apps: string[];
-  setApps: Dispatch<SetStateAction<string[]>>;
-  currentApp: string;
-  setCurrentApp: (app: string) => void;
+  apps: Application[];
+  setApps: Dispatch<SetStateAction<Application[]>>;
+  currentApp?: Application;
+  setCurrentApp: (app: Application) => void;
 }
 
 export const AppContext = createContext<AppContextType>({
   apps: [],
   setApps: () => {},
-  currentApp: '',
+  currentApp: undefined,
   setCurrentApp: () => {},
 });
