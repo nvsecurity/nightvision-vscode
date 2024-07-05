@@ -76,8 +76,8 @@ export const Scan = () => {
 
     const reqId = v4();
     const requestGenerator = messageHandler.requestGenerator(SCAN, reqId, {
-      applicationName: currentApp,
-      targetName: currentTarget,
+      application: currentApp,
+      target: currentTarget,
     });
 
     setRequestId(reqId);

@@ -1,3 +1,5 @@
+import { Application } from '@contexts/AppContext';
+import { Target } from '@contexts/TargetContext';
 import * as vscode from 'vscode';
 import Command from '@commands/Command';
 import {
@@ -12,11 +14,11 @@ export default class Scan extends Command {
   constructor(
     webview: vscode.Webview,
     requestId: string,
-    applicationName: string,
-    targetName: string
+    application: Application,
+    target: Target
   ) {
     super(
-      `nightvision scan -a ${applicationName} -t ${targetName}`,
+      `nightvision scan -A ${application.id} -T ${target.id}`,
       webview,
       requestId
     );

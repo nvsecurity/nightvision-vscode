@@ -103,13 +103,13 @@ class SidebarProvider implements vscode.WebviewViewProvider {
             break;
           }
           case SCAN: {
-            const { applicationName, targetName } = payload;
+            const { application, target } = payload;
 
             const command = new Scan(
               webviewView.webview,
               requestId,
-              applicationName,
-              targetName
+              application,
+              target
             );
 
             this._children[requestId] = command.execute();
