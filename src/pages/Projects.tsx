@@ -9,13 +9,15 @@ import { useNavigate } from 'react-router-dom';
 import {
   CREATE_PROJECT,
   DELETE_PROJECT,
+  INVALID_NAME,
   INVALID_PROJECT,
   INVALID_PROJECT_DELETE,
-  INVALID_PROJECT_NAME,
-  RENAME_PROJECT,
+  INVALID_UUID,
   UNAUTHORIZED_ACCESS,
+  UPDATE_PROJECT,
 } from '@commands/CommandConstants';
 import { Dropdown } from '@components/Dropdown';
+import { EditList } from '@components/EditList';
 import { Modal } from '@components/Modal';
 import { messageHandler } from '@utils/MessageHandler';
 
@@ -26,9 +28,9 @@ export const Projects = () => {
   const { setIsLoggedIn } = useUser();
 
   const {
-    componentRef: renameRef,
-    showComponent: showRenameModal,
-    setShowComponent: setShowRenameModal,
+    componentRef: updateRef,
+    showComponent: showUpdateModal,
+    setShowComponent: setShowUpdateModal,
   } = useClickOutside();
   const {
     componentRef: deleteRef,
@@ -38,26 +40,29 @@ export const Projects = () => {
 
   const [projectName, setProjectName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+
   const [selectedProject, setSelectedProject] = useState<Project>();
-  const [rename, setRename] = useState<string>();
-  const [isRenameLoading, setIsRenameLoading] = useState(false);
+  const [updateValues, setUpdateValues] = useState<{ name: string }>({
+    name: '',
+  });
+  const [isUpdateLoading, setIsUpdateLoading] = useState(false);
   const [isDeleteLoading, setIsDeleteLoading] = useState(false);
 
-  const handleRename = async (e: React.MouseEvent<HTMLButtonElement>) => {
+  const handleUpdate = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
 
-    setIsRenameLoading(true);
+    setIsUpdateLoading(true);
 
     const requestGenerator = messageHandler.requestGenerator(
-      RENAME_PROJECT,
+      UPDATE_PROJECT,
       v4(),
-      { id: selectedProject?.id, name: rename }
+      { id: selectedProject?.id, name: updateValues.name }
     );
 
     try {
       for await (const response of requestGenerator) {
         switch (response.command) {
-          case RENAME_PROJECT: {
+          case UPDATE_PROJECT: {
             setProjects((prevState) =>
               prevState.map((project) =>
                 project.id === selectedProject?.id
@@ -65,14 +70,22 @@ export const Projects = () => {
                   : project
               )
             );
+            setSelectedProject(response.payload as Project);
             break;
           }
           case INVALID_PROJECT: {
             // TODO
+            console.log(INVALID_PROJECT);
             break;
           }
-          case INVALID_PROJECT_NAME: {
+          case INVALID_NAME: {
             // TODO
+            console.log(INVALID_NAME);
+            break;
+          }
+          case INVALID_UUID: {
+            // TODO
+            console.log(INVALID_UUID);
             break;
           }
           case UNAUTHORIZED_ACCESS:
@@ -83,7 +96,7 @@ export const Projects = () => {
     } catch (err) {
       console.error(err);
     }
-    setIsRenameLoading(false);
+    setIsUpdateLoading(false);
   };
 
   const handleDelete = async (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -105,7 +118,7 @@ export const Projects = () => {
               prevState.filter((project) => project.id !== response.payload.id)
             );
             setShowDeleteModal(false);
-            setShowRenameModal(false);
+            setShowUpdateModal(false);
             break;
           }
           case INVALID_PROJECT: {
@@ -151,7 +164,7 @@ export const Projects = () => {
           case CREATE_PROJECT:
             setProjects((prevState) => [response.payload, ...prevState]);
             break;
-          case INVALID_PROJECT_NAME: {
+          case INVALID_NAME: {
             // TODO
             break;
           }
@@ -233,33 +246,21 @@ export const Projects = () => {
           {isLoading ? 'Creating...' : 'Create Project'}
         </button>
 
-        <ul className='mt-4 pl-0'>
-          {projects.map((project) => {
-            return (
-              <li
-                key={project.id}
-                onClick={() => {
-                  setShowRenameModal((prevState) => !prevState);
-                  setRename(project.name);
-                  setSelectedProject({
-                    id: project.id,
-                    name: project.name,
-                  });
-                }}
-                className='relative cursor-pointer py-1.5 before:absolute before:-inset-x-6 before:inset-y-0 before:-z-50 before:hover:bg-[--vscode-list-hoverBackground]'
-              >
-                {project.name}
-              </li>
-            );
-          })}
-        </ul>
+        <EditList
+          list={projects}
+          handleClick={(listItem) => {
+            setShowUpdateModal((prevState) => !prevState);
+            setUpdateValues({ name: listItem.name });
+            setSelectedProject(listItem);
+          }}
+        />
       </div>
 
-      {showRenameModal && (
-        <Modal componentRef={renameRef} visible={!showDeleteModal}>
+      {showUpdateModal && (
+        <Modal componentRef={updateRef} visible={!showDeleteModal}>
           <div className='flex flex-col space-y-4'>
             <div className='flex items-center justify-between'>
-              <span className='font-bold uppercase'>Rename Project</span>
+              <span className='font-bold uppercase'>Update Project</span>
               <div className='flex items-center justify-center space-x-2'>
                 <button
                   className='unstyled'
@@ -280,7 +281,7 @@ export const Projects = () => {
                 </button>
                 <button
                   className='unstyled'
-                  onClick={() => setShowRenameModal(false)}
+                  onClick={() => setShowUpdateModal(false)}
                 >
                   <svg
                     viewBox='0 0 16 16'
@@ -299,23 +300,23 @@ export const Projects = () => {
             <div>
               <label
                 className='mb-1 text-sm uppercase opacity-50'
-                htmlFor='new-project-name'
+                htmlFor='project-name'
               >
-                New Project Name
+                Project Name
               </label>
               <input
-                onChange={(e) => setRename(e.target.value)}
-                value={rename}
+                onChange={(e) => setUpdateValues({ name: e.target.value })}
+                value={updateValues.name}
                 className='w-full'
-                id='new-project-name'
+                id='project-name'
               />
             </div>
             <button
-              onClick={handleRename}
-              disabled={isRenameLoading}
+              onClick={handleUpdate}
+              disabled={isUpdateLoading}
               className='rounded disabled:bg-neutral-800 hover:disabled:cursor-default'
             >
-              {isRenameLoading ? 'Renaming...' : 'Rename'}
+              {isUpdateLoading ? 'Updating...' : 'Update'}
             </button>
           </div>
           {showDeleteModal && (

@@ -1,9 +1,6 @@
 import * as vscode from 'vscode';
 import Command from '@commands/Command';
-import {
-  CREATE_PROJECT,
-  INVALID_PROJECT_NAME,
-} from '@commands/CommandConstants';
+import { CREATE_PROJECT, INVALID_NAME } from '@commands/CommandConstants';
 
 export default class CreateProject extends Command {
   protected projectName: string;
@@ -28,7 +25,7 @@ export default class CreateProject extends Command {
       });
     } else if (/ERROR name should have a max length/.test(message)) {
       this.webview.postMessage({
-        command: INVALID_PROJECT_NAME,
+        command: INVALID_NAME,
         requestId: this.requestId,
       });
     }

@@ -6,7 +6,9 @@ import {
   CREATE_APP,
   CREATE_PROJECT,
   CREATE_TARGET,
+  DELETE_APP,
   DELETE_PROJECT,
+  DELETE_TARGET,
   GET_CURRENT_APP,
   GET_CURRENT_PROJECT,
   GET_CURRENT_TARGET,
@@ -16,27 +18,33 @@ import {
   LIST_PROJECT,
   LIST_TARGET,
   LOGIN,
-  RENAME_PROJECT,
   SAVE_CURRENT_APP,
   SAVE_CURRENT_PROJECT,
   SAVE_CURRENT_TARGET,
   SAVE_SCAN,
   SCAN,
+  UPDATE_APP,
+  UPDATE_PROJECT,
+  UPDATE_TARGET,
 } from '@commands/CommandConstants';
 import CreateApp from '@commands/CreateApp';
 import CreateProject from '@commands/CreateProject';
 import CreateTarget from '@commands/CreateTarget';
+import DeleteApp from '@commands/DeleteApp';
 import DeleteProject from '@commands/DeleteProject';
+import DeleteTarget from '@commands/DeleteTarget';
 import GetCurrentApp from '@commands/GetCurrentApp';
 import GetCurrentProject from '@commands/GetCurrentProject';
 import ListApp from '@commands/ListApp';
 import ListProject from '@commands/ListProject';
 import ListTarget from '@commands/ListTarget';
 import Login from '@commands/Login';
-import RenameProject from '@commands/RenameProject';
 import SaveCurrentApp from '@commands/SaveCurrentApp';
 import SaveCurrentProject from '@commands/SaveCurrentProject';
 import Scan from '@commands/Scan';
+import UpdateApp from '@commands/UpdateApp';
+import UpdateProject from '@commands/UpdateProject';
+import UpdateTarget from '@commands/UpdateTarget';
 
 export function activate(context: vscode.ExtensionContext) {
   const sidebarProvider = new SidebarProvider(context);
@@ -97,133 +105,159 @@ class SidebarProvider implements vscode.WebviewViewProvider {
           case SCAN: {
             const { applicationName, targetName } = payload;
 
-            const scanCommand = new Scan(
+            const command = new Scan(
               webviewView.webview,
               requestId,
               applicationName,
               targetName
             );
 
-            this._children[requestId] = scanCommand.execute();
+            this._children[requestId] = command.execute();
             break;
           }
           case CREATE_APP: {
             const { applicationName } = payload;
 
-            const createAppCommand = new CreateApp(
+            const command = new CreateApp(
               webviewView.webview,
               requestId,
               applicationName
             );
 
-            this._children[requestId] = createAppCommand.execute();
+            this._children[requestId] = command.execute();
+            break;
+          }
+          case DELETE_APP: {
+            const { id } = payload;
+
+            const command = new DeleteApp(webviewView.webview, requestId, id);
+
+            this._children[requestId] = command.execute();
             break;
           }
           case GET_CURRENT_APP: {
-            const getCurrentAppCommand = new GetCurrentApp(
-              webviewView.webview,
-              requestId
-            );
+            const command = new GetCurrentApp(webviewView.webview, requestId);
 
-            this._children[requestId] = getCurrentAppCommand.execute();
+            this._children[requestId] = command.execute();
             break;
           }
           case SAVE_CURRENT_APP: {
             const { id, name } = payload;
 
-            const saveCurrentAppCommand = new SaveCurrentApp(
+            const command = new SaveCurrentApp(
               webviewView.webview,
               requestId,
               id,
               name
             );
 
-            this._children[requestId] = saveCurrentAppCommand.execute();
+            this._children[requestId] = command.execute();
             break;
           }
           case LIST_APP: {
-            const listAppCommand = new ListApp(webviewView.webview, requestId);
+            const command = new ListApp(webviewView.webview, requestId);
 
-            this._children[requestId] = listAppCommand.execute();
+            this._children[requestId] = command.execute();
+            break;
+          }
+          case UPDATE_APP: {
+            const { id, name } = payload;
+            const command = new UpdateApp(
+              webviewView.webview,
+              requestId,
+              id,
+              name
+            );
+
+            this._children[requestId] = command.execute();
             break;
           }
           case CREATE_PROJECT: {
             const { projectName } = payload;
 
-            const createProjectCommand = new CreateProject(
+            const command = new CreateProject(
               webviewView.webview,
               requestId,
               projectName
             );
 
-            this._children[requestId] = createProjectCommand.execute();
+            this._children[requestId] = command.execute();
             break;
           }
           case GET_CURRENT_PROJECT: {
-            const getCurrentProjectCommand = new GetCurrentProject(
+            const command = new GetCurrentProject(
               webviewView.webview,
               requestId
             );
 
-            this._children[requestId] = getCurrentProjectCommand.execute();
+            this._children[requestId] = command.execute();
             break;
           }
           case DELETE_PROJECT: {
             const { id } = payload;
-            const deleteProjectCommand = new DeleteProject(
+            const command = new DeleteProject(
               webviewView.webview,
               requestId,
               id
             );
 
-            this._children[requestId] = deleteProjectCommand.execute();
+            this._children[requestId] = command.execute();
             break;
           }
           case LIST_PROJECT: {
-            const listProjectCommand = new ListProject(
-              webviewView.webview,
-              requestId
-            );
+            const command = new ListProject(webviewView.webview, requestId);
 
-            this._children[requestId] = listProjectCommand.execute();
+            this._children[requestId] = command.execute();
             break;
           }
-          case RENAME_PROJECT: {
+          case UPDATE_PROJECT: {
             const { id, name } = payload;
-            const renameProjectCommand = new RenameProject(
+            const command = new UpdateProject(
               webviewView.webview,
               requestId,
               id,
               name
             );
 
-            this._children[requestId] = renameProjectCommand.execute();
+            this._children[requestId] = command.execute();
             break;
           }
           case SAVE_CURRENT_PROJECT: {
             const { id, name } = payload;
 
-            const saveCurrentProjectCommand = new SaveCurrentProject(
+            const command = new SaveCurrentProject(
               webviewView.webview,
               requestId,
               id,
               name
             );
 
-            this._children[requestId] = saveCurrentProjectCommand.execute();
+            this._children[requestId] = command.execute();
             break;
           }
           case CREATE_TARGET: {
             const { targetName, targetUrl } = payload;
 
-            const createTargetCommand = new CreateTarget(
+            const command = new CreateTarget(
               webviewView.webview,
               requestId,
               targetName,
               targetUrl
             );
 
-            this._children[requestId] = createTargetCommand.execute();
+            this._children[requestId] = command.execute();
+            break;
+          }
+          case DELETE_TARGET: {
+            const { id } = payload;
+
+            const command = new DeleteTarget(
+              webviewView.webview,
+              requestId,
+              id
+            );
+
+            this._children[requestId] = command.execute();
             break;
           }
           case GET_CURRENT_TARGET: {
@@ -253,18 +287,29 @@ class SidebarProvider implements vscode.WebviewViewProvider {
             break;
           }
           case LIST_TARGET: {
-            const listTargetCommand = new ListTarget(
+            const command = new ListTarget(webviewView.webview, requestId);
+
+            this._children[requestId] = command.execute();
+            break;
+          }
+          case UPDATE_TARGET: {
+            const { id, name, url } = payload;
+
+            const command = new UpdateTarget(
               webviewView.webview,
-              requestId
+              requestId,
+              id,
+              name,
+              url
             );
 
-            this._children[requestId] = listTargetCommand.execute();
+            this._children[requestId] = command.execute();
             break;
           }
           case LOGIN: {
-            const loginCommand = new Login(webviewView.webview, requestId);
+            const command = new Login(webviewView.webview, requestId);
 
-            this._children[requestId] = loginCommand.execute();
+            this._children[requestId] = command.execute();
             break;
           }
           case GET_SCANS: {

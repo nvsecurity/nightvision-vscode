@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import Command from '@commands/Command';
-import { CREATE_APP, INVALID_APP_NAME } from '@commands/CommandConstants';
+import { CREATE_APP, INVALID_NAME } from '@commands/CommandConstants';
 
 export default class CreateApp extends Command {
   protected applicationName: string;
@@ -33,7 +33,7 @@ export default class CreateApp extends Command {
       });
     } else if (/ERROR name should have a max length/.test(message)) {
       this.webview.postMessage({
-        command: INVALID_APP_NAME,
+        command: INVALID_NAME,
         requestId: this.requestId,
       });
     }

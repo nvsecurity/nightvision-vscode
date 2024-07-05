@@ -1,13 +1,13 @@
 import * as vscode from 'vscode';
 import Command from '@commands/Command';
 import {
+  INVALID_NAME,
   INVALID_PROJECT,
-  INVALID_PROJECT_NAME,
   INVALID_UUID,
-  RENAME_PROJECT,
+  UPDATE_PROJECT,
 } from '@commands/CommandConstants';
 
-export default class RenameProject extends Command {
+export default class UpdateProject extends Command {
   constructor(
     webview: vscode.Webview,
     requestId: string,
@@ -30,7 +30,7 @@ export default class RenameProject extends Command {
 
     if (/Id:/.test(message)) {
       this.webview.postMessage({
-        command: RENAME_PROJECT,
+        command: UPDATE_PROJECT,
         requestId: this.requestId,
         payload: {
           id: message.match(/Id:\s*(.*)/)[1],
@@ -46,7 +46,7 @@ export default class RenameProject extends Command {
       });
     } else if (/ERROR name should have a max length/.test(message)) {
       this.webview.postMessage({
-        command: INVALID_PROJECT_NAME,
+        command: INVALID_NAME,
         requestId: this.requestId,
       });
     } else if (/is not a valid UUID/.test(message)) {

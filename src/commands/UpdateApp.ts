@@ -1,29 +1,30 @@
 import * as vscode from 'vscode';
 import Command from '@commands/Command';
 import {
-  CREATE_TARGET,
-  DUPLICATE_TARGET,
+  INVALID_APP,
   INVALID_NAME,
-  INVALID_URL,
+  INVALID_UUID,
+  UPDATE_APP,
 } from '@commands/CommandConstants';
 
-export default class CreateTarget extends Command {
-  protected targetName: string;
-  protected targetUrl: string;
+export default class UpdateApp extends Command {
+  protected appId: string;
+  protected newAppName: string;
 
   constructor(
     webview: vscode.Webview,
     requestId: string,
-    targetName: string,
-    targetUrl: string
+    appId: string,
+    newAppName: string
   ) {
     super(
-      `nightvision target create -n ${targetName} -u ${targetUrl}`,
+      `nightvision app update -A ${appId} -n ${newAppName}`,
       webview,
       requestId
     );
-    this.targetName = targetName;
-    this.targetUrl = targetUrl;
+
+    this.appId = appId;
+    this.newAppName = newAppName;
   }
 
   handleOutput(data: any) {
@@ -35,17 +36,18 @@ export default class CreateTarget extends Command {
 
     if (/Id:/.test(message)) {
       this.webview.postMessage({
-        command: CREATE_TARGET,
+        command: UPDATE_APP,
         requestId: this.requestId,
         payload: {
-          id: message.match(/^Id:\s*(.*)/)[1],
-          name: this.targetName,
-          url: this.targetUrl,
+          id: this.appId,
+          name: this.newAppName,
         },
       });
-    } else if (/already exists in the Project/.test(message)) {
+    } else if (
+      /This Application does not exist or is not shared with you/.test(message)
+    ) {
       this.webview.postMessage({
-        command: DUPLICATE_TARGET,
+        command: INVALID_APP,
         requestId: this.requestId,
       });
     } else if (/ERROR name should have a max length/.test(message)) {
@@ -53,9 +55,9 @@ export default class CreateTarget extends Command {
         command: INVALID_NAME,
         requestId: this.requestId,
       });
-    } else if (/Enter a valid URL/.test(message)) {
+    } else if (/is not a valid UUID/.test(message)) {
       this.webview.postMessage({
-        command: INVALID_URL,
+        command: INVALID_UUID,
         requestId: this.requestId,
       });
     }
