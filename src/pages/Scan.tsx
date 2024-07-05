@@ -148,6 +148,36 @@ export const Scan = () => {
   };
 
   useEffect(() => {
+    let ignore = false;
+    if (apps.some((app) => app.id === currentApp?.id)) {
+      return;
+    }
+
+    if (apps.length > 0 && !ignore) {
+      setCurrentApp(apps[0]);
+    }
+
+    return () => {
+      ignore = true;
+    };
+  }, [apps, currentApp]);
+
+  useEffect(() => {
+    let ignore = false;
+    if (targets.some((target) => target.id === currentTarget?.id)) {
+      return;
+    }
+
+    if (targets.length > 0 && !ignore) {
+      setCurrentTarget(targets[0]);
+    }
+
+    return () => {
+      ignore = true;
+    };
+  }, [targets, currentTarget]);
+
+  useEffect(() => {
     let interval: NodeJS.Timeout | undefined;
     clearInterval(interval);
     interval = setInterval(() => {
