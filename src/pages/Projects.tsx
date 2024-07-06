@@ -18,7 +18,9 @@ import {
 } from '@commands/CommandConstants';
 import { Dropdown } from '@components/Dropdown';
 import { EditList } from '@components/EditList';
+import { Label } from '@components/Label';
 import { Modal } from '@components/Modal';
+import { TextInput } from '@components/TextInput';
 import { messageHandler } from '@utils/MessageHandler';
 
 export const Projects = () => {
@@ -208,12 +210,7 @@ export const Projects = () => {
         </div>
         <div className='flex flex-col space-y-1'>
           <div>
-            <label
-              className='mb-1 text-sm uppercase opacity-50'
-              htmlFor='current-project'
-            >
-              Current Project
-            </label>
+            <Label htmlFor='current-project'>Current Project</Label>
             <Dropdown
               defaultItem={currentProject}
               items={projects}
@@ -222,21 +219,12 @@ export const Projects = () => {
               id='current-project'
             />
           </div>
-          <div>
-            <label
-              className='mb-1 text-sm uppercase opacity-50'
-              htmlFor='project-name'
-            >
-              Project Name
-            </label>
-
-            <input
-              onChange={(e) => setProjectName(e.target.value)}
-              value={projectName}
-              className='w-full'
-              id='project-name'
-            />
-          </div>
+          <TextInput
+            value={projectName}
+            handleOnChange={setProjectName}
+            label='Project Name'
+            id='project-name'
+          />
         </div>
         <button
           onClick={handleCreateProject}
@@ -297,20 +285,12 @@ export const Projects = () => {
                 </button>
               </div>
             </div>
-            <div>
-              <label
-                className='mb-1 text-sm uppercase opacity-50'
-                htmlFor='project-name'
-              >
-                Project Name
-              </label>
-              <input
-                onChange={(e) => setUpdateValues({ name: e.target.value })}
-                value={updateValues.name}
-                className='w-full'
-                id='project-name'
-              />
-            </div>
+            <TextInput
+              value={updateValues.name}
+              handleOnChange={(value) => setUpdateValues({ name: value })}
+              label='Project Name'
+              id='project-name-update'
+            />
             <button
               onClick={handleUpdate}
               disabled={isUpdateLoading}

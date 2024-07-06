@@ -18,6 +18,7 @@ import {
 } from '@commands/CommandConstants';
 import { EditList } from '@components/EditList';
 import { Modal } from '@components/Modal';
+import { TextInput } from '@components/TextInput';
 import { messageHandler } from '@utils/MessageHandler';
 
 export const Applications = () => {
@@ -205,23 +206,12 @@ export const Applications = () => {
           </a>
           <h1 className='font-bold uppercase'>Application</h1>
         </div>
-        <div className='flex flex-col space-y-1'>
-          <div>
-            <label
-              className='mb-1 text-sm uppercase opacity-50'
-              htmlFor='application'
-            >
-              Application Name
-            </label>
-
-            <input
-              onChange={(e) => setApplicationName(e.target.value)}
-              value={applicationName}
-              className='w-full'
-              id='application'
-            />
-          </div>
-        </div>
+        <TextInput
+          value={applicationName}
+          handleOnChange={setApplicationName}
+          label='Application Name'
+          id='app-name'
+        />
         <button
           onClick={handleCreateApp}
           className='rounded disabled:bg-neutral-800 hover:disabled:cursor-default'
@@ -281,20 +271,12 @@ export const Applications = () => {
                 </button>
               </div>
             </div>
-            <div>
-              <label
-                className='mb-1 text-sm uppercase opacity-50'
-                htmlFor='app-name'
-              >
-                Application Name
-              </label>
-              <input
-                onChange={(e) => setUpdateValues({ name: e.target.value })}
-                value={updateValues.name}
-                className='w-full'
-                id='app-name'
-              />
-            </div>
+            <TextInput
+              value={updateValues.name}
+              handleOnChange={(value) => setUpdateValues({ name: value })}
+              label='Application Name'
+              id='app-name-update'
+            />
             <button
               onClick={handleUpdate}
               disabled={isUpdateLoading}

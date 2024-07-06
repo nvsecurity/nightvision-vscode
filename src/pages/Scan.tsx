@@ -17,6 +17,7 @@ import {
   UNAUTHORIZED_ACCESS,
 } from '@commands/CommandConstants';
 import { Dropdown } from '@components/Dropdown';
+import { Label } from '@components/Label';
 import { messageHandler } from '@utils/MessageHandler';
 import formatDuration from '@utils/formatDuration';
 
@@ -214,12 +215,7 @@ export const Scan = () => {
       </div>
       <div className='flex flex-col space-y-1'>
         <div>
-          <label
-            className='mb-1 text-sm uppercase opacity-50'
-            htmlFor='application'
-          >
-            Application Name
-          </label>
+          <Label htmlFor='application'>Application Name</Label>
           <Dropdown
             defaultItem={currentApp}
             items={apps}
@@ -231,12 +227,7 @@ export const Scan = () => {
           />
         </div>
         <div>
-          <label
-            className='mb-1 text-sm uppercase opacity-50'
-            htmlFor='target-name'
-          >
-            Target Name
-          </label>
+          <Label htmlFor='target-name'>Target Name</Label>
           <Dropdown
             defaultItem={currentTarget}
             items={targets}

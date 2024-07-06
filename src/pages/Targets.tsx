@@ -19,6 +19,7 @@ import {
 } from '@commands/CommandConstants';
 import { EditList } from '@components/EditList';
 import { Modal } from '@components/Modal';
+import { TextInput } from '@components/TextInput';
 import { messageHandler } from '@utils/MessageHandler';
 
 export const Targets = () => {
@@ -234,36 +235,18 @@ export const Targets = () => {
           <h1 className='font-bold uppercase'>Target</h1>
         </div>
         <div className='flex flex-col space-y-1'>
-          <div>
-            <label
-              className='mb-1 text-sm uppercase opacity-50'
-              htmlFor='target-name'
-            >
-              Target Name
-            </label>
-
-            <input
-              onChange={(e) => setTargetName(e.target.value)}
-              value={targetName}
-              className='w-full'
-              id='target-name'
-            />
-          </div>
-          <div>
-            <label
-              className='mb-1 text-sm uppercase opacity-50'
-              htmlFor='target-url'
-            >
-              Target URL
-            </label>
-
-            <input
-              onChange={(e) => setTargetUrl(e.target.value)}
-              value={targetUrl}
-              className='w-full'
-              id='target-url'
-            />
-          </div>
+          <TextInput
+            value={targetName}
+            handleOnChange={setTargetName}
+            label='Target Name'
+            id='target-name'
+          />
+          <TextInput
+            value={targetUrl}
+            handleOnChange={setTargetUrl}
+            label='Target URL'
+            id='target-url'
+          />
         </div>
         <button
           onClick={handleCreateTarget}
@@ -323,44 +306,28 @@ export const Targets = () => {
                 </button>
               </div>
             </div>
-            <div>
-              <label
-                className='mb-1 text-sm uppercase opacity-50'
-                htmlFor='target-name'
-              >
-                Target Name
-              </label>
-              <input
-                onChange={(e) =>
-                  setUpdateValues((prevState) => ({
-                    ...prevState,
-                    name: e.target.value,
-                  }))
-                }
-                value={updateValues.name}
-                className='w-full'
-                id='target-name'
-              />
-            </div>
-            <div>
-              <label
-                className='mb-1 text-sm uppercase opacity-50'
-                htmlFor='target-url'
-              >
-                Target Url
-              </label>
-              <input
-                onChange={(e) =>
-                  setUpdateValues((prevState) => ({
-                    ...prevState,
-                    url: e.target.value,
-                  }))
-                }
-                value={updateValues.url}
-                className='w-full'
-                id='target-url'
-              />
-            </div>
+            <TextInput
+              value={updateValues.name}
+              handleOnChange={(value) =>
+                setUpdateValues((prevState) => ({
+                  ...prevState,
+                  name: value,
+                }))
+              }
+              label='Target Name'
+              id='target-name-update'
+            />
+            <TextInput
+              value={updateValues.url}
+              handleOnChange={(value) =>
+                setUpdateValues((prevState) => ({
+                  ...prevState,
+                  url: value,
+                }))
+              }
+              label='Target URL'
+              id='target-url-update'
+            />
             <button
               onClick={handleUpdate}
               disabled={isUpdateLoading}
