@@ -9,6 +9,7 @@ import { useNavigate } from 'react-router-dom';
 import {
   CREATE_PROJECT,
   DELETE_PROJECT,
+  DUPLICATE_NAME,
   INVALID_NAME,
   INVALID_PROJECT,
   INVALID_PROJECT_DELETE,
@@ -166,8 +167,14 @@ export const Projects = () => {
           case CREATE_PROJECT:
             setProjects((prevState) => [response.payload, ...prevState]);
             break;
+          case DUPLICATE_NAME: {
+            // TODO
+            console.log(DUPLICATE_NAME);
+            break;
+          }
           case INVALID_NAME: {
             // TODO
+            console.log(INVALID_NAME);
             break;
           }
           case UNAUTHORIZED_ACCESS:

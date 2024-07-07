@@ -9,7 +9,7 @@ import { useNavigate } from 'react-router-dom';
 import {
   CREATE_TARGET,
   DELETE_TARGET,
-  DUPLICATE_TARGET,
+  DUPLICATE_NAME,
   INVALID_NAME,
   INVALID_TARGET,
   INVALID_URL,
@@ -181,9 +181,9 @@ export const Targets = () => {
             setTargets((prevState) => [response.payload, ...prevState]);
             break;
           }
-          case DUPLICATE_TARGET: {
+          case DUPLICATE_NAME: {
             // TODO
-            console.log(DUPLICATE_TARGET);
+            console.log(DUPLICATE_NAME);
             break;
           }
           case INVALID_NAME: {

@@ -9,6 +9,7 @@ import { useNavigate } from 'react-router-dom';
 import {
   CREATE_APP,
   DELETE_APP,
+  DUPLICATE_NAME,
   INVALID_APP,
   INVALID_APP_DELETE,
   INVALID_NAME,
@@ -164,8 +165,14 @@ export const Applications = () => {
             setApps((prevState) => [response.payload, ...prevState]);
             break;
           }
+          case DUPLICATE_NAME: {
+            // TODO
+            console.log(DUPLICATE_NAME);
+            break;
+          }
           case INVALID_NAME: {
             // TODO
+            console.log(INVALID_NAME);
             break;
           }
           case UNAUTHORIZED_ACCESS:

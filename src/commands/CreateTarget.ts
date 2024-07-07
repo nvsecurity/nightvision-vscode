@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import Command from '@commands/Command';
 import {
   CREATE_TARGET,
-  DUPLICATE_TARGET,
+  DUPLICATE_NAME,
   INVALID_NAME,
   INVALID_URL,
 } from '@commands/CommandConstants';
@@ -43,9 +43,9 @@ export default class CreateTarget extends Command {
           url: this.targetUrl,
         },
       });
-    } else if (/already exists in the Project/.test(message)) {
+    } else if (/name.*already exists/.test(message)) {
       this.webview.postMessage({
-        command: DUPLICATE_TARGET,
+        command: DUPLICATE_NAME,
         requestId: this.requestId,
       });
     } else if (/ERROR name should have a max length/.test(message)) {
