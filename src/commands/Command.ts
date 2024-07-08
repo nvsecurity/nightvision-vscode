@@ -15,7 +15,10 @@ export default class Command {
 
   execute() {
     const [cmd, ...args] = this.command.split(' ');
-    const child = cp.spawn(cmd, args);
+    const child = cp.spawn(
+      cmd,
+      args.map((arg) => (arg === '' ? ' ' : arg))
+    );
 
     child.stdout.on('data', (data) => this.handleOutput(data));
     child.stderr.on('data', (data) => this.handleOutput(data));
