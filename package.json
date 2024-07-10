@@ -2,6 +2,7 @@
   "name": "nightvision",
   "displayName": "NightVision",
   "description": "",
+  "publisher": "nvsecurity",
   "version": "0.0.1",
   "engines": {
     "vscode": "^1.75.0"
@@ -9,6 +10,10 @@
   "categories": [
     "Other"
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nvsecurity/vscode-extension.git"
+ },
   "activationEvents": [],
   "main": "./dist/extension.js",
   "contributes": {
@@ -48,7 +53,9 @@
     "pretest": "npm run compile-tests && npm run compile && npm run lint",
     "lint": "eslint src --ext ts",
     "clean": "rimraf dist",
-    "test": "node ./out/test/runTest.js"
+    "test": "node ./out/test/runTest.js",
+    "vsce:package": "vsce package",
+    "vsce:publish": "vsce publish"
   },
   "devDependencies": {
     "@trivago/prettier-plugin-sort-imports": "^4.3.0",

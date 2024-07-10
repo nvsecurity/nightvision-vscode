@@ -2,7 +2,7 @@
 
 A VSCode extension for the NightVision CLI.
 
-## Getting Started
+## Contributing
 
 ### Prerequisites
 
@@ -12,28 +12,39 @@ A VSCode extension for the NightVision CLI.
 ### Installation
 
 1. Clone the repo
-   ```sh
-   git clone https://github.com/spatiag/nightvision.git
-   ```
-2. Change directory
-   ```sh
-   cd nightvision
-   ```
-3. Install NPM packages
-   ```sh
-   npm install
-   ```
-4. Make a copy of `.env.example` and name it `.env`
-5. Edit `.env` and choose a port
-   ```env
-   PORT=8080
-   ```
 
-### Running the application
+```sh
+git clone https://github.com/nvsecurity/vscode-extension.git
+```
+
+2. Change directory
+
+```sh
+cd nightvision
+```
+
+3. Install NPM packages
+
+```sh
+npm install
+```
+
+4. Make a copy of `.env.example` and name it `.env`
+
+5. Edit `.env` and choose a port
+
+```env
+PORT=8080
+```
+
+### Running the extension
 
 1. Start the server
-   ```sh
-   npm run watch
-   ```
+
+```sh
+npm run watch
+```
+
 2. Open the repo in VSCode
+
 3. Run and Debug (Press `F5`) to open a new window with the extension loaded
