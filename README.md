@@ -1,6 +1,25 @@
 # NightVision Visual Studio Code Extension
 
+[![VSCode Extension](https://img.shields.io/badge/VSCode_Extension-Install-blue)](https://marketplace.visualstudio.com/items?itemName=nvsecurity.nightvision)
+
+[![Installs-count](https://vsmarketplacebadges.dev/installs-short/nvsecurity.nightvision.png)](https://marketplace.visualstudio.com/items?itemName=nvsecurity.nightvision)
+
+
 A VSCode extension for the NightVision CLI.
+
+## Getting Started
+
+### Install
+
+Open the NightVision Extension for Visual Studio Code in the [Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=nvsecurity.nightvision).
+
+### Dependencies
+
+* [NightVision CLI](https://docs.nightvision.net/docs/installing-the-cli)
+
+### Usage
+
+TODO
 
 ## Contributing
 
@@ -48,3 +67,8 @@ npm run watch
 2. Open the repo in VSCode
 
 3. Run and Debug (Press `F5`) to open a new window with the extension loaded
+
+
+## Disclaimer
+
+To use this plugin, you will need a NightVision account. The plugin uses NightVision's API and command line to scan the code, scan the running application, and enrich the results provided into the IDE. 

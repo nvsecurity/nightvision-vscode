@@ -1,19 +1,33 @@
 {
   "name": "nightvision",
   "displayName": "NightVision",
-  "description": "",
   "publisher": "nvsecurity",
+  "description": "Test and exploit REST APIs and Web apps from your IDE.",
   "version": "0.0.1",
+  "license": "Apache-2.0",
+  "icon": "docs/icon.png",
   "engines": {
     "vscode": "^1.75.0"
   },
   "categories": [
+    "Linters",
+    "Testing",
     "Other"
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/nvsecurity/vscode-extension.git"
- },
+    "url": "https://github.com/nvsecurity/nightvision-vscode.git"
+  },
+  "bugs": {
+    "url": "https://github.com/nvsecurity/nightvision-vscode/issues"
+  },
+  "keywords": [
+    "pentesting",
+    "security",
+    "application-security",
+    "dast",
+    "static analysis"
+  ],
   "activationEvents": [],
   "main": "./dist/extension.js",
   "contributes": {
