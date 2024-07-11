@@ -285,7 +285,15 @@ export const App = () => {
     })();
   }, [scans]);
 
-  if (isLoading || !currentProject) {
+  if (!isLoggedIn) {
+    return (
+      <Layout>
+        <button onClick={handleLogin} className='mt-4 truncate rounded'>
+          Log in to NightVision
+        </button>
+      </Layout>
+    );
+  } else if (isLoading || !currentProject) {
     return <Loading />;
   }
 
@@ -326,11 +334,7 @@ export const App = () => {
                     setCurrentTarget: handleTargetChange,
                   }}
                 >
-                  {isLoggedIn ? (
-                    <RouterProvider router={router} />
-                  ) : (
-                    <button onClick={handleLogin}>Log in to NightVision</button>
-                  )}
+                  <RouterProvider router={router} />
                 </TargetContext.Provider>
               </ProjectContext.Provider>
             </ScanContext.Provider>
