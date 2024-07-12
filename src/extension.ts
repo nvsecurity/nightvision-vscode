@@ -15,7 +15,6 @@ import {
   GET_CURRENT_PROJECT,
   GET_CURRENT_TARGET,
   GET_NIGHTVISION_TOKEN,
-  GET_SCANS,
   KILL,
   LIST_APP,
   LIST_PROJECT,
@@ -24,7 +23,6 @@ import {
   SAVE_CURRENT_APP,
   SAVE_CURRENT_PROJECT,
   SAVE_CURRENT_TARGET,
-  SAVE_SCAN,
   SCAN,
   UPDATE_APP,
   UPDATE_PROJECT,
@@ -374,32 +372,6 @@ class SidebarProvider implements vscode.WebviewViewProvider {
             const command = new Login(webviewView.webview, requestId);
 
             this._children[requestId] = command.execute();
-            break;
-          }
-          case GET_SCANS: {
-            const storedScans =
-              this._extensionContext.globalState.get<string>('scans');
-            const scans = storedScans ? JSON.parse(storedScans) : {};
-
-            webviewView.webview.postMessage({
-              command: GET_SCANS,
-              requestId,
-              payload: scans,
-              isFinal: true,
-            });
-            break;
-          }
-          case SAVE_SCAN: {
-            this._extensionContext.globalState.update(
-              'scans',
-              JSON.stringify(payload.scans)
-            );
-
-            webviewView.webview.postMessage({
-              command: SAVE_SCAN,
-              requestId,
-              isFinal: true,
-            });
             break;
           }
           case GET_NIGHTVISION_TOKEN: {

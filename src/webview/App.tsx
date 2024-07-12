@@ -1,6 +1,5 @@
 import { AppContext, Application } from '@contexts/AppContext';
 import { Project, ProjectContext } from '@contexts/ProjectContext';
-import { ScanContext, ScanType, ScansType } from '@contexts/ScanContext';
 import { Target, TargetContext } from '@contexts/TargetContext';
 import { UserContext } from '@contexts/UserContext';
 import { v4 } from 'uuid';
@@ -17,7 +16,6 @@ import {
   GET_CURRENT_PROJECT,
   GET_CURRENT_TARGET,
   GET_NIGHTVISION_TOKEN,
-  GET_SCANS,
   LIST_APP,
   LIST_PROJECT,
   LIST_TARGET,
@@ -25,12 +23,12 @@ import {
   SAVE_CURRENT_APP,
   SAVE_CURRENT_PROJECT,
   SAVE_CURRENT_TARGET,
-  SAVE_SCAN,
   UNAUTHORIZED_ACCESS,
 } from '@commands/CommandConstants';
 import { Layout } from '@components/Layout';
 import { Loading } from '@components/Loading';
 import { Applications } from '@pages/Applications';
+import { NewScan } from '@pages/NewScan';
 import { Overview } from '@pages/Overview';
 import { Projects } from '@pages/Projects';
 import { Scan } from '@pages/Scan';
@@ -61,6 +59,10 @@ const router = createMemoryRouter(
           element: <Scans />,
         },
         {
+          path: '/scans/new-scan',
+          element: <NewScan />,
+        },
+        {
           path: '/scans/:scanId?',
           element: <Scan />,
         },
@@ -85,7 +87,6 @@ const router = createMemoryRouter(
 export const App = () => {
   const [apps, setApps] = useState<Application[]>([]);
   const [currentApp, setCurrentApp] = useState<Application>();
-  const [scans, setScans] = useState<{ [scanId: string]: ScanType }>({});
   const [projects, setProjects] = useState<Project[]>([]);
   const [currentProject, setCurrentProject] = useState<Project>();
   const [targets, setTargets] = useState<Target[]>([]);
@@ -244,7 +245,6 @@ export const App = () => {
     setCurrentProject(undefined);
     setTargets([]);
     setCurrentTarget(undefined);
-    setScans({});
 
     (async () => {
       try {
@@ -256,19 +256,6 @@ export const App = () => {
           getCurrentProject(ignore),
           getCurrentTarget(ignore),
         ]);
-
-        const scans: ScansType = await messageHandler.request(GET_SCANS);
-        const newScans = Object.fromEntries(
-          Object.entries(scans).map(([scanId, scanData]) => [
-            scanId,
-            {
-              ...scanData,
-              isScanning: false,
-              isError: scanData.isError || scanData.isScanning,
-            },
-          ])
-        );
-        setScans(newScans);
       } catch (err) {
         console.error(err);
       }
@@ -279,14 +266,6 @@ export const App = () => {
       ignore = true;
     };
   }, [isLoggedIn]);
-
-  useEffect(() => {
-    (async () => {
-      if (Object.keys(scans).length > 0) {
-        await messageHandler.request(SAVE_SCAN, { scans });
-      }
-    })();
-  }, [scans]);
 
   if (!isLoggedIn) {
     return (
@@ -320,27 +299,25 @@ export const App = () => {
               setCurrentApp: handleAppChange,
             }}
           >
-            <ScanContext.Provider value={{ scans, setScans }}>
-              <ProjectContext.Provider
+            <ProjectContext.Provider
+              value={{
+                projects: sortedProjects,
+                setProjects,
+                currentProject,
+                setCurrentProject: handleProjectChange,
+              }}
+            >
+              <TargetContext.Provider
                 value={{
-                  projects: sortedProjects,
-                  setProjects,
-                  currentProject,
-                  setCurrentProject: handleProjectChange,
+                  targets: sortedTargets,
+                  setTargets,
+                  currentTarget,
+                  setCurrentTarget: handleTargetChange,
                 }}
               >
-                <TargetContext.Provider
-                  value={{
-                    targets: sortedTargets,
-                    setTargets,
-                    currentTarget,
-                    setCurrentTarget: handleTargetChange,
-                  }}
-                >
-                  <RouterProvider router={router} />
-                </TargetContext.Provider>
-              </ProjectContext.Provider>
-            </ScanContext.Provider>
+                <RouterProvider router={router} />
+              </TargetContext.Provider>
+            </ProjectContext.Provider>
           </AppContext.Provider>
         </UserContext.Provider>
       </Layout>

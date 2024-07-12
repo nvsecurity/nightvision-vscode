@@ -1,152 +1,32 @@
-import { IdAndName } from '@contexts/ProjectContext';
-import { ScanType, Severity } from '@contexts/ScanContext';
 import { useApp } from '@hooks/useApp';
-import { useProject } from '@hooks/useProject';
-import { useScan } from '@hooks/useScan';
 import { useTarget } from '@hooks/useTarget';
 import { useUser } from '@hooks/useUser';
-import { v4 } from 'uuid';
-import React, { useEffect, useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
-import {
-  ISSUES,
-  KILL,
-  SCAN,
-  SCAN_FINISHED,
-  SCAN_ID,
-  UNAUTHORIZED_ACCESS,
-} from '@commands/CommandConstants';
-import { Dropdown } from '@components/Dropdown';
+import { ScanType, Severity, normalizedSeverity } from '@types_/scan';
+import React, { useEffect, useRef, useState } from 'react';
+import { Link, useParams } from 'react-router-dom';
+import { EditList } from '@components/EditList';
 import { Label } from '@components/Label';
+import { Loading } from '@components/Loading';
 import { messageHandler } from '@utils/MessageHandler';
 import formatDuration from '@utils/formatDuration';
 
 export const Scan = () => {
-  const navigate = useNavigate();
   const { scanId } = useParams();
 
   const { apps, currentApp, setCurrentApp } = useApp();
   const { targets, currentTarget, setCurrentTarget } = useTarget();
-  const { currentProject } = useProject();
-  const { scans, setScans } = useScan();
   const { setIsLoggedIn } = useUser();
 
-  const scan = scanId ? scans[scanId] : undefined;
-
-  const [requestId, setRequestId] = useState('');
-  const [duration, setDuration] = useState(
-    scan ? (scan.endedAt || new Date().getTime()) - scan.createdAt : 0
-  );
-  const [isLoading, setIsLoading] = useState(false);
+  const [scan, setScan] = useState<ScanType>();
   const [toggled, setToggled] = useState<Severity | null>(null);
+  const [isFetchingApi, setIsFetchingApi] = useState(false);
+  const [currentTime, setCurrentTime] = useState(new Date());
+  const scanRef = useRef(scan);
 
   const toggledIssues =
-    scan?.issues.filter((issue) => issue.severity.toLowerCase() === toggled) ??
-    [];
-
-  const handleScanClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.preventDefault();
-
-    if (!currentApp || !currentTarget) {
-      return;
-    }
-
-    let tempScanId = scanId ?? '';
-
-    if (scan?.isScanning) {
-      const requestGenerator = messageHandler.requestGenerator(
-        KILL,
-        scan?.requestId
-      );
-      for await (const response of requestGenerator) {
-        console.log('Received data:', response);
-        if (response.command === KILL) {
-          setScans((prevState) => ({
-            ...prevState,
-            [tempScanId]: {
-              ...prevState[tempScanId],
-              endedAt: new Date().getTime(),
-              isScanning: false,
-              isError: true,
-            },
-          }));
-        }
-      }
-      return;
-    }
-
-    const reqId = v4();
-    const requestGenerator = messageHandler.requestGenerator(SCAN, reqId, {
-      application: currentApp,
-      target: currentTarget,
-    });
-
-    setRequestId(reqId);
-    setDuration(0);
-    setIsLoading(true);
-    setToggled(null);
-
-    for await (const response of requestGenerator) {
-      console.log('Received data:', response);
-      switch (response.command) {
-        case SCAN_ID: {
-          tempScanId = response.payload;
-
-          const newScan: ScanType = {
-            application: currentApp,
-            target: currentTarget,
-            project: currentProject,
-            createdAt: new Date().getTime(),
-            requestId: reqId,
-            isScanning: true,
-            isError: false,
-            issues: [],
-          };
-
-          navigate(`/scans/${tempScanId}`, { replace: true });
-          setIsLoading(false);
-          setScans((prevState) => ({ [tempScanId]: newScan, ...prevState }));
-          break;
-        }
-        case ISSUES: {
-          setScans((prevState) => ({
-            ...prevState,
-            [tempScanId]: {
-              ...prevState[tempScanId],
-              issues: [...response.payload, ...prevState[tempScanId].issues],
-            },
-          }));
-          break;
-        }
-        case SCAN_FINISHED: {
-          setScans((prevState) => ({
-            ...prevState,
-            [tempScanId]: {
-              ...prevState[tempScanId],
-              endedAt: new Date().getTime(),
-              isScanning: false,
-              isError: response.payload !== 'SUCCEEDED',
-            },
-          }));
-          break;
-        }
-        case UNAUTHORIZED_ACCESS:
-          setIsLoggedIn(false);
-          break;
-      }
-    }
-    setIsLoading(false);
-    if (tempScanId in scans) {
-      setScans((prevState) => ({
-        ...prevState,
-        [tempScanId]: {
-          ...prevState[tempScanId],
-          endedAt: new Date().getTime(),
-          isScanning: false,
-        },
-      }));
-    }
-  };
+    scan?.issues
+      .filter((issue) => issue.severity === toggled)
+      .map((issue) => ({ ...issue, id: issue.name })) ?? [];
 
   useEffect(() => {
     let ignore = false;
@@ -182,20 +62,97 @@ export const Scan = () => {
     let interval: NodeJS.Timeout | undefined;
     clearInterval(interval);
     interval = setInterval(() => {
-      if (!scan?.isScanning) {
-        clearInterval(interval);
-        return;
-      }
-      setDuration(Date.now() - scan?.createdAt);
+      setCurrentTime(new Date());
     }, 500);
 
     return () => clearInterval(interval);
-  }, [scan?.isScanning, scan?.createdAt]);
+  }, [currentTime]);
+
+  useEffect(() => {
+    scanRef.current = scan;
+  }, [scan]);
+
+  useEffect(() => {
+    let ignore = false;
+    let interval: NodeJS.Timeout | undefined;
+    clearInterval(interval);
+
+    const getAndSetScan = async () => {
+      try {
+        const response = await messageHandler.api(
+          'get',
+          `https://api.nightvision.net/api/v1/scans/${scanId}`
+        );
+
+        const issues = (
+          await messageHandler.api(
+            'get',
+            `https://api.nightvision.net/api/v1/issues/kind/?scan=${scanId}`
+          )
+        ).results;
+
+        if (!ignore) {
+          setScan({
+            id: response.id,
+            application: response.application,
+            target: response.target,
+            project: response.project,
+            createdAt: new Date(response.created_at).getTime(),
+            endedAt: response.ended_at
+              ? new Date(response.ended_at).getTime()
+              : undefined,
+            status: response.status_value,
+            isScanning: response.status_value === 'RUNNING',
+            isError:
+              response.status_value !== 'RUNNING' &&
+              response.status_value !== 'SUCCEEDED',
+            vulnPathsStatistics: response.vulnerable_paths_statistics,
+            issues: issues.map((issue: any) => ({
+              name: issue.kind_name,
+              severity: normalizedSeverity(issue.severity),
+            })),
+          });
+        }
+      } catch (err: any) {
+        if (err?.type === 'client_error') {
+          for (const error of err.errors) {
+            switch (error.code) {
+              case 'not_authenticated':
+              case 'authentication_failed': {
+                setIsLoggedIn(false);
+              }
+            }
+          }
+        } else {
+          console.error(err);
+        }
+      }
+    };
+
+    setIsFetchingApi(true);
+    getAndSetScan();
+
+    interval = setInterval(async () => {
+      if (scanRef.current ? !scanRef.current.isScanning : false) {
+        clearInterval(interval);
+        return;
+      }
+
+      await getAndSetScan();
+    }, 5000);
+
+    setIsFetchingApi(false);
+
+    return () => {
+      ignore = true;
+      clearInterval(interval);
+    };
+  }, [scanId]);
 
   return (
     <div className='flex flex-col space-y-4'>
       <div className='flex items-center space-x-2'>
-        <Link to={isLoading ? '.' : '/scans'} title='To Scans'>
+        <Link to='/scans' title='To Scans'>
           <svg
             width='16'
             height='16'
@@ -213,175 +170,145 @@ export const Scan = () => {
         </Link>
         <h1 className='font-bold uppercase'>Scan</h1>
       </div>
-      <div className='flex flex-col space-y-1'>
-        <div>
-          <Label htmlFor='application'>Application Name</Label>
-          <Dropdown
-            defaultItem={currentApp}
-            items={apps}
-            name='Application'
-            route={isLoading ? '.' : `/applications`}
-            handleChange={setCurrentApp}
-            id='application'
-            disabled={!!scan || isLoading}
-          />
-        </div>
-        <div>
-          <Label htmlFor='target-name'>Target Name</Label>
-          <Dropdown
-            defaultItem={currentTarget}
-            items={targets}
-            name='Target'
-            route={isLoading ? '.' : `/targets`}
-            handleChange={setCurrentTarget as (value: IdAndName) => void}
-            id='target-name'
-            disabled={!!scan || isLoading}
-          />
-        </div>
-      </div>
-      {(!scan || scan?.isScanning) && (
-        <button
-          onClick={handleScanClick}
-          className={`rounded disabled:bg-neutral-800 hover:disabled:cursor-default ${scan?.isScanning ? 'bg-red-500 hover:bg-red-500 hover:brightness-90' : ''}`}
-          disabled={isLoading}
-        >
-          {isLoading
-            ? 'Loading...'
-            : scan?.isScanning
-              ? 'Cancel'
-              : 'Start Scan'}
-        </button>
-      )}
-
-      <div className={`${scan && !isLoading ? 'visible' : 'invisible'}`}>
-        <div className='flex items-center justify-between'>
-          <a
-            href={`https://app.nightvision.net/scans/${scanId}/findings`}
-            title='View in Browser'
-          >
-            <svg
-              width='16'
-              height='16'
-              viewBox='0 0 16 16'
-              xmlns='http://www.w3.org/2000/svg'
-              fill='currentColor'
-            >
-              <path d='M1.5 1H6v1H2v12h12v-4h1v4.5l-.5.5h-13l-.5-.5v-13l.5-.5z' />
-              <path d='M15 1.5V8h-1V2.707L7.243 9.465l-.707-.708L13.293 2H8V1h6.5l.5.5z' />
-            </svg>
-          </a>
-          <div className='flex items-center'>
-            <svg
-              xmlns='http://www.w3.org/2000/svg'
-              viewBox='0 0 100 100'
-              className={`h-5 w-5 stroke-[--vscode-foreground] ${scan?.isScanning ? 'visible' : 'invisible'}`}
-            >
-              <circle
-                cx='50'
-                cy='50'
-                fill='none'
-                strokeWidth='8'
-                r='35'
-                strokeDasharray='164.93361431346415 56.97787143782138'
+      {!scan || isFetchingApi ? (
+        <Loading />
+      ) : (
+        <>
+          <div className='flex flex-col space-y-1'>
+            <div>
+              <Label htmlFor='application'>Application Name</Label>
+              <select
+                className='w-full bg-[--vscode-settings-dropdownBackground] px-0.5 py-1.5'
+                disabled
               >
-                <animateTransform
-                  attributeName='transform'
-                  type='rotate'
-                  repeatCount='indefinite'
-                  dur='1s'
-                  values='0 50 50;360 50 50'
-                  keyTimes='0;1'
-                ></animateTransform>
-              </circle>
-            </svg>
-
-            {scan?.isError && (
-              <svg
-                width='16'
-                height='16'
-                viewBox='0 0 16 16'
-                xmlns='http://www.w3.org/2000/svg'
-                fill='currentColor'
-                className='h-5 w-5 stroke-red-600'
+                <option>{scan.application.name}</option>
+              </select>
+            </div>
+            <div>
+              <Label htmlFor='target-name'>Target Name</Label>
+              <select
+                className='w-full bg-[--vscode-settings-dropdownBackground] px-0.5 py-1.5'
+                disabled
               >
-                <path
-                  fillRule='evenodd'
-                  clipRule='evenodd'
-                  d='M7.56 1h.88l6.54 12.26-.44.74H1.44L1 13.26 7.56 1zM8 2.28L2.28 13H13.7L8 2.28zM8.625 12v-1h-1.25v1h1.25zm-1.25-2V6h1.25v4h-1.25z'
-                />
-              </svg>
-            )}
-
-            <span className='ml-2 font-bold'>
-              {scan?.isError && !scan?.endedAt
-                ? '00:00'
-                : formatDuration(duration)}
-            </span>
+                <option>{scan.target.name}</option>
+              </select>
+            </div>
           </div>
-        </div>
-        <div className='mt-4 grid auto-cols-min grid-cols-1 gap-3 min-[280px]:grid-cols-2'>
-          <IssueCard
-            severity='critical'
-            amount={
-              scan?.issues.filter(
-                (issue) => issue.severity.toLowerCase() === 'critical'
-              ).length ?? 0
-            }
-            toggled={toggled}
-            setToggled={setToggled}
-          />
-          <IssueCard
-            severity='high'
-            amount={
-              scan?.issues.filter(
-                (issue) => issue.severity.toLowerCase() === 'high'
-              ).length ?? 0
-            }
-            toggled={toggled}
-            setToggled={setToggled}
-          />
-          <IssueCard
-            severity='medium'
-            amount={
-              scan?.issues.filter(
-                (issue) => issue.severity.toLowerCase() === 'medium'
-              ).length ?? 0
-            }
-            toggled={toggled}
-            setToggled={setToggled}
-          />
-          <IssueCard
-            severity='low'
-            amount={
-              scan?.issues.filter(
-                (issue) => issue.severity.toLowerCase() === 'low'
-              ).length ?? 0
-            }
-            toggled={toggled}
-            setToggled={setToggled}
-          />
-        </div>
-        {toggled && (
-          <ul className='mt-4 pl-0'>
-            {toggledIssues.length > 0
-              ? toggledIssues.map((issue) => {
-                  return (
-                    <li key={issue.name + issue.severity}>{issue.name}</li>
-                  );
-                })
-              : 'No issues found!'}
-          </ul>
-        )}
-      </div>
+
+          <div className={`${scan ? 'visible' : 'invisible'}`}>
+            <div className='flex items-center justify-between'>
+              <a
+                href={`https://app.nightvision.net/scans/${scanId}/findings`}
+                title='View in Browser'
+              >
+                <svg
+                  width='16'
+                  height='16'
+                  viewBox='0 0 16 16'
+                  xmlns='http://www.w3.org/2000/svg'
+                  fill='currentColor'
+                >
+                  <path d='M1.5 1H6v1H2v12h12v-4h1v4.5l-.5.5h-13l-.5-.5v-13l.5-.5z' />
+                  <path d='M15 1.5V8h-1V2.707L7.243 9.465l-.707-.708L13.293 2H8V1h6.5l.5.5z' />
+                </svg>
+              </a>
+              <div className='flex items-center'>
+                <svg
+                  xmlns='http://www.w3.org/2000/svg'
+                  viewBox='0 0 100 100'
+                  className={`h-5 w-5 animate-spin stroke-[--vscode-foreground] ${scan.isScanning ? 'visible' : 'invisible'}`}
+                >
+                  <circle
+                    cx='50'
+                    cy='50'
+                    fill='none'
+                    strokeWidth='8'
+                    r='35'
+                    strokeDasharray='164.93361431346415 56.97787143782138'
+                  />
+                </svg>
+
+                {scan.isError && (
+                  <svg
+                    width='16'
+                    height='16'
+                    viewBox='0 0 16 16'
+                    xmlns='http://www.w3.org/2000/svg'
+                    fill='currentColor'
+                    className='h-5 w-5 stroke-red-600'
+                  >
+                    <path
+                      fillRule='evenodd'
+                      clipRule='evenodd'
+                      d='M7.56 1h.88l6.54 12.26-.44.74H1.44L1 13.26 7.56 1zM8 2.28L2.28 13H13.7L8 2.28zM8.625 12v-1h-1.25v1h1.25zm-1.25-2V6h1.25v4h-1.25z'
+                    />
+                  </svg>
+                )}
+                <span className='ml-2 font-bold'>
+                  {formatDuration(
+                    (scan.endedAt || currentTime.getTime()) - scan.createdAt
+                  )}
+                </span>
+              </div>
+            </div>
+            <div className='mt-4 grid auto-cols-min grid-cols-1 gap-3 min-[280px]:grid-cols-2'>
+              <IssueCard
+                severity='Critical'
+                amount={
+                  scan.issues.filter((issue) => issue.severity === 'Critical')
+                    .length ?? 0
+                }
+                toggled={toggled}
+                setToggled={setToggled}
+              />
+              <IssueCard
+                severity='High'
+                amount={
+                  scan.issues.filter((issue) => issue.severity === 'High')
+                    .length ?? 0
+                }
+                toggled={toggled}
+                setToggled={setToggled}
+              />
+              <IssueCard
+                severity='Medium'
+                amount={
+                  scan.issues.filter((issue) => issue.severity === 'Medium')
+                    .length ?? 0
+                }
+                toggled={toggled}
+                setToggled={setToggled}
+              />
+              <IssueCard
+                severity='Low'
+                amount={
+                  scan.issues.filter((issue) => issue.severity === 'Low')
+                    .length ?? 0
+                }
+                toggled={toggled}
+                setToggled={setToggled}
+              />
+            </div>
+            {toggled && (
+              <EditList handleClick={() => {}} list={toggledIssues}>
+                No issues found!
+              </EditList>
+            )}
+          </div>
+        </>
+      )}
     </div>
   );
 };
 
 const severityColor: { [key in Severity]: string } = {
-  critical: 'after:bg-red-600',
-  high: 'after:bg-orange-600',
-  medium: 'after:bg-yellow-600',
-  low: 'after:bg-green-600',
+  Critical: 'after:bg-red-600',
+  High: 'after:bg-orange-600',
+  Medium: 'after:bg-yellow-600',
+  Low: 'after:bg-green-600',
+  Informational: '',
+  Unspecified: '',
+  Unknown: '',
 };
 
 const IssueCard = ({
