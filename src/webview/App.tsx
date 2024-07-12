@@ -16,9 +16,6 @@ import {
   GET_CURRENT_PROJECT,
   GET_CURRENT_TARGET,
   GET_NIGHTVISION_TOKEN,
-  LIST_APP,
-  LIST_PROJECT,
-  LIST_TARGET,
   LOGIN,
   SAVE_CURRENT_APP,
   SAVE_CURRENT_PROJECT,
@@ -85,11 +82,8 @@ const router = createMemoryRouter(
 );
 
 export const App = () => {
-  const [apps, setApps] = useState<Application[]>([]);
   const [currentApp, setCurrentApp] = useState<Application>();
-  const [projects, setProjects] = useState<Project[]>([]);
   const [currentProject, setCurrentProject] = useState<Project>();
-  const [targets, setTargets] = useState<Target[]>([]);
   const [currentTarget, setCurrentTarget] = useState<Target>();
 
   const [isLoading, setIsLoading] = useState(true);
@@ -115,12 +109,12 @@ export const App = () => {
     }
   };
 
-  const handleAppChange = async (application: Application) => {
+  const handleAppChange = async (application: Application | undefined) => {
     setCurrentApp(application);
     await messageHandler.request(SAVE_CURRENT_APP, { ...application });
   };
 
-  const handleTargetChange = async (target: Target) => {
+  const handleTargetChange = async (target: Target | undefined) => {
     setCurrentTarget(target);
     await messageHandler.request(SAVE_CURRENT_TARGET, { ...target });
   };
@@ -128,7 +122,6 @@ export const App = () => {
   const handleProjectChange = async (project: Project) => {
     setCurrentProject(project);
     await messageHandler.request(SAVE_CURRENT_PROJECT, { ...project });
-    await Promise.all([listApps(false), listTargets(false)]);
   };
 
   const getCurrentApp = async (ignore: boolean) => {
@@ -182,56 +175,6 @@ export const App = () => {
     }
   };
 
-  const listApps = async (ignore: boolean) => {
-    const appGenerator = messageHandler.requestGenerator(LIST_APP);
-    for await (const response of appGenerator) {
-      switch (response.command) {
-        case LIST_APP:
-          if (!ignore) {
-            setApps(response.payload);
-          }
-          break;
-        case UNAUTHORIZED_ACCESS:
-          setIsLoggedIn(false);
-          break;
-      }
-    }
-  };
-
-  const listProjects = async (ignore: boolean) => {
-    const projectGenerator = messageHandler.requestGenerator(LIST_PROJECT);
-    for await (const response of projectGenerator) {
-      switch (response.command) {
-        case LIST_PROJECT:
-          if (!ignore) {
-            setProjects(response.payload);
-          }
-          break;
-        case UNAUTHORIZED_ACCESS:
-          setIsLoggedIn(false);
-          break;
-      }
-    }
-  };
-
-  const listTargets = async (ignore: boolean) => {
-    const targetGenerator = messageHandler.requestGenerator(LIST_TARGET);
-    for await (const response of targetGenerator) {
-      switch (response.command) {
-        case LIST_TARGET: {
-          if (!ignore) {
-            setTargets(response.payload);
-          }
-          break;
-        }
-        case UNAUTHORIZED_ACCESS: {
-          setIsLoggedIn(false);
-          break;
-        }
-      }
-    }
-  };
-
   useEffect(() => {
     if (!isLoggedIn) {
       return;
@@ -239,19 +182,13 @@ export const App = () => {
 
     let ignore = false;
 
-    setApps([]);
     setCurrentApp(undefined);
-    setProjects([]);
     setCurrentProject(undefined);
-    setTargets([]);
     setCurrentTarget(undefined);
 
     (async () => {
       try {
         await Promise.all([
-          listApps(ignore),
-          listProjects(ignore),
-          listTargets(ignore),
           getCurrentApp(ignore),
           getCurrentProject(ignore),
           getCurrentTarget(ignore),
@@ -279,38 +216,24 @@ export const App = () => {
     return <Loading />;
   }
 
-  const sortedApps = [...apps].sort((a, b) => a.name.localeCompare(b.name));
-  const sortedProjects = [...projects].sort((a, b) =>
-    a.name.localeCompare(b.name)
-  );
-  const sortedTargets = [...targets].sort((a, b) =>
-    a.name.localeCompare(b.name)
-  );
-
   return (
     <React.StrictMode>
       <Layout>
         <UserContext.Provider value={{ setIsLoggedIn }}>
           <AppContext.Provider
             value={{
-              apps: sortedApps,
-              setApps,
               currentApp,
               setCurrentApp: handleAppChange,
             }}
           >
             <ProjectContext.Provider
               value={{
-                projects: sortedProjects,
-                setProjects,
                 currentProject,
                 setCurrentProject: handleProjectChange,
               }}
             >
               <TargetContext.Provider
                 value={{
-                  targets: sortedTargets,
-                  setTargets,
                   currentTarget,
                   setCurrentTarget: handleTargetChange,
                 }}

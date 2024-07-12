@@ -3,7 +3,7 @@ import useClickOutside from '@hooks/useClickOutside';
 import { useProject } from '@hooks/useProject';
 import { useUser } from '@hooks/useUser';
 import { v4 } from 'uuid';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -20,14 +20,14 @@ import {
 import { Dropdown } from '@components/Dropdown';
 import { EditList } from '@components/EditList';
 import { Label } from '@components/Label';
+import { Loading } from '@components/Loading';
 import { Modal } from '@components/Modal';
 import { TextInput } from '@components/TextInput';
 import { messageHandler } from '@utils/MessageHandler';
 
 export const Projects = () => {
   const navigate = useNavigate();
-  const { projects, setProjects, currentProject, setCurrentProject } =
-    useProject();
+  const { currentProject, setCurrentProject } = useProject();
   const { setIsLoggedIn } = useUser();
 
   const {
@@ -41,6 +41,7 @@ export const Projects = () => {
     setShowComponent: setShowDeleteModal,
   } = useClickOutside();
 
+  const [projects, setProjects] = useState<Project[]>();
   const [projectName, setProjectName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
@@ -50,6 +51,53 @@ export const Projects = () => {
   });
   const [isUpdateLoading, setIsUpdateLoading] = useState(false);
   const [isDeleteLoading, setIsDeleteLoading] = useState(false);
+
+  const getProjects = async (ignore: boolean = false) => {
+    try {
+      const projects = (
+        await messageHandler.api(
+          'get',
+          'https://api.nightvision.net/api/v1/projects/?order=name'
+        )
+      ).results;
+
+      if (ignore) {
+        return;
+      }
+
+      setProjects(
+        projects.map(
+          (project: any): Project => ({
+            id: project.id,
+            name: project.name,
+          })
+        )
+      );
+    } catch (err: any) {
+      if (err?.type === 'client_error') {
+        for (const error of err.errors) {
+          switch (error.code) {
+            case 'not_authenticated':
+            case 'authentication_failed': {
+              setIsLoggedIn(false);
+            }
+          }
+        }
+      } else {
+        console.error(err);
+      }
+    }
+  };
+
+  useEffect(() => {
+    let ignore = false;
+
+    getProjects(ignore);
+
+    return () => {
+      ignore = true;
+    };
+  }, []);
 
   const handleUpdate = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
@@ -66,13 +114,7 @@ export const Projects = () => {
       for await (const response of requestGenerator) {
         switch (response.command) {
           case UPDATE_PROJECT: {
-            setProjects((prevState) =>
-              prevState.map((project) =>
-                project.id === selectedProject?.id
-                  ? { ...project, name: response.payload.name }
-                  : project
-              )
-            );
+            await getProjects();
             setSelectedProject(response.payload as Project);
             break;
           }
@@ -117,9 +159,7 @@ export const Projects = () => {
       for await (const response of requestGenerator) {
         switch (response.command) {
           case DELETE_PROJECT: {
-            setProjects((prevState) =>
-              prevState.filter((project) => project.id !== response.payload.id)
-            );
+            await getProjects();
             setShowDeleteModal(false);
             setShowUpdateModal(false);
             break;
@@ -165,7 +205,7 @@ export const Projects = () => {
       for await (const response of requestGenerator) {
         switch (response.command) {
           case CREATE_PROJECT:
-            setProjects((prevState) => [response.payload, ...prevState]);
+            await getProjects();
             break;
           case DUPLICATE_NAME: {
             // TODO
@@ -215,40 +255,49 @@ export const Projects = () => {
           </a>
           <h1 className='font-bold uppercase'>Project</h1>
         </div>
-        <div className='flex flex-col space-y-1'>
-          <div>
-            <Label htmlFor='current-project'>Current Project</Label>
-            <Dropdown
-              defaultItem={currentProject}
-              items={projects}
-              name='Project'
-              handleChange={setCurrentProject}
-              id='current-project'
-            />
-          </div>
-          <TextInput
-            value={projectName}
-            handleOnChange={setProjectName}
-            label='Project Name'
-            id='project-name'
-          />
-        </div>
-        <button
-          onClick={handleCreateProject}
-          className='rounded disabled:bg-neutral-800 hover:disabled:cursor-default'
-          disabled={isLoading}
-        >
-          {isLoading ? 'Creating...' : 'Create Project'}
-        </button>
 
-        <EditList
-          list={projects}
-          handleClick={(listItem) => {
-            setShowUpdateModal((prevState) => !prevState);
-            setUpdateValues({ name: listItem.name });
-            setSelectedProject(listItem);
-          }}
-        />
+        {projects && (
+          <>
+            <div className='flex flex-col space-y-1'>
+              <div>
+                <Label htmlFor='current-project'>Current Project</Label>
+                <Dropdown
+                  defaultItem={currentProject}
+                  items={projects}
+                  name='Project'
+                  handleChange={setCurrentProject}
+                  id='current-project'
+                />
+              </div>
+              <TextInput
+                value={projectName}
+                handleOnChange={setProjectName}
+                label='Project Name'
+                id='project-name'
+              />
+            </div>
+            <button
+              onClick={handleCreateProject}
+              className='rounded disabled:bg-neutral-800 hover:disabled:cursor-default'
+              disabled={isLoading}
+            >
+              {isLoading ? 'Creating...' : 'Create Project'}
+            </button>
+
+            <EditList
+              list={projects}
+              handleClick={(listItem) => {
+                setShowUpdateModal((prevState) => !prevState);
+                setUpdateValues({ name: listItem.name });
+                setSelectedProject(listItem);
+              }}
+            />
+          </>
+        )}
+        {!projects && <Loading />}
+        {projects?.length === 0 && (
+          <span className='!mt-10 w-full text-center'>No projects found</span>
+        )}
       </div>
 
       {showUpdateModal && (

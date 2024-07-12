@@ -1,5 +1,3 @@
-import { useApp } from '@hooks/useApp';
-import { useTarget } from '@hooks/useTarget';
 import { useUser } from '@hooks/useUser';
 import { ScanType, Severity, normalizedSeverity } from '@types_/scan';
 import React, { useEffect, useRef, useState } from 'react';
@@ -13,8 +11,6 @@ import formatDuration from '@utils/formatDuration';
 export const Scan = () => {
   const { scanId } = useParams();
 
-  const { apps, currentApp, setCurrentApp } = useApp();
-  const { targets, currentTarget, setCurrentTarget } = useTarget();
   const { setIsLoggedIn } = useUser();
 
   const [scan, setScan] = useState<ScanType>();
@@ -27,36 +23,6 @@ export const Scan = () => {
     scan?.issues
       .filter((issue) => issue.severity === toggled)
       .map((issue) => ({ ...issue, id: issue.name })) ?? [];
-
-  useEffect(() => {
-    let ignore = false;
-    if (apps.some((app) => app.id === currentApp?.id)) {
-      return;
-    }
-
-    if (apps.length > 0 && !ignore) {
-      setCurrentApp(apps[0]);
-    }
-
-    return () => {
-      ignore = true;
-    };
-  }, [apps, currentApp]);
-
-  useEffect(() => {
-    let ignore = false;
-    if (targets.some((target) => target.id === currentTarget?.id)) {
-      return;
-    }
-
-    if (targets.length > 0 && !ignore) {
-      setCurrentTarget(targets[0]);
-    }
-
-    return () => {
-      ignore = true;
-    };
-  }, [targets, currentTarget]);
 
   useEffect(() => {
     let interval: NodeJS.Timeout | undefined;

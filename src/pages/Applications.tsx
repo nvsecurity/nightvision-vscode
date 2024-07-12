@@ -1,9 +1,9 @@
 import { Application } from '@contexts/AppContext';
-import { useApp } from '@hooks/useApp';
 import useClickOutside from '@hooks/useClickOutside';
+import { useProject } from '@hooks/useProject';
 import { useUser } from '@hooks/useUser';
 import { v4 } from 'uuid';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -18,13 +18,56 @@ import {
   UPDATE_APP,
 } from '@commands/CommandConstants';
 import { EditList } from '@components/EditList';
+import { Loading } from '@components/Loading';
 import { Modal } from '@components/Modal';
 import { TextInput } from '@components/TextInput';
 import { messageHandler } from '@utils/MessageHandler';
 
+export const getApps = async (
+  setApps: React.Dispatch<React.SetStateAction<Application[] | undefined>>,
+  setIsLoggedIn: React.Dispatch<React.SetStateAction<boolean>>,
+  projectId: string,
+  ignore: boolean = false
+) => {
+  try {
+    const apps = (
+      await messageHandler.api(
+        'get',
+        `https://api.nightvision.net/api/v1/applications/?order=name&project=${projectId}`
+      )
+    ).results;
+
+    if (ignore) {
+      return;
+    }
+
+    setApps(
+      apps.map(
+        (app: any): Application => ({
+          id: app.id,
+          name: app.name,
+        })
+      )
+    );
+  } catch (err: any) {
+    if (err?.type === 'client_error') {
+      for (const error of err.errors) {
+        switch (error.code) {
+          case 'not_authenticated':
+          case 'authentication_failed': {
+            setIsLoggedIn(false);
+          }
+        }
+      }
+    } else {
+      console.error(err);
+    }
+  }
+};
+
 export const Applications = () => {
   const navigate = useNavigate();
-  const { apps, setApps } = useApp();
+  const { currentProject } = useProject();
   const { setIsLoggedIn } = useUser();
 
   const {
@@ -38,6 +81,7 @@ export const Applications = () => {
     setShowComponent: setShowDeleteModal,
   } = useClickOutside();
 
+  const [apps, setApps] = useState<Application[]>();
   const [applicationName, setApplicationName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
@@ -47,6 +91,16 @@ export const Applications = () => {
   });
   const [isUpdateLoading, setIsUpdateLoading] = useState(false);
   const [isDeleteLoading, setIsDeleteLoading] = useState(false);
+
+  useEffect(() => {
+    let ignore = false;
+
+    getApps(setApps, setIsLoggedIn, currentProject.id, ignore);
+
+    return () => {
+      ignore = true;
+    };
+  }, []);
 
   const handleUpdate = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
@@ -62,13 +116,7 @@ export const Applications = () => {
       for await (const response of requestGenerator) {
         switch (response.command) {
           case UPDATE_APP: {
-            setApps((prevState) =>
-              prevState.map((app) =>
-                app.id === selectedApp?.id
-                  ? { ...app, name: response.payload.name }
-                  : app
-              )
-            );
+            await getApps(setApps, setIsLoggedIn, currentProject.id);
             setSelectedApp(response.payload as Application);
             break;
           }
@@ -111,9 +159,7 @@ export const Applications = () => {
       for await (const response of requestGenerator) {
         switch (response.command) {
           case DELETE_APP: {
-            setApps((prevState) =>
-              prevState.filter((app) => app.id !== response.payload.id)
-            );
+            await getApps(setApps, setIsLoggedIn, currentProject.id);
             setShowDeleteModal(false);
             setShowUpdateModal(false);
             break;
@@ -162,7 +208,7 @@ export const Applications = () => {
       for await (const response of requestGenerator) {
         switch (response.command) {
           case CREATE_APP: {
-            setApps((prevState) => [response.payload, ...prevState]);
+            await getApps(setApps, setIsLoggedIn, currentProject.id);
             break;
           }
           case DUPLICATE_NAME: {
@@ -213,28 +259,39 @@ export const Applications = () => {
           </a>
           <h1 className='font-bold uppercase'>Application</h1>
         </div>
-        <TextInput
-          value={applicationName}
-          handleOnChange={setApplicationName}
-          label='Application Name'
-          id='app-name'
-        />
-        <button
-          onClick={handleCreateApp}
-          className='rounded disabled:bg-neutral-800 hover:disabled:cursor-default'
-          disabled={isLoading}
-        >
-          {isLoading ? 'Creating...' : 'Create Application'}
-        </button>
 
-        <EditList
-          list={apps}
-          handleClick={(listItem) => {
-            setShowUpdateModal((prevState) => !prevState);
-            setUpdateValues({ name: listItem.name });
-            setSelectedApp(listItem);
-          }}
-        />
+        {apps && (
+          <>
+            <TextInput
+              value={applicationName}
+              handleOnChange={setApplicationName}
+              label='Application Name'
+              id='app-name'
+            />
+            <button
+              onClick={handleCreateApp}
+              className='rounded disabled:bg-neutral-800 hover:disabled:cursor-default'
+              disabled={isLoading}
+            >
+              {isLoading ? 'Creating...' : 'Create Application'}
+            </button>
+
+            <EditList
+              list={apps}
+              handleClick={(listItem) => {
+                setShowUpdateModal((prevState) => !prevState);
+                setUpdateValues({ name: listItem.name });
+                setSelectedApp(listItem);
+              }}
+            />
+          </>
+        )}
+        {!apps && <Loading />}
+        {apps?.length === 0 && (
+          <span className='!mt-10 w-full text-center'>
+            No applications found
+          </span>
+        )}
       </div>
 
       {showUpdateModal && (

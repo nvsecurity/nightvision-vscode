@@ -16,9 +16,6 @@ import {
   GET_CURRENT_TARGET,
   GET_NIGHTVISION_TOKEN,
   KILL,
-  LIST_APP,
-  LIST_PROJECT,
-  LIST_TARGET,
   LOGIN,
   SAVE_CURRENT_APP,
   SAVE_CURRENT_PROJECT,
@@ -36,9 +33,6 @@ import DeleteProject from '@commands/DeleteProject';
 import DeleteTarget from '@commands/DeleteTarget';
 import GetCurrentApp from '@commands/GetCurrentApp';
 import GetCurrentProject from '@commands/GetCurrentProject';
-import ListApp from '@commands/ListApp';
-import ListProject from '@commands/ListProject';
-import ListTarget from '@commands/ListTarget';
 import Login from '@commands/Login';
 import SaveCurrentApp from '@commands/SaveCurrentApp';
 import SaveCurrentProject from '@commands/SaveCurrentProject';
@@ -216,12 +210,6 @@ class SidebarProvider implements vscode.WebviewViewProvider {
             this._children[requestId] = command.execute();
             break;
           }
-          case LIST_APP: {
-            const command = new ListApp(webviewView.webview, requestId);
-
-            this._children[requestId] = command.execute();
-            break;
-          }
           case UPDATE_APP: {
             const { id, name } = payload;
             const command = new UpdateApp(
@@ -262,12 +250,6 @@ class SidebarProvider implements vscode.WebviewViewProvider {
               requestId,
               id
             );
-
-            this._children[requestId] = command.execute();
-            break;
-          }
-          case LIST_PROJECT: {
-            const command = new ListProject(webviewView.webview, requestId);
 
             this._children[requestId] = command.execute();
             break;
@@ -346,12 +328,6 @@ class SidebarProvider implements vscode.WebviewViewProvider {
               requestId,
               isFinal: true,
             });
-            break;
-          }
-          case LIST_TARGET: {
-            const command = new ListTarget(webviewView.webview, requestId);
-
-            this._children[requestId] = command.execute();
             break;
           }
           case UPDATE_TARGET: {

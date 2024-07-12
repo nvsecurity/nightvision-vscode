@@ -1,9 +1,9 @@
 import { Target } from '@contexts/TargetContext';
 import useClickOutside from '@hooks/useClickOutside';
-import { useTarget } from '@hooks/useTarget';
+import { useProject } from '@hooks/useProject';
 import { useUser } from '@hooks/useUser';
 import { v4 } from 'uuid';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -18,13 +18,57 @@ import {
   UPDATE_TARGET,
 } from '@commands/CommandConstants';
 import { EditList } from '@components/EditList';
+import { Loading } from '@components/Loading';
 import { Modal } from '@components/Modal';
 import { TextInput } from '@components/TextInput';
 import { messageHandler } from '@utils/MessageHandler';
 
+export const getTargets = async (
+  setTargets: React.Dispatch<React.SetStateAction<Target[] | undefined>>,
+  setIsLoggedIn: React.Dispatch<React.SetStateAction<boolean>>,
+  projectId: string,
+  ignore: boolean = false
+) => {
+  try {
+    const targets = (
+      await messageHandler.api(
+        'get',
+        `https://api.nightvision.net/api/v1/targets/?order=name&project=${projectId}`
+      )
+    ).results;
+
+    if (ignore) {
+      return;
+    }
+
+    setTargets(
+      targets.map(
+        (target: any): Target => ({
+          id: target.id,
+          name: target.name,
+          url: target.location,
+        })
+      )
+    );
+  } catch (err: any) {
+    if (err?.type === 'client_error') {
+      for (const error of err.errors) {
+        switch (error.code) {
+          case 'not_authenticated':
+          case 'authentication_failed': {
+            setIsLoggedIn(false);
+          }
+        }
+      }
+    } else {
+      console.error(err);
+    }
+  }
+};
+
 export const Targets = () => {
   const navigate = useNavigate();
-  const { targets, setTargets } = useTarget();
+  const { currentProject } = useProject();
   const { setIsLoggedIn } = useUser();
 
   const {
@@ -38,6 +82,7 @@ export const Targets = () => {
     setShowComponent: setShowDeleteModal,
   } = useClickOutside();
 
+  const [targets, setTargets] = useState<Target[]>();
   const [targetName, setTargetName] = useState('');
   const [targetUrl, setTargetUrl] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -49,6 +94,16 @@ export const Targets = () => {
   }>({ name: '', url: '' });
   const [isUpdateLoading, setIsUpdateLoading] = useState(false);
   const [isDeleteLoading, setIsDeleteLoading] = useState(false);
+
+  useEffect(() => {
+    let ignore = false;
+
+    getTargets(setTargets, setIsLoggedIn, currentProject.id, ignore);
+
+    return () => {
+      ignore = true;
+    };
+  }, []);
 
   const handleUpdate = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
@@ -69,17 +124,7 @@ export const Targets = () => {
       for await (const response of requestGenerator) {
         switch (response.command) {
           case UPDATE_TARGET: {
-            setTargets((prevState) =>
-              prevState.map((target) =>
-                target.id === selectedTarget?.id
-                  ? {
-                      ...target,
-                      name: response.payload.name,
-                      url: response.payload.url,
-                    }
-                  : target
-              )
-            );
+            await getTargets(setTargets, setIsLoggedIn, currentProject.id);
             setSelectedTarget(response.payload as Target);
             break;
           }
@@ -131,9 +176,7 @@ export const Targets = () => {
       for await (const response of requestGenerator) {
         switch (response.command) {
           case DELETE_TARGET: {
-            setTargets((prevState) =>
-              prevState.filter((target) => target.id !== response.payload.id)
-            );
+            await getTargets(setTargets, setIsLoggedIn, currentProject.id);
             setShowDeleteModal(false);
             setShowUpdateModal(false);
             break;
@@ -178,7 +221,7 @@ export const Targets = () => {
       for await (const response of requestGenerator) {
         switch (response.command) {
           case CREATE_TARGET: {
-            setTargets((prevState) => [response.payload, ...prevState]);
+            await getTargets(setTargets, setIsLoggedIn, currentProject.id);
             break;
           }
           case DUPLICATE_NAME: {
@@ -234,36 +277,45 @@ export const Targets = () => {
           </a>
           <h1 className='font-bold uppercase'>Target</h1>
         </div>
-        <div className='flex flex-col space-y-1'>
-          <TextInput
-            value={targetName}
-            handleOnChange={setTargetName}
-            label='Target Name'
-            id='target-name'
-          />
-          <TextInput
-            value={targetUrl}
-            handleOnChange={setTargetUrl}
-            label='Target URL'
-            id='target-url'
-          />
-        </div>
-        <button
-          onClick={handleCreateTarget}
-          className='rounded disabled:bg-neutral-800 hover:disabled:cursor-default'
-          disabled={isLoading}
-        >
-          {isLoading ? 'Creating...' : 'Create Target'}
-        </button>
 
-        <EditList
-          list={targets}
-          handleClick={(listItem) => {
-            setShowUpdateModal((prevState) => !prevState);
-            setUpdateValues({ name: listItem.name, url: listItem.url });
-            setSelectedTarget(listItem);
-          }}
-        />
+        {targets && (
+          <>
+            <div className='flex flex-col space-y-1'>
+              <TextInput
+                value={targetName}
+                handleOnChange={setTargetName}
+                label='Target Name'
+                id='target-name'
+              />
+              <TextInput
+                value={targetUrl}
+                handleOnChange={setTargetUrl}
+                label='Target URL'
+                id='target-url'
+              />
+            </div>
+            <button
+              onClick={handleCreateTarget}
+              className='rounded disabled:bg-neutral-800 hover:disabled:cursor-default'
+              disabled={isLoading}
+            >
+              {isLoading ? 'Creating...' : 'Create Target'}
+            </button>
+
+            <EditList
+              list={targets}
+              handleClick={(listItem) => {
+                setShowUpdateModal((prevState) => !prevState);
+                setUpdateValues({ name: listItem.name, url: listItem.url });
+                setSelectedTarget(listItem);
+              }}
+            />
+          </>
+        )}
+        {!targets && <Loading />}
+        {targets?.length === 0 && (
+          <span className='!mt-10 w-full text-center'>No targets found</span>
+        )}
       </div>
       {showUpdateModal && (
         <Modal componentRef={updateRef} visible={!showDeleteModal}>

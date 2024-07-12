@@ -1,5 +1,8 @@
+import { Application } from '@contexts/AppContext';
 import { IdAndName } from '@contexts/ProjectContext';
+import { Target } from '@contexts/TargetContext';
 import { useApp } from '@hooks/useApp';
+import { useProject } from '@hooks/useProject';
 import { useTarget } from '@hooks/useTarget';
 import { useUser } from '@hooks/useUser';
 import { v4 } from 'uuid';
@@ -8,17 +11,35 @@ import { Link, useNavigate } from 'react-router-dom';
 import { SCAN, SCAN_ID, UNAUTHORIZED_ACCESS } from '@commands/CommandConstants';
 import { Dropdown } from '@components/Dropdown';
 import { Label } from '@components/Label';
+import { Loading } from '@components/Loading';
+import { getApps } from '@pages/Applications';
+import { getTargets } from '@pages/Targets';
 import { messageHandler } from '@utils/MessageHandler';
 
 export const NewScan = () => {
   const navigate = useNavigate();
 
-  const { apps, currentApp, setCurrentApp } = useApp();
-  const { targets, currentTarget, setCurrentTarget } = useTarget();
+  const { currentApp, setCurrentApp } = useApp();
+  const { currentProject } = useProject();
+  const { currentTarget, setCurrentTarget } = useTarget();
   const { setIsLoggedIn } = useUser();
+
+  const [apps, setApps] = useState<Application[]>();
+  const [targets, setTargets] = useState<Target[]>();
 
   const [isLoading, setIsLoading] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
+
+  useEffect(() => {
+    let ignore = false;
+
+    getApps(setApps, setIsLoggedIn, currentProject.id, ignore);
+    getTargets(setTargets, setIsLoggedIn, currentProject.id, ignore);
+
+    return () => {
+      ignore = true;
+    };
+  }, []);
 
   const handleScanClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
@@ -54,7 +75,17 @@ export const NewScan = () => {
 
   useEffect(() => {
     let ignore = false;
+
+    if (!apps) {
+      return;
+    }
+
     if (apps.some((app) => app.id === currentApp?.id)) {
+      return;
+    }
+
+    if (apps.length === 0 && !ignore) {
+      setCurrentApp(undefined);
       return;
     }
 
@@ -69,7 +100,17 @@ export const NewScan = () => {
 
   useEffect(() => {
     let ignore = false;
+
+    if (!targets) {
+      return;
+    }
+
     if (targets.some((target) => target.id === currentTarget?.id)) {
+      return;
+    }
+
+    if (targets.length === 0 && !ignore) {
+      setCurrentTarget(undefined);
       return;
     }
 
@@ -113,39 +154,45 @@ export const NewScan = () => {
         </Link>
         <h1 className='font-bold uppercase'>Scan</h1>
       </div>
-      <div className='flex flex-col space-y-1'>
-        <div>
-          <Label htmlFor='application'>Application Name</Label>
-          <Dropdown
-            defaultItem={currentApp}
-            items={apps}
-            name='Application'
-            route={isLoading ? '.' : `/applications`}
-            handleChange={setCurrentApp}
-            id='application'
+
+      {apps && targets && (
+        <>
+          <div className='flex flex-col space-y-1'>
+            <div>
+              <Label htmlFor='application'>Application Name</Label>
+              <Dropdown
+                defaultItem={currentApp}
+                items={apps}
+                name='Application'
+                route={isLoading ? '.' : `/applications`}
+                handleChange={setCurrentApp}
+                id='application'
+                disabled={isLoading}
+              />
+            </div>
+            <div>
+              <Label htmlFor='target-name'>Target Name</Label>
+              <Dropdown
+                defaultItem={currentTarget}
+                items={targets}
+                name='Target'
+                route={isLoading ? '.' : `/targets`}
+                handleChange={setCurrentTarget as (value: IdAndName) => void}
+                id='target-name'
+                disabled={isLoading}
+              />
+            </div>
+          </div>
+          <button
+            onClick={handleScanClick}
+            className='rounded disabled:bg-neutral-800 hover:disabled:cursor-default'
             disabled={isLoading}
-          />
-        </div>
-        <div>
-          <Label htmlFor='target-name'>Target Name</Label>
-          <Dropdown
-            defaultItem={currentTarget}
-            items={targets}
-            name='Target'
-            route={isLoading ? '.' : `/targets`}
-            handleChange={setCurrentTarget as (value: IdAndName) => void}
-            id='target-name'
-            disabled={isLoading}
-          />
-        </div>
-      </div>
-      <button
-        onClick={handleScanClick}
-        className='rounded disabled:bg-neutral-800 hover:disabled:cursor-default'
-        disabled={isLoading}
-      >
-        {isLoading ? 'Loading...' : 'Start Scan'}
-      </button>
+          >
+            {isLoading ? 'Loading...' : 'Start Scan'}
+          </button>
+        </>
+      )}
+      {!apps && !targets && <Loading />}
     </div>
   );
 };
