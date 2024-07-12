@@ -16,6 +16,7 @@ import {
   GET_CURRENT_APP,
   GET_CURRENT_PROJECT,
   GET_CURRENT_TARGET,
+  GET_NIGHTVISION_TOKEN,
   GET_SCANS,
   LIST_APP,
   LIST_PROJECT,
@@ -106,6 +107,8 @@ export const App = () => {
             break;
         }
       }
+
+      await messageHandler.request(GET_NIGHTVISION_TOKEN);
     } catch (err) {
       console.error(err);
     }

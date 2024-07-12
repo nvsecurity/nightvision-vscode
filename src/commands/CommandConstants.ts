@@ -11,6 +11,7 @@ export const EXIT = 'exit';
 export const GET_CURRENT_APP = 'get-current-app';
 export const GET_CURRENT_PROJECT = 'get-current-project';
 export const GET_CURRENT_TARGET = 'get-current-target';
+export const GET_NIGHTVISION_TOKEN = 'get-api-token';
 export const GET_SCANS = 'get-scans';
 export const INVALID_APP = 'invalid-app';
 export const INVALID_APP_DELETE = 'invalid-app-delete';

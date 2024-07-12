@@ -1,5 +1,7 @@
 import { ChildProcessWithoutNullStreams } from 'child_process';
+import os from 'os';
 import { join } from 'path';
+import path from 'path';
 import * as vscode from 'vscode';
 import { ExtensionContext, ExtensionMode, Uri } from 'vscode';
 import {
@@ -12,6 +14,7 @@ import {
   GET_CURRENT_APP,
   GET_CURRENT_PROJECT,
   GET_CURRENT_TARGET,
+  GET_NIGHTVISION_TOKEN,
   GET_SCANS,
   KILL,
   LIST_APP,
@@ -45,9 +48,25 @@ import Scan from '@commands/Scan';
 import UpdateApp from '@commands/UpdateApp';
 import UpdateProject from '@commands/UpdateProject';
 import UpdateTarget from '@commands/UpdateTarget';
+import fs from 'fs/promises';
 
-export function activate(context: vscode.ExtensionContext) {
-  const sidebarProvider = new SidebarProvider(context);
+const getNightVisionToken = async () => {
+  try {
+    const filePath = path.join(os.homedir(), '.nightvision', 'nightvision.yml');
+    const data = await fs.readFile(filePath, 'utf8');
+    const token = data.match(/token:\s*(.*)/);
+    return token?.at(1) ?? '';
+  } catch (err) {
+    console.error(err);
+  }
+  return '';
+};
+
+export async function activate(context: vscode.ExtensionContext) {
+  const sidebarProvider = new SidebarProvider(
+    context,
+    await getNightVisionToken()
+  );
 
   context.subscriptions.push(
     vscode.window.registerWebviewViewProvider(
@@ -62,9 +81,14 @@ export function deactivate() {}
 class SidebarProvider implements vscode.WebviewViewProvider {
   _view?: vscode.WebviewView;
   _children: { [key: string]: ChildProcessWithoutNullStreams };
+  nightvisionToken: string;
 
-  constructor(private readonly _extensionContext: ExtensionContext) {
+  constructor(
+    private readonly _extensionContext: ExtensionContext,
+    nightvisionToken: string
+  ) {
     this._children = {};
+    this.nightvisionToken = nightvisionToken;
   }
 
   public resolveWebviewView(
@@ -84,12 +108,52 @@ class SidebarProvider implements vscode.WebviewViewProvider {
       webviewView.webview
     );
 
-    webviewView.webview.onDidReceiveMessage((data) => {
+    webviewView.webview.onDidReceiveMessage(async (data) => {
       const {
         command,
         requestId,
         payload,
-      }: { command: string; requestId: string; payload: any } = data;
+        url,
+        method,
+        body,
+      }: {
+        command: string;
+        requestId: string;
+        payload: any;
+        url: string;
+        method: RequestInit['method'];
+        body: RequestInit['body'];
+      } = data;
+
+      if (url) {
+        try {
+          const response = await fetch(url, {
+            method,
+            body,
+            headers: {
+              accept: 'application/json',
+              Authorization: `Token ${this.nightvisionToken}`,
+            },
+          });
+
+          const data = await response.json();
+
+          if (!response.ok) {
+            throw data;
+          }
+
+          webviewView.webview.postMessage({
+            requestId,
+            payload: data,
+          });
+        } catch (err) {
+          webviewView.webview.postMessage({
+            requestId,
+            error: err,
+          });
+        }
+        return;
+      }
 
       try {
         switch (command) {
@@ -337,6 +401,9 @@ class SidebarProvider implements vscode.WebviewViewProvider {
               isFinal: true,
             });
             break;
+          }
+          case GET_NIGHTVISION_TOKEN: {
+            this.nightvisionToken = await getNightVisionToken();
           }
         }
       } catch (err) {
