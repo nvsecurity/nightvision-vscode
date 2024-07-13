@@ -84,10 +84,10 @@ class MessageHandler {
   }
 
   // Async generator - allows us to await until isFinal or error
-  public async *requestGenerator(
+  public async *requestGenerator<T>(
     message: string,
     reqId?: string,
-    payload?: any
+    payload?: T
   ): AsyncGenerator<MessageData, void, unknown> {
     const requestId = reqId || v4();
     const iterator = new Promise<AsyncGenerator<any, void, unknown>>(

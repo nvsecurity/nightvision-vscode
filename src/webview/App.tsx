@@ -1,7 +1,8 @@
 import { AppContext, Application } from '@contexts/AppContext';
 import { Project, ProjectContext } from '@contexts/ProjectContext';
-import { Target, TargetContext } from '@contexts/TargetContext';
+import { TargetContext } from '@contexts/TargetContext';
 import { UserContext } from '@contexts/UserContext';
+import { Target } from '@types_/target';
 import { v4 } from 'uuid';
 import React, { useEffect, useState } from 'react';
 import {

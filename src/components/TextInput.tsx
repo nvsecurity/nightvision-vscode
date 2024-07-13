@@ -13,7 +13,7 @@ export const TextInput = ({
   id: string;
 }) => {
   return (
-    <div className='truncate'>
+    <div>
       <Label htmlFor={id}>{label}</Label>
       <input
         onChange={(e) => handleOnChange(e.target.value)}

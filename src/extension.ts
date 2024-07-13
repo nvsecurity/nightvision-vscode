@@ -280,13 +280,10 @@ class SidebarProvider implements vscode.WebviewViewProvider {
             break;
           }
           case CREATE_TARGET: {
-            const { targetName, targetUrl } = payload;
-
             const command = new CreateTarget(
               webviewView.webview,
               requestId,
-              targetName,
-              targetUrl
+              payload
             );
 
             this._children[requestId] = command.execute();

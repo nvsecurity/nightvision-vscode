@@ -2,23 +2,40 @@ import * as cp from 'child_process';
 import * as vscode from 'vscode';
 import { EXIT, UNAUTHORIZED_ACCESS } from '@commands/CommandConstants';
 
+export interface Flag {
+  flag: string;
+  value: string;
+}
+
 export default class Command {
   protected command: string;
   protected webview: vscode.Webview;
   protected requestId: string;
+  protected flags?: Flag[];
 
-  constructor(command: string, webview: vscode.Webview, requestId: string) {
+  constructor(
+    command: string,
+    webview: vscode.Webview,
+    requestId: string,
+    flags?: Flag[]
+  ) {
     this.command = command;
     this.webview = webview;
     this.requestId = requestId;
+    this.flags = flags;
   }
 
   execute() {
+    const flags = this.flags?.reduce<string[]>((acc, item) => {
+      acc.push(item.flag, item.value.trim());
+      return acc;
+    }, []);
+
     const [cmd, ...args] = this.command.split(' ');
-    const child = cp.spawn(
-      cmd,
-      args.map((arg) => (arg === '' ? ' ' : arg))
-    );
+    const child = cp.spawn(cmd, [
+      ...args.map((arg) => (arg === '' ? ' ' : arg)),
+      ...(flags ?? []),
+    ]);
 
     child.stdout.on('data', (data) => this.handleOutput(data));
     child.stderr.on('data', (data) => this.handleOutput(data));

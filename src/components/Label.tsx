@@ -8,8 +8,10 @@ export const Label = ({
   htmlFor: string;
 }) => {
   return (
-    <label className='mb-1 text-sm uppercase' htmlFor={htmlFor}>
-      {children}
-    </label>
+    <div className='truncate'>
+      <label className='mb-1 text-sm uppercase' htmlFor={htmlFor}>
+        {children}
+      </label>
+    </div>
   );
 };

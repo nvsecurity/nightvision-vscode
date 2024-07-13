@@ -1,9 +1,6 @@
-import { IdAndName } from '@contexts/ProjectContext';
+import { Target } from '@types_/target';
 import { createContext } from 'react';
 
-export interface Target extends IdAndName {
-  url: string;
-}
 interface TargetContextType {
   currentTarget?: Target;
   setCurrentTarget: (target: Target | undefined) => void;

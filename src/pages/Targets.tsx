@@ -1,8 +1,8 @@
 import { Project } from '@contexts/ProjectContext';
-import { Target } from '@contexts/TargetContext';
 import useClickOutside from '@hooks/useClickOutside';
 import { useProject } from '@hooks/useProject';
 import { useUser } from '@hooks/useUser';
+import { ApiSpec, Target, TargetType } from '@types_/target';
 import { v4 } from 'uuid';
 import React, { useEffect } from 'react';
 import { useState } from 'react';
@@ -12,17 +12,21 @@ import {
   DELETE_TARGET,
   DUPLICATE_NAME,
   INVALID_NAME,
+  INVALID_OPENAPI_EXT,
+  INVALID_OPENAPI_FILE,
   INVALID_TARGET,
   INVALID_URL,
   INVALID_UUID,
   UNAUTHORIZED_ACCESS,
   UPDATE_TARGET,
 } from '@commands/CommandConstants';
+import { CreateTargetParams } from '@commands/CreateTarget';
 import { Dropdown } from '@components/Dropdown';
 import { EditList } from '@components/EditList';
 import { Label } from '@components/Label';
 import { Loading } from '@components/Loading';
 import { Modal } from '@components/Modal';
+import { TabSelector } from '@components/TabSelector';
 import { TextInput } from '@components/TextInput';
 import { getProjects } from '@pages/Projects';
 import { messageHandler } from '@utils/MessageHandler';
@@ -70,6 +74,16 @@ export const getTargets = async (
   }
 };
 
+const types: { type: TargetType; name: string }[] = [
+  { type: 'URL', name: 'Web Target' },
+  { type: 'OPENAPI', name: 'API Target' },
+];
+
+const apiSpecs: { type: ApiSpec; name: string }[] = [
+  { type: 'URL', name: 'OpenAPI URL' },
+  { type: 'FILE', name: 'Swagger File' },
+];
+
 export const Targets = () => {
   const navigate = useNavigate();
   const { currentProject, setCurrentProject } = useProject();
@@ -90,16 +104,27 @@ export const Targets = () => {
   const [projects, setProjects] = useState<Project[]>();
   const [targetName, setTargetName] = useState('');
   const [targetUrl, setTargetUrl] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const [openApiUrl, setOpenApiUrl] = useState('');
+  const [swaggerFile, setSwaggerFile] = useState<File | null>();
 
   const [selectedTarget, setSelectedTarget] = useState<Target>();
   const [updateValues, setUpdateValues] = useState<{
     name: string;
     url: string;
   }>({ name: '', url: '' });
+
+  const [isLoading, setIsLoading] = useState(false);
   const [isUpdateLoading, setIsUpdateLoading] = useState(false);
   const [isDeleteLoading, setIsDeleteLoading] = useState(false);
   const [isFetching, setIsFetching] = useState(false);
+
+  const [selectedType, setSelectedType] = useState(types[0]);
+  const [selectedApiSpec, setSelectedApiSpec] = useState(apiSpecs[0]);
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = event.target.files?.[0] || null;
+    setSwaggerFile(selectedFile);
+  };
 
   useEffect(() => {
     let ignore = false;
@@ -218,15 +243,26 @@ export const Targets = () => {
   const handleCreateTarget = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
 
-    const reqId = v4();
-    const requestGenerator = messageHandler.requestGenerator(
-      CREATE_TARGET,
-      reqId,
-      {
+    // TODO
+    if (selectedType.type === 'OPENAPI') {
+      if (selectedApiSpec.type === 'URL' && !openApiUrl.trim()) {
+        return;
+      }
+      if (selectedApiSpec.type === 'FILE' && !swaggerFile) {
+        return;
+      }
+    }
+
+    const requestGenerator =
+      messageHandler.requestGenerator<CreateTargetParams>(CREATE_TARGET, v4(), {
+        project: currentProject,
         targetName,
         targetUrl,
-      }
-    );
+        type: selectedType.type,
+        apiSpecType: selectedApiSpec.type,
+        openApiUrl,
+        swaggerFilePath: swaggerFile?.path,
+      });
 
     setIsLoading(true);
 
@@ -250,6 +286,16 @@ export const Targets = () => {
           case INVALID_URL: {
             // TODO
             console.log(INVALID_URL);
+            break;
+          }
+          case INVALID_OPENAPI_EXT: {
+            // TODO
+            console.log(INVALID_OPENAPI_EXT);
+            break;
+          }
+          case INVALID_OPENAPI_FILE: {
+            // TODO
+            console.log(INVALID_OPENAPI_FILE);
             break;
           }
           case UNAUTHORIZED_ACCESS:
@@ -304,6 +350,11 @@ export const Targets = () => {
               />
             </div>
             <div className='flex flex-col space-y-1'>
+              <TabSelector
+                values={types}
+                selected={selectedType}
+                setSelected={setSelectedType}
+              />
               <TextInput
                 value={targetName}
                 handleOnChange={setTargetName}
@@ -316,6 +367,71 @@ export const Targets = () => {
                 label='Target URL'
                 id='target-url'
               />
+              {selectedType.type === 'OPENAPI' && (
+                <>
+                  <TabSelector
+                    values={apiSpecs}
+                    selected={selectedApiSpec}
+                    setSelected={setSelectedApiSpec}
+                    className='mt-4'
+                  />
+                  {selectedApiSpec.type === 'URL' ? (
+                    <TextInput
+                      value={openApiUrl}
+                      handleOnChange={setOpenApiUrl}
+                      label='OpenAPI URL'
+                      id='open-api-url'
+                    />
+                  ) : (
+                    <>
+                      {!swaggerFile && (
+                        <label
+                          htmlFor='swagger-file'
+                          className='relative !mt-4 inline-flex h-32 w-full flex-col flex-nowrap items-center justify-center truncate rounded border border-dashed border-[--vscode-foreground]'
+                        >
+                          <span className='w-full truncate text-center text-lg font-bold'>
+                            Upload Swagger File
+                          </span>
+                          <span className='w-full truncate text-center'>
+                            (.YML, .YAML, .JSON)
+                          </span>
+                          <input
+                            type='file'
+                            accept='.yml,.yaml,.json'
+                            onChange={handleFileChange}
+                            id='swagger-file'
+                            className='absolute inset-0 z-10 cursor-pointer opacity-0'
+                          />
+                        </label>
+                      )}
+                      {swaggerFile && (
+                        <div className='!mb-4 !mt-8 flex items-center justify-center space-x-4'>
+                          <span className='truncate text-center'>
+                            {swaggerFile.name}
+                          </span>
+                          <button
+                            className='unstyled'
+                            onClick={() => setSwaggerFile(null)}
+                          >
+                            <svg
+                              viewBox='0 0 16 16'
+                              xmlns='http://www.w3.org/2000/svg'
+                              fill='currentColor'
+                              className='h-6 w-6 fill-[--vscode-foreground]'
+                            >
+                              <path
+                                fillRule='evenodd'
+                                clipRule='evenodd'
+                                d='M8 8.707l3.646 3.647.708-.707L8.707 8l3.647-3.646-.707-.708L8 7.293 4.354 3.646l-.707.708L7.293 8l-3.646 3.646.707.708L8 8.707z'
+                              />
+                            </svg>
+                          </button>
+                        </div>
+                      )}
+                    </>
+                  )}
+                </>
+              )}
             </div>
             <button
               onClick={handleCreateTarget}

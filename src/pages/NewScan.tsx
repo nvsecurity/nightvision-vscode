@@ -1,10 +1,10 @@
 import { Application } from '@contexts/AppContext';
 import { IdAndName, Project } from '@contexts/ProjectContext';
-import { Target } from '@contexts/TargetContext';
 import { useApp } from '@hooks/useApp';
 import { useProject } from '@hooks/useProject';
 import { useTarget } from '@hooks/useTarget';
 import { useUser } from '@hooks/useUser';
+import { Target } from '@types_/target';
 import { v4 } from 'uuid';
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';

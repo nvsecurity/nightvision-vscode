@@ -1,5 +1,5 @@
 import { Application } from '@contexts/AppContext';
-import { Target } from '@contexts/TargetContext';
+import { Target } from '@types_/target';
 import * as vscode from 'vscode';
 import Command from '@commands/Command';
 import {

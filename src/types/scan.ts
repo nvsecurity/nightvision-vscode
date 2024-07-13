@@ -1,6 +1,6 @@
 import { Application } from '@contexts/AppContext';
 import { Project } from '@contexts/ProjectContext';
-import { Target } from '@contexts/TargetContext';
+import { Target } from '@types_/target';
 
 export type Severity =
   | 'Critical'
