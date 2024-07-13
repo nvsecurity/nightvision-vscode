@@ -25,6 +25,47 @@ import { Modal } from '@components/Modal';
 import { TextInput } from '@components/TextInput';
 import { messageHandler } from '@utils/MessageHandler';
 
+export const getProjects = async (
+  setProjects: React.Dispatch<React.SetStateAction<Project[] | undefined>>,
+  setIsLoggedIn: React.Dispatch<React.SetStateAction<boolean>>,
+  ignore: boolean = false
+) => {
+  try {
+    const projects = (
+      await messageHandler.api(
+        'get',
+        'https://api.nightvision.net/api/v1/projects/?order=name'
+      )
+    ).results;
+
+    if (ignore) {
+      return;
+    }
+
+    setProjects(
+      projects.map(
+        (project: any): Project => ({
+          id: project.id,
+          name: project.name,
+        })
+      )
+    );
+  } catch (err: any) {
+    if (err?.type === 'client_error') {
+      for (const error of err.errors) {
+        switch (error.code) {
+          case 'not_authenticated':
+          case 'authentication_failed': {
+            setIsLoggedIn(false);
+          }
+        }
+      }
+    } else {
+      console.error(err);
+    }
+  }
+};
+
 export const Projects = () => {
   const navigate = useNavigate();
   const { currentProject, setCurrentProject } = useProject();
@@ -52,47 +93,10 @@ export const Projects = () => {
   const [isUpdateLoading, setIsUpdateLoading] = useState(false);
   const [isDeleteLoading, setIsDeleteLoading] = useState(false);
 
-  const getProjects = async (ignore: boolean = false) => {
-    try {
-      const projects = (
-        await messageHandler.api(
-          'get',
-          'https://api.nightvision.net/api/v1/projects/?order=name'
-        )
-      ).results;
-
-      if (ignore) {
-        return;
-      }
-
-      setProjects(
-        projects.map(
-          (project: any): Project => ({
-            id: project.id,
-            name: project.name,
-          })
-        )
-      );
-    } catch (err: any) {
-      if (err?.type === 'client_error') {
-        for (const error of err.errors) {
-          switch (error.code) {
-            case 'not_authenticated':
-            case 'authentication_failed': {
-              setIsLoggedIn(false);
-            }
-          }
-        }
-      } else {
-        console.error(err);
-      }
-    }
-  };
-
   useEffect(() => {
     let ignore = false;
 
-    getProjects(ignore);
+    getProjects(setProjects, setIsLoggedIn, ignore);
 
     return () => {
       ignore = true;
@@ -114,7 +118,7 @@ export const Projects = () => {
       for await (const response of requestGenerator) {
         switch (response.command) {
           case UPDATE_PROJECT: {
-            await getProjects();
+            await getProjects(setProjects, setIsLoggedIn);
             setSelectedProject(response.payload as Project);
             break;
           }
@@ -159,7 +163,7 @@ export const Projects = () => {
       for await (const response of requestGenerator) {
         switch (response.command) {
           case DELETE_PROJECT: {
-            await getProjects();
+            await getProjects(setProjects, setIsLoggedIn);
             setShowDeleteModal(false);
             setShowUpdateModal(false);
             break;
@@ -205,7 +209,7 @@ export const Projects = () => {
       for await (const response of requestGenerator) {
         switch (response.command) {
           case CREATE_PROJECT:
-            await getProjects();
+            await getProjects(setProjects, setIsLoggedIn);
             break;
           case DUPLICATE_NAME: {
             // TODO
@@ -258,17 +262,17 @@ export const Projects = () => {
 
         {projects && (
           <>
+            <div>
+              <Label htmlFor='current-project'>Current Project</Label>
+              <Dropdown
+                defaultItem={currentProject}
+                items={projects}
+                name='Project'
+                handleChange={setCurrentProject}
+                id='current-project'
+              />
+            </div>
             <div className='flex flex-col space-y-1'>
-              <div>
-                <Label htmlFor='current-project'>Current Project</Label>
-                <Dropdown
-                  defaultItem={currentProject}
-                  items={projects}
-                  name='Project'
-                  handleChange={setCurrentProject}
-                  id='current-project'
-                />
-              </div>
               <TextInput
                 value={projectName}
                 handleOnChange={setProjectName}

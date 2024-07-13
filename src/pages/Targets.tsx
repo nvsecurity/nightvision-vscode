@@ -1,3 +1,4 @@
+import { Project } from '@contexts/ProjectContext';
 import { Target } from '@contexts/TargetContext';
 import useClickOutside from '@hooks/useClickOutside';
 import { useProject } from '@hooks/useProject';
@@ -17,10 +18,13 @@ import {
   UNAUTHORIZED_ACCESS,
   UPDATE_TARGET,
 } from '@commands/CommandConstants';
+import { Dropdown } from '@components/Dropdown';
 import { EditList } from '@components/EditList';
+import { Label } from '@components/Label';
 import { Loading } from '@components/Loading';
 import { Modal } from '@components/Modal';
 import { TextInput } from '@components/TextInput';
+import { getProjects } from '@pages/Projects';
 import { messageHandler } from '@utils/MessageHandler';
 
 export const getTargets = async (
@@ -68,7 +72,7 @@ export const getTargets = async (
 
 export const Targets = () => {
   const navigate = useNavigate();
-  const { currentProject } = useProject();
+  const { currentProject, setCurrentProject } = useProject();
   const { setIsLoggedIn } = useUser();
 
   const {
@@ -83,6 +87,7 @@ export const Targets = () => {
   } = useClickOutside();
 
   const [targets, setTargets] = useState<Target[]>();
+  const [projects, setProjects] = useState<Project[]>();
   const [targetName, setTargetName] = useState('');
   const [targetUrl, setTargetUrl] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -94,16 +99,24 @@ export const Targets = () => {
   }>({ name: '', url: '' });
   const [isUpdateLoading, setIsUpdateLoading] = useState(false);
   const [isDeleteLoading, setIsDeleteLoading] = useState(false);
+  const [isFetching, setIsFetching] = useState(false);
 
   useEffect(() => {
     let ignore = false;
 
-    getTargets(setTargets, setIsLoggedIn, currentProject.id, ignore);
+    const fetchApi = async () => {
+      setIsFetching(true);
+      await getTargets(setTargets, setIsLoggedIn, currentProject.id, ignore);
+      await getProjects(setProjects, setIsLoggedIn, ignore);
+      setIsFetching(false);
+    };
+
+    fetchApi();
 
     return () => {
       ignore = true;
     };
-  }, []);
+  }, [currentProject]);
 
   const handleUpdate = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
@@ -278,8 +291,18 @@ export const Targets = () => {
           <h1 className='font-bold uppercase'>Target</h1>
         </div>
 
-        {targets && (
+        {targets && projects && (
           <>
+            <div>
+              <Label htmlFor='current-project'>Current Project</Label>
+              <Dropdown
+                defaultItem={currentProject}
+                items={projects}
+                name='Project'
+                handleChange={setCurrentProject}
+                id='current-project'
+              />
+            </div>
             <div className='flex flex-col space-y-1'>
               <TextInput
                 value={targetName}
@@ -302,20 +325,24 @@ export const Targets = () => {
               {isLoading ? 'Creating...' : 'Create Target'}
             </button>
 
-            <EditList
-              list={targets}
-              handleClick={(listItem) => {
-                setShowUpdateModal((prevState) => !prevState);
-                setUpdateValues({ name: listItem.name, url: listItem.url });
-                setSelectedTarget(listItem);
-              }}
-            />
+            {isFetching && <Loading />}
+            {!isFetching && (
+              <EditList
+                list={targets}
+                handleClick={(listItem) => {
+                  setShowUpdateModal((prevState) => !prevState);
+                  setUpdateValues({ name: listItem.name, url: listItem.url });
+                  setSelectedTarget(listItem);
+                }}
+              >
+                <span className='!mt-10 w-full text-center'>
+                  No targets found
+                </span>
+              </EditList>
+            )}
           </>
         )}
-        {!targets && <Loading />}
-        {targets?.length === 0 && (
-          <span className='!mt-10 w-full text-center'>No targets found</span>
-        )}
+        {(!targets || !projects) && <Loading />}
       </div>
       {showUpdateModal && (
         <Modal componentRef={updateRef} visible={!showDeleteModal}>

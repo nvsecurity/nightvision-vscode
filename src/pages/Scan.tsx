@@ -161,7 +161,7 @@ export const Scan = () => {
             </div>
           </div>
 
-          <div className={`${scan ? 'visible' : 'invisible'}`}>
+          <div>
             <div className='flex items-center justify-between'>
               <a
                 href={`https://app.nightvision.net/scans/${scanId}/findings`}
@@ -257,7 +257,9 @@ export const Scan = () => {
             </div>
             {toggled && (
               <EditList handleClick={() => {}} list={toggledIssues}>
-                No issues found!
+                <span className='!mt-10 inline-block w-full text-center'>
+                  No issues found!
+                </span>
               </EditList>
             )}
           </div>

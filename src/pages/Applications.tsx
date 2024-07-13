@@ -1,4 +1,5 @@
 import { Application } from '@contexts/AppContext';
+import { Project } from '@contexts/ProjectContext';
 import useClickOutside from '@hooks/useClickOutside';
 import { useProject } from '@hooks/useProject';
 import { useUser } from '@hooks/useUser';
@@ -17,10 +18,13 @@ import {
   UNAUTHORIZED_ACCESS,
   UPDATE_APP,
 } from '@commands/CommandConstants';
+import { Dropdown } from '@components/Dropdown';
 import { EditList } from '@components/EditList';
+import { Label } from '@components/Label';
 import { Loading } from '@components/Loading';
 import { Modal } from '@components/Modal';
 import { TextInput } from '@components/TextInput';
+import { getProjects } from '@pages/Projects';
 import { messageHandler } from '@utils/MessageHandler';
 
 export const getApps = async (
@@ -67,7 +71,7 @@ export const getApps = async (
 
 export const Applications = () => {
   const navigate = useNavigate();
-  const { currentProject } = useProject();
+  const { currentProject, setCurrentProject } = useProject();
   const { setIsLoggedIn } = useUser();
 
   const {
@@ -82,6 +86,7 @@ export const Applications = () => {
   } = useClickOutside();
 
   const [apps, setApps] = useState<Application[]>();
+  const [projects, setProjects] = useState<Project[]>();
   const [applicationName, setApplicationName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
@@ -91,16 +96,24 @@ export const Applications = () => {
   });
   const [isUpdateLoading, setIsUpdateLoading] = useState(false);
   const [isDeleteLoading, setIsDeleteLoading] = useState(false);
+  const [isFetching, setIsFetching] = useState(false);
 
   useEffect(() => {
     let ignore = false;
 
-    getApps(setApps, setIsLoggedIn, currentProject.id, ignore);
+    const fetchApi = async () => {
+      setIsFetching(true);
+      await getApps(setApps, setIsLoggedIn, currentProject.id, ignore);
+      await getProjects(setProjects, setIsLoggedIn, ignore);
+      setIsFetching(false);
+    };
+
+    fetchApi();
 
     return () => {
       ignore = true;
     };
-  }, []);
+  }, [currentProject]);
 
   const handleUpdate = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
@@ -260,8 +273,18 @@ export const Applications = () => {
           <h1 className='font-bold uppercase'>Application</h1>
         </div>
 
-        {apps && (
+        {apps && projects && (
           <>
+            <div>
+              <Label htmlFor='current-project'>Current Project</Label>
+              <Dropdown
+                defaultItem={currentProject}
+                items={projects}
+                name='Project'
+                handleChange={setCurrentProject}
+                id='current-project'
+              />
+            </div>
             <TextInput
               value={applicationName}
               handleOnChange={setApplicationName}
@@ -276,22 +299,24 @@ export const Applications = () => {
               {isLoading ? 'Creating...' : 'Create Application'}
             </button>
 
-            <EditList
-              list={apps}
-              handleClick={(listItem) => {
-                setShowUpdateModal((prevState) => !prevState);
-                setUpdateValues({ name: listItem.name });
-                setSelectedApp(listItem);
-              }}
-            />
+            {isFetching && <Loading />}
+            {!isFetching && (
+              <EditList
+                list={apps}
+                handleClick={(listItem) => {
+                  setShowUpdateModal((prevState) => !prevState);
+                  setUpdateValues({ name: listItem.name });
+                  setSelectedApp(listItem);
+                }}
+              >
+                <span className='!mt-10 w-full text-center'>
+                  No applications found
+                </span>
+              </EditList>
+            )}
           </>
         )}
-        {!apps && <Loading />}
-        {apps?.length === 0 && (
-          <span className='!mt-10 w-full text-center'>
-            No applications found
-          </span>
-        )}
+        {(!apps || !projects) && <Loading />}
       </div>
 
       {showUpdateModal && (

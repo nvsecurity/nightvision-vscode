@@ -1,5 +1,5 @@
 import { Application } from '@contexts/AppContext';
-import { IdAndName } from '@contexts/ProjectContext';
+import { IdAndName, Project } from '@contexts/ProjectContext';
 import { Target } from '@contexts/TargetContext';
 import { useApp } from '@hooks/useApp';
 import { useProject } from '@hooks/useProject';
@@ -13,6 +13,7 @@ import { Dropdown } from '@components/Dropdown';
 import { Label } from '@components/Label';
 import { Loading } from '@components/Loading';
 import { getApps } from '@pages/Applications';
+import { getProjects } from '@pages/Projects';
 import { getTargets } from '@pages/Targets';
 import { messageHandler } from '@utils/MessageHandler';
 
@@ -20,26 +21,35 @@ export const NewScan = () => {
   const navigate = useNavigate();
 
   const { currentApp, setCurrentApp } = useApp();
-  const { currentProject } = useProject();
+  const { currentProject, setCurrentProject } = useProject();
   const { currentTarget, setCurrentTarget } = useTarget();
   const { setIsLoggedIn } = useUser();
 
   const [apps, setApps] = useState<Application[]>();
+  const [projects, setProjects] = useState<Project[]>();
   const [targets, setTargets] = useState<Target[]>();
 
   const [isLoading, setIsLoading] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [isFetching, setIsFetching] = useState(false);
 
   useEffect(() => {
     let ignore = false;
 
-    getApps(setApps, setIsLoggedIn, currentProject.id, ignore);
-    getTargets(setTargets, setIsLoggedIn, currentProject.id, ignore);
+    const fetchApi = async () => {
+      setIsFetching(true);
+      await getApps(setApps, setIsLoggedIn, currentProject.id, ignore);
+      await getProjects(setProjects, setIsLoggedIn, ignore);
+      await getTargets(setTargets, setIsLoggedIn, currentProject.id, ignore);
+      setIsFetching(false);
+    };
+
+    fetchApi();
 
     return () => {
       ignore = true;
     };
-  }, []);
+  }, [currentProject]);
 
   const handleScanClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
@@ -155,44 +165,61 @@ export const NewScan = () => {
         <h1 className='font-bold uppercase'>Scan</h1>
       </div>
 
-      {apps && targets && (
+      {apps && projects && targets && (
         <>
-          <div className='flex flex-col space-y-1'>
-            <div>
-              <Label htmlFor='application'>Application Name</Label>
-              <Dropdown
-                defaultItem={currentApp}
-                items={apps}
-                name='Application'
-                route={isLoading ? '.' : `/applications`}
-                handleChange={setCurrentApp}
-                id='application'
-                disabled={isLoading}
-              />
-            </div>
-            <div>
-              <Label htmlFor='target-name'>Target Name</Label>
-              <Dropdown
-                defaultItem={currentTarget}
-                items={targets}
-                name='Target'
-                route={isLoading ? '.' : `/targets`}
-                handleChange={setCurrentTarget as (value: IdAndName) => void}
-                id='target-name'
-                disabled={isLoading}
-              />
-            </div>
+          <div>
+            <Label htmlFor='current-project'>Current Project</Label>
+            <Dropdown
+              defaultItem={currentProject}
+              items={projects}
+              name='Project'
+              handleChange={setCurrentProject}
+              id='current-project'
+            />
           </div>
-          <button
-            onClick={handleScanClick}
-            className='rounded disabled:bg-neutral-800 hover:disabled:cursor-default'
-            disabled={isLoading}
-          >
-            {isLoading ? 'Loading...' : 'Start Scan'}
-          </button>
+          {isFetching && <Loading />}
+          {!isFetching && (
+            <>
+              <div className='flex flex-col space-y-1'>
+                <div>
+                  <Label htmlFor='application'>Application Name</Label>
+                  <Dropdown
+                    defaultItem={currentApp}
+                    items={apps}
+                    name='Application'
+                    route={isLoading ? '.' : `/applications`}
+                    handleChange={setCurrentApp}
+                    id='application'
+                    disabled={isLoading}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor='target-name'>Target Name</Label>
+                  <Dropdown
+                    defaultItem={currentTarget}
+                    items={targets}
+                    name='Target'
+                    route={isLoading ? '.' : `/targets`}
+                    handleChange={
+                      setCurrentTarget as (value: IdAndName) => void
+                    }
+                    id='target-name'
+                    disabled={isLoading}
+                  />
+                </div>
+              </div>
+              <button
+                onClick={handleScanClick}
+                className='rounded disabled:bg-neutral-800 hover:disabled:cursor-default'
+                disabled={isLoading}
+              >
+                {isLoading ? 'Loading...' : 'Start Scan'}
+              </button>
+            </>
+          )}
         </>
       )}
-      {!apps && !targets && <Loading />}
+      {(!apps || !projects || !targets) && <Loading />}
     </div>
   );
 };
