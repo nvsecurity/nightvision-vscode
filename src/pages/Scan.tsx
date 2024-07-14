@@ -195,21 +195,22 @@ export const Scan = () => {
                 </svg>
               </a>
               <div className='flex items-center'>
-                <svg
-                  xmlns='http://www.w3.org/2000/svg'
-                  viewBox='0 0 100 100'
-                  className={`h-5 w-5 animate-spin stroke-[--vscode-foreground] ${scan.isScanning ? 'visible' : 'invisible'}`}
-                >
-                  <circle
-                    cx='50'
-                    cy='50'
-                    fill='none'
-                    strokeWidth='8'
-                    r='35'
-                    strokeDasharray='164.93361431346415 56.97787143782138'
-                  />
-                </svg>
-
+                {scan.isScanning && (
+                  <svg
+                    xmlns='http://www.w3.org/2000/svg'
+                    viewBox='0 0 100 100'
+                    className='h-5 w-5 animate-spin stroke-[--vscode-foreground]'
+                  >
+                    <circle
+                      cx='50'
+                      cy='50'
+                      fill='none'
+                      strokeWidth='8'
+                      r='35'
+                      strokeDasharray='164.93361431346415 56.97787143782138'
+                    />
+                  </svg>
+                )}
                 {scan.isError && (
                   <svg
                     width='16'

@@ -227,11 +227,45 @@ export const Scans = () => {
               <span className='mr-2 truncate font-bold'>
                 {scan.application?.name ?? '-'}
               </span>
-              <span>
-                {formatDuration(
-                  (scan.endedAt || currentTime.getTime()) - scan.createdAt
+              <div className='flex items-center'>
+                {scan.isScanning && (
+                  <svg
+                    xmlns='http://www.w3.org/2000/svg'
+                    viewBox='0 0 100 100'
+                    className='h-5 w-5 animate-spin stroke-[--vscode-foreground]'
+                  >
+                    <circle
+                      cx='50'
+                      cy='50'
+                      fill='none'
+                      strokeWidth='8'
+                      r='35'
+                      strokeDasharray='164.93361431346415 56.97787143782138'
+                    />
+                  </svg>
                 )}
-              </span>
+                {scan.isError && (
+                  <svg
+                    width='16'
+                    height='16'
+                    viewBox='0 0 16 16'
+                    xmlns='http://www.w3.org/2000/svg'
+                    fill='currentColor'
+                    className='h-5 w-5 stroke-red-600'
+                  >
+                    <path
+                      fillRule='evenodd'
+                      clipRule='evenodd'
+                      d='M7.56 1h.88l6.54 12.26-.44.74H1.44L1 13.26 7.56 1zM8 2.28L2.28 13H13.7L8 2.28zM8.625 12v-1h-1.25v1h1.25zm-1.25-2V6h1.25v4h-1.25z'
+                    />
+                  </svg>
+                )}
+                <span className='ml-2 font-bold'>
+                  {formatDuration(
+                    (scan.endedAt || currentTime.getTime()) - scan.createdAt
+                  )}
+                </span>
+              </div>
             </div>
             <div className='flex items-end justify-between truncate'>
               <span className='mr-2 truncate'>{scan.project.name}</span>
