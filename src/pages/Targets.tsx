@@ -54,12 +54,16 @@ export const getTargets = async (
         (target: any): Target => ({
           id: target.id,
           name: target.name,
-          url: target.location,
+          location: target.location,
         })
       )
     );
   } catch (err: any) {
-    if (err?.type === 'client_error') {
+    if (
+      err?.type === 'client_error' ||
+      err?.type === 'validation_error' ||
+      err?.type === 'server_error'
+    ) {
       for (const error of err.errors) {
         switch (error.code) {
           case 'not_authenticated':
@@ -334,7 +338,7 @@ export const Targets = () => {
               />
             </svg>
           </a>
-          <h1 className='font-bold uppercase'>Target</h1>
+          <h1 className='font-bold uppercase'>Targets</h1>
         </div>
 
         {targets && projects && (
@@ -342,7 +346,7 @@ export const Targets = () => {
             <div>
               <Label htmlFor='current-project'>Current Project</Label>
               <Dropdown
-                defaultItem={currentProject}
+                selectedItem={currentProject}
                 items={projects}
                 name='Project'
                 handleChange={setCurrentProject}
@@ -447,7 +451,10 @@ export const Targets = () => {
                 list={targets}
                 handleClick={(listItem) => {
                   setShowUpdateModal((prevState) => !prevState);
-                  setUpdateValues({ name: listItem.name, url: listItem.url });
+                  setUpdateValues({
+                    name: listItem.name,
+                    url: listItem.location,
+                  });
                   setSelectedTarget(listItem);
                 }}
               >

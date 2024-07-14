@@ -34,7 +34,11 @@ export const Scans = () => {
 
       return response.results;
     } catch (err: any) {
-      if (err?.type === 'client_error') {
+      if (
+        err?.type === 'client_error' ||
+        err?.type === 'validation_error' ||
+        err?.type === 'server_error'
+      ) {
         for (const error of err.errors) {
           switch (error.code) {
             case 'not_authenticated':
@@ -85,6 +89,7 @@ export const Scans = () => {
             return {
               id: scan.id,
               application: scan.application,
+              authentication: scan.credentials,
               target: scan.target,
               project: scan.project,
               createdAt: new Date(scan.created_at).getTime(),
@@ -106,7 +111,11 @@ export const Scans = () => {
         const scans = await Promise.all(scansPromises);
         setScans(scans);
       } catch (err: any) {
-        if (err?.type === 'client_error') {
+        if (
+          err?.type === 'client_error' ||
+          err?.type === 'validation_error' ||
+          err?.type === 'server_error'
+        ) {
           for (const error of err.errors) {
             switch (error.code) {
               case 'not_authenticated':
@@ -156,7 +165,11 @@ export const Scans = () => {
           );
         }
       } catch (err: any) {
-        if (err?.type === 'client_error') {
+        if (
+          err?.type === 'client_error' ||
+          err?.type === 'validation_error' ||
+          err?.type === 'server_error'
+        ) {
           for (const error of err.errors) {
             switch (error.code) {
               case 'not_authenticated':
@@ -195,7 +208,7 @@ export const Scans = () => {
         </Link>
         <h1 className='font-bold uppercase'>Scans</h1>
       </div>
-      <Link to='/scans/new-scan'>
+      <Link to='/scans/new-scan' tabIndex={-1}>
         <button className='rounded text-white'>New Scan</button>
       </Link>
 
@@ -207,12 +220,12 @@ export const Scans = () => {
         {scans?.map((scan) => (
           <Link
             to={`/scans/${scan.id}`}
-            key={scan.application.id + scan.id}
+            key={scan.id}
             className='relative flex h-24 flex-col justify-between px-4 py-2 text-[--vscode-foreground] before:absolute before:inset-0 before:-z-10 before:rounded before:bg-[--vscode-input-background] hover:cursor-pointer hover:text-[--vscode-foreground] before:hover:brightness-75'
           >
             <div className='flex justify-between'>
               <span className='mr-2 truncate font-bold'>
-                {scan.application.name}
+                {scan.application?.name ?? '-'}
               </span>
               <span>
                 {formatDuration(

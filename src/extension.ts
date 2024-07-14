@@ -6,9 +6,11 @@ import * as vscode from 'vscode';
 import { ExtensionContext, ExtensionMode, Uri } from 'vscode';
 import {
   CREATE_APP,
+  CREATE_AUTH,
   CREATE_PROJECT,
   CREATE_TARGET,
   DELETE_APP,
+  DELETE_AUTH,
   DELETE_PROJECT,
   DELETE_TARGET,
   GET_CURRENT_APP,
@@ -22,13 +24,16 @@ import {
   SAVE_CURRENT_TARGET,
   SCAN,
   UPDATE_APP,
+  UPDATE_AUTH,
   UPDATE_PROJECT,
   UPDATE_TARGET,
 } from '@commands/CommandConstants';
 import CreateApp from '@commands/CreateApp';
+import CreateAuth from '@commands/CreateAuth';
 import CreateProject from '@commands/CreateProject';
 import CreateTarget from '@commands/CreateTarget';
 import DeleteApp from '@commands/DeleteApp';
+import DeleteAuth from '@commands/DeleteAuth';
 import DeleteProject from '@commands/DeleteProject';
 import DeleteTarget from '@commands/DeleteTarget';
 import GetCurrentApp from '@commands/GetCurrentApp';
@@ -38,6 +43,7 @@ import SaveCurrentApp from '@commands/SaveCurrentApp';
 import SaveCurrentProject from '@commands/SaveCurrentProject';
 import Scan from '@commands/Scan';
 import UpdateApp from '@commands/UpdateApp';
+import UpdateAuth from '@commands/UpdateAuth';
 import UpdateProject from '@commands/UpdateProject';
 import UpdateTarget from '@commands/UpdateTarget';
 import fs from 'fs/promises';
@@ -72,7 +78,7 @@ export async function activate(context: vscode.ExtensionContext) {
 export function deactivate() {}
 class SidebarProvider implements vscode.WebviewViewProvider {
   _view?: vscode.WebviewView;
-  _children: { [key: string]: ChildProcessWithoutNullStreams };
+  _children: { [key: string]: ChildProcessWithoutNullStreams | undefined };
   nightvisionToken: string;
 
   constructor(
@@ -121,9 +127,10 @@ class SidebarProvider implements vscode.WebviewViewProvider {
         try {
           const response = await fetch(url, {
             method,
-            body,
+            body: JSON.stringify(body),
             headers: {
               accept: 'application/json',
+              'Content-Type': 'application/json',
               Authorization: `Token ${this.nightvisionToken}`,
             },
           });
@@ -159,14 +166,7 @@ class SidebarProvider implements vscode.WebviewViewProvider {
             break;
           }
           case SCAN: {
-            const { application, target } = payload;
-
-            const command = new Scan(
-              webviewView.webview,
-              requestId,
-              application,
-              target
-            );
+            const command = new Scan(webviewView.webview, requestId, payload);
 
             this._children[requestId] = command.execute();
             break;
@@ -217,6 +217,33 @@ class SidebarProvider implements vscode.WebviewViewProvider {
               requestId,
               id,
               name
+            );
+
+            this._children[requestId] = command.execute();
+            break;
+          }
+          case CREATE_AUTH: {
+            const command = new CreateAuth(
+              webviewView.webview,
+              requestId,
+              payload
+            );
+
+            this._children[requestId] = command.execute();
+            break;
+          }
+          case DELETE_AUTH: {
+            const { id } = payload;
+            const command = new DeleteAuth(webviewView.webview, requestId, id);
+
+            this._children[requestId] = command.execute();
+            break;
+          }
+          case UPDATE_AUTH: {
+            const command = new UpdateAuth(
+              webviewView.webview,
+              requestId,
+              payload
             );
 
             this._children[requestId] = command.execute();

@@ -50,7 +50,7 @@ const Tab = ({
     <button
       type='button'
       onClick={() => setSelected(value)}
-      className={`relative truncate !bg-transparent text-[--vscode-foreground] before:absolute before:inset-0 before:-z-50 before:bg-[--vscode-input-background] before:hover:bg-[--vscode-input-background] before:hover:opacity-100 before:hover:brightness-100 ${first && 'rounded-l'} ${last && 'rounded-r'} ${selected !== value && 'before:opacity-20'}`}
+      className={`relative truncate !bg-transparent text-[--vscode-foreground] before:absolute before:inset-0 before:-z-50 before:border before:border-[--vscode-foreground] before:bg-[--vscode-input-background] before:hover:bg-[--vscode-input-background] before:hover:opacity-100 before:hover:brightness-100 ${first && 'rounded-l'} ${last && 'rounded-r'} ${selected !== value && 'before:border-none before:opacity-20'}`}
     >
       {value.name}
     </button>

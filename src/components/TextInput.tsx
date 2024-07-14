@@ -7,7 +7,7 @@ export const TextInput = ({
   label,
   id,
 }: {
-  value: string;
+  value?: string | null;
   handleOnChange: (e: string) => void;
   label: string;
   id: string;
@@ -17,7 +17,7 @@ export const TextInput = ({
       <Label htmlFor={id}>{label}</Label>
       <input
         onChange={(e) => handleOnChange(e.target.value)}
-        value={value}
+        value={value ?? ''}
         id={id}
       />
     </div>

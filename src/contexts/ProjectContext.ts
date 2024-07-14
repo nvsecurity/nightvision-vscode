@@ -6,6 +6,7 @@ export interface IdAndName {
 }
 
 export interface Project extends IdAndName {}
+
 export interface ProjectContextType {
   currentProject?: Project;
   setCurrentProject: (project: Project) => void;

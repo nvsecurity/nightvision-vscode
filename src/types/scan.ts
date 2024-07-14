@@ -1,5 +1,6 @@
 import { Application } from '@contexts/AppContext';
 import { Project } from '@contexts/ProjectContext';
+import { Auth } from '@types_/auth';
 import { Target } from '@types_/target';
 
 export type Severity =
@@ -37,7 +38,8 @@ export type ScanStatus =
 
 export interface ScanType {
   id: string;
-  application: Application;
+  application?: Application;
+  authentication?: Auth;
   target: Target;
   project: Project;
   createdAt: number;

@@ -31,7 +31,7 @@ class MessageHandler {
   public api(
     method: RequestInit['method'],
     url: string,
-    body?: RequestInit['body']
+    body?: any
   ): Promise<any> {
     const requestId = v4();
 

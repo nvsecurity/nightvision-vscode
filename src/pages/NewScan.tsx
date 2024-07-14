@@ -4,15 +4,18 @@ import { useApp } from '@hooks/useApp';
 import { useProject } from '@hooks/useProject';
 import { useTarget } from '@hooks/useTarget';
 import { useUser } from '@hooks/useUser';
+import { Auth } from '@types_/auth';
 import { Target } from '@types_/target';
 import { v4 } from 'uuid';
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { SCAN, SCAN_ID, UNAUTHORIZED_ACCESS } from '@commands/CommandConstants';
+import { ScanParams } from '@commands/Scan';
 import { Dropdown } from '@components/Dropdown';
 import { Label } from '@components/Label';
 import { Loading } from '@components/Loading';
 import { getApps } from '@pages/Applications';
+import { getAuths } from '@pages/Authentications';
 import { getProjects } from '@pages/Projects';
 import { getTargets } from '@pages/Targets';
 import { messageHandler } from '@utils/MessageHandler';
@@ -26,6 +29,8 @@ export const NewScan = () => {
   const { setIsLoggedIn } = useUser();
 
   const [apps, setApps] = useState<Application[]>();
+  const [auths, setAuths] = useState<Auth[]>();
+  const [currentAuth, setCurrentAuth] = useState<Auth | null>();
   const [projects, setProjects] = useState<Project[]>();
   const [targets, setTargets] = useState<Target[]>();
 
@@ -39,6 +44,7 @@ export const NewScan = () => {
     const fetchApi = async () => {
       setIsFetching(true);
       await getApps(setApps, setIsLoggedIn, currentProject.id, ignore);
+      await getAuths(setAuths, setIsLoggedIn, currentProject.id, ignore);
       await getProjects(setProjects, setIsLoggedIn, ignore);
       await getTargets(setTargets, setIsLoggedIn, currentProject.id, ignore);
       setIsFetching(false);
@@ -58,11 +64,16 @@ export const NewScan = () => {
       return;
     }
 
-    const reqId = v4();
-    const requestGenerator = messageHandler.requestGenerator(SCAN, reqId, {
-      application: currentApp,
-      target: currentTarget,
-    });
+    const requestGenerator = messageHandler.requestGenerator<ScanParams>(
+      SCAN,
+      v4(),
+      {
+        project: currentProject,
+        application: currentApp,
+        target: currentTarget,
+        authentication: currentAuth,
+      }
+    );
 
     setIsLoading(true);
 
@@ -165,12 +176,12 @@ export const NewScan = () => {
         <h1 className='font-bold uppercase'>Scan</h1>
       </div>
 
-      {apps && projects && targets && (
+      {apps && auths && projects && targets && (
         <>
           <div>
             <Label htmlFor='current-project'>Current Project</Label>
             <Dropdown
-              defaultItem={currentProject}
+              selectedItem={currentProject}
               items={projects}
               name='Project'
               handleChange={setCurrentProject}
@@ -182,9 +193,9 @@ export const NewScan = () => {
             <>
               <div className='flex flex-col space-y-1'>
                 <div>
-                  <Label htmlFor='application'>Application Name</Label>
+                  <Label htmlFor='application'>Application</Label>
                   <Dropdown
-                    defaultItem={currentApp}
+                    selectedItem={currentApp}
                     items={apps}
                     name='Application'
                     route={isLoading ? '.' : `/applications`}
@@ -194,16 +205,32 @@ export const NewScan = () => {
                   />
                 </div>
                 <div>
-                  <Label htmlFor='target-name'>Target Name</Label>
+                  <Label htmlFor='target'>Target</Label>
                   <Dropdown
-                    defaultItem={currentTarget}
-                    items={targets}
+                    selectedItem={currentTarget}
+                    items={targets.map((target) => ({
+                      ...target,
+                      name: `${target.name} - ${target.location}`,
+                    }))}
                     name='Target'
                     route={isLoading ? '.' : `/targets`}
                     handleChange={
                       setCurrentTarget as (value: IdAndName) => void
                     }
-                    id='target-name'
+                    id='target'
+                    disabled={isLoading}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor='auth'>Authentication (Optional)</Label>
+                  <Dropdown
+                    selectedItem={currentAuth}
+                    items={auths}
+                    optional={true}
+                    name='Authentication'
+                    route={isLoading ? '.' : `/authentications`}
+                    handleChange={setCurrentAuth as (value: IdAndName) => void}
+                    id='auth'
                     disabled={isLoading}
                   />
                 </div>
@@ -219,7 +246,7 @@ export const NewScan = () => {
           )}
         </>
       )}
-      {(!apps || !projects || !targets) && <Loading />}
+      {(!apps || !auths || !projects || !targets) && <Loading />}
     </div>
   );
 };

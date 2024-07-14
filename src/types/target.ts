@@ -1,7 +1,7 @@
 import { IdAndName } from '@contexts/ProjectContext';
 
 export interface Target extends IdAndName {
-  url: string;
+  location: string;
 }
 
 export type TargetType = 'OPENAPI' | 'URL';

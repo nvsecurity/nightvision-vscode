@@ -1,7 +1,9 @@
 import { Application } from '@contexts/AppContext';
+import { Project } from '@contexts/ProjectContext';
+import { Auth } from '@types_/auth';
 import { Target } from '@types_/target';
 import * as vscode from 'vscode';
-import Command from '@commands/Command';
+import Command, { Flag } from '@commands/Command';
 import {
   INVALID_APP,
   INVALID_TARGET,
@@ -10,23 +12,34 @@ import {
   SCAN_ID,
 } from '@commands/CommandConstants';
 
+export interface ScanParams {
+  project: Project;
+  application: Application;
+  target: Target;
+  authentication?: Auth | null;
+}
+
 export default class Scan extends Command {
   constructor(
     webview: vscode.Webview,
     requestId: string,
-    application: Application,
-    target: Target
+    { project, application, target, authentication }: ScanParams
   ) {
-    super(
-      `nightvision scan -A ${application.id} -T ${target.id}`,
-      webview,
-      requestId
-    );
+    const flags: Flag[] = [
+      { flag: '-P', value: project.id },
+      { flag: '-A', value: application.id },
+      { flag: '-T', value: target.id },
+    ];
+
+    if (authentication) {
+      flags.push({ flag: '-C', value: authentication.id });
+    }
+
+    super(`nightvision scan`, webview, requestId, flags);
   }
 
   handleOutput(data: any) {
     const message = data.toString();
-    console.log(data.toString());
 
     if (!this.isLoggedIn(message)) {
       return;

@@ -51,7 +51,11 @@ export const getProjects = async (
       )
     );
   } catch (err: any) {
-    if (err?.type === 'client_error') {
+    if (
+      err?.type === 'client_error' ||
+      err?.type === 'validation_error' ||
+      err?.type === 'server_error'
+    ) {
       for (const error of err.errors) {
         switch (error.code) {
           case 'not_authenticated':
@@ -257,7 +261,7 @@ export const Projects = () => {
               />
             </svg>
           </a>
-          <h1 className='font-bold uppercase'>Project</h1>
+          <h1 className='font-bold uppercase'>Projects</h1>
         </div>
 
         {projects && (
@@ -265,7 +269,7 @@ export const Projects = () => {
             <div>
               <Label htmlFor='current-project'>Current Project</Label>
               <Dropdown
-                defaultItem={currentProject}
+                selectedItem={currentProject}
                 items={projects}
                 name='Project'
                 handleChange={setCurrentProject}

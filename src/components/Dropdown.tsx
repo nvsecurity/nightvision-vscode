@@ -3,27 +3,29 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 
 export const Dropdown = ({
-  defaultItem,
+  selectedItem,
   items,
   name,
   route,
   handleChange,
   id,
   disabled = false,
+  optional = false,
 }: {
-  defaultItem?: IdAndName;
+  selectedItem?: IdAndName | null;
   items: IdAndName[];
   name?: string;
   route?: string;
   handleChange: (value: IdAndName) => void;
   id?: string;
   disabled?: boolean;
+  optional?: boolean;
 }) => {
   return (
     <div className='flex flex-nowrap items-center space-x-2'>
       <select
         className='w-full bg-[--vscode-input-background] px-0.5 py-1.5'
-        value={defaultItem?.id}
+        value={selectedItem?.id}
         onChange={(e) => {
           const item = items.filter((item) => item.id === e.target.value)[0];
           handleChange(item);
@@ -31,6 +33,7 @@ export const Dropdown = ({
         id={id}
         disabled={disabled}
       >
+        {(optional || items.length === 0) && <option value=''>-</option>}
         {items.map((item) => (
           <option key={item.id} value={item.id} className=''>
             {item.name}

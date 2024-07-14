@@ -61,6 +61,7 @@ export const Scan = () => {
           setScan({
             id: response.id,
             application: response.application,
+            authentication: response.credentials,
             target: response.target,
             project: response.project,
             createdAt: new Date(response.created_at).getTime(),
@@ -80,7 +81,11 @@ export const Scan = () => {
           });
         }
       } catch (err: any) {
-        if (err?.type === 'client_error') {
+        if (
+          err?.type === 'client_error' ||
+          err?.type === 'validation_error' ||
+          err?.type === 'server_error'
+        ) {
           for (const error of err.errors) {
             switch (error.code) {
               case 'not_authenticated':
@@ -142,21 +147,32 @@ export const Scan = () => {
         <>
           <div className='flex flex-col space-y-1'>
             <div>
-              <Label htmlFor='application'>Application Name</Label>
+              <Label htmlFor='application'>Application</Label>
               <select
                 className='w-full bg-[--vscode-settings-dropdownBackground] px-0.5 py-1.5'
                 disabled
               >
-                <option>{scan.application.name}</option>
+                <option>{scan.application?.name ?? '-'}</option>
               </select>
             </div>
             <div>
-              <Label htmlFor='target-name'>Target Name</Label>
+              <Label htmlFor='target-name'>Target</Label>
               <select
                 className='w-full bg-[--vscode-settings-dropdownBackground] px-0.5 py-1.5'
                 disabled
               >
-                <option>{scan.target.name}</option>
+                <option>
+                  {scan.target.name} - {scan.target.location}
+                </option>
+              </select>
+            </div>
+            <div>
+              <Label htmlFor='target-name'>Authentication</Label>
+              <select
+                className='w-full bg-[--vscode-settings-dropdownBackground] px-0.5 py-1.5'
+                disabled
+              >
+                <option>{scan.authentication?.name ?? '-'}</option>
               </select>
             </div>
           </div>
