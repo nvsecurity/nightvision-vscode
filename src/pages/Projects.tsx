@@ -23,6 +23,7 @@ import { Label } from '@components/Label';
 import { Loading } from '@components/Loading';
 import { Modal } from '@components/Modal';
 import { ReloadButton } from '@components/ReloadButton';
+import { SecondaryButton } from '@components/SecondaryButton';
 import { TextInput } from '@components/TextInput';
 import { messageHandler } from '@utils/MessageHandler';
 
@@ -77,6 +78,11 @@ export const Projects = () => {
   const { setIsLoggedIn } = useUser();
 
   const {
+    componentRef: createRef,
+    showComponent: showCreateModal,
+    setShowComponent: setShowCreateModal,
+  } = useClickOutside();
+  const {
     componentRef: updateRef,
     showComponent: showUpdateModal,
     setShowComponent: setShowUpdateModal,
@@ -107,6 +113,10 @@ export const Projects = () => {
       ignore = true;
     };
   }, []);
+
+  useEffect(() => {
+    setProjectName('');
+  }, [showCreateModal]);
 
   const handleUpdate = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
@@ -215,6 +225,7 @@ export const Projects = () => {
         switch (response.command) {
           case CREATE_PROJECT:
             await getProjects(setProjects, setIsLoggedIn);
+            setShowCreateModal(false);
             break;
           case DUPLICATE_NAME: {
             // TODO
@@ -278,20 +289,13 @@ export const Projects = () => {
                 id='current-project'
               />
             </div>
-            <div className='flex flex-col space-y-1'>
-              <TextInput
-                value={projectName}
-                handleOnChange={setProjectName}
-                label='Project Name'
-                id='project-name'
-              />
-            </div>
             <button
-              onClick={handleCreateProject}
-              className='rounded disabled:bg-neutral-800 hover:disabled:cursor-default'
-              disabled={isLoading}
+              onClick={() => {
+                setShowCreateModal(true);
+              }}
+              className='rounded'
             >
-              {isLoading ? 'Creating...' : 'Create Project'}
+              Create Project
             </button>
 
             <EditList
@@ -310,11 +314,59 @@ export const Projects = () => {
         )}
       </div>
 
+      {showCreateModal && (
+        <Modal componentRef={createRef}>
+          <div className='flex flex-col space-y-4'>
+            <div className='flex items-center justify-between'>
+              <span className='truncate font-bold uppercase'>
+                Create Project
+              </span>
+              <button
+                className='unstyled'
+                onClick={() => setShowCreateModal(false)}
+              >
+                <svg
+                  viewBox='0 0 16 16'
+                  xmlns='http://www.w3.org/2000/svg'
+                  className='h-6 w-6 fill-[--vscode-foreground]'
+                >
+                  <path
+                    fillRule='evenodd'
+                    clipRule='evenodd'
+                    d='M8 8.707l3.646 3.647.708-.707L8.707 8l3.647-3.646-.707-.708L8 7.293 4.354 3.646l-.707.708L7.293 8l-3.646 3.646.707.708L8 8.707z'
+                  />
+                </svg>
+              </button>
+            </div>
+            <TextInput
+              value={projectName}
+              handleOnChange={setProjectName}
+              label='Project Name'
+              id='project-name'
+            />
+            <div className='!mt-6 flex space-x-2'>
+              <SecondaryButton onClick={() => setShowCreateModal(false)}>
+                Cancel
+              </SecondaryButton>
+              <button
+                onClick={handleCreateProject}
+                className='truncate rounded disabled:bg-neutral-800 hover:disabled:cursor-default'
+                disabled={isLoading}
+              >
+                {isLoading ? 'Creating...' : 'Create Project'}
+              </button>
+            </div>
+          </div>
+        </Modal>
+      )}
+
       {showUpdateModal && (
         <Modal componentRef={updateRef} visible={!showDeleteModal}>
           <div className='flex flex-col space-y-4'>
             <div className='flex items-center justify-between'>
-              <span className='font-bold uppercase'>Update Project</span>
+              <span className='truncate font-bold uppercase'>
+                Update Project
+              </span>
               <div className='flex items-center justify-center space-x-2'>
                 <button
                   className='unstyled'
@@ -369,7 +421,9 @@ export const Projects = () => {
             <Modal componentRef={deleteRef}>
               <div className='flex flex-col space-y-4'>
                 <div className='flex items-center justify-between'>
-                  <span className='font-bold uppercase'>Delete Project</span>
+                  <span className='truncate font-bold uppercase'>
+                    Delete Project
+                  </span>
                   <button
                     className='unstyled'
                     onClick={() => setShowDeleteModal(false)}
@@ -401,17 +455,16 @@ export const Projects = () => {
                   credentials associated with this project.
                 </p>
                 <div className='flex space-x-2'>
-                  <button
+                  <SecondaryButton
                     onClick={() => setShowDeleteModal(false)}
-                    className='rounded bg-neutral-800 hover:bg-neutral-800 hover:brightness-90  hover:disabled:cursor-default hover:disabled:brightness-100'
                     disabled={isDeleteLoading}
                   >
                     Cancel
-                  </button>
+                  </SecondaryButton>
                   <button
                     onClick={handleDelete}
                     disabled={isDeleteLoading}
-                    className='rounded bg-red-500 hover:bg-red-500 hover:brightness-90 disabled:bg-neutral-800 hover:disabled:cursor-default hover:disabled:brightness-100'
+                    className='truncate rounded bg-red-500 hover:bg-red-500 hover:brightness-90 disabled:bg-neutral-800 hover:disabled:cursor-default hover:disabled:brightness-100'
                   >
                     {isDeleteLoading ? 'Deleting...' : 'Delete'}
                   </button>

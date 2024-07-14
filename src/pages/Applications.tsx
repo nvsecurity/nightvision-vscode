@@ -24,6 +24,7 @@ import { Label } from '@components/Label';
 import { Loading } from '@components/Loading';
 import { Modal } from '@components/Modal';
 import { ReloadButton } from '@components/ReloadButton';
+import { SecondaryButton } from '@components/SecondaryButton';
 import { TextInput } from '@components/TextInput';
 import { getProjects } from '@pages/Projects';
 import { messageHandler } from '@utils/MessageHandler';
@@ -80,6 +81,11 @@ export const Applications = () => {
   const { setIsLoggedIn } = useUser();
 
   const {
+    componentRef: createRef,
+    showComponent: showCreateModal,
+    setShowComponent: setShowCreateModal,
+  } = useClickOutside();
+  const {
     componentRef: updateRef,
     showComponent: showUpdateModal,
     setShowComponent: setShowUpdateModal,
@@ -119,6 +125,10 @@ export const Applications = () => {
       ignore = true;
     };
   }, [currentProject]);
+
+  useEffect(() => {
+    setApplicationName('');
+  }, [showCreateModal]);
 
   const handleUpdate = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
@@ -227,6 +237,7 @@ export const Applications = () => {
         switch (response.command) {
           case CREATE_APP: {
             await getApps(setApps, setIsLoggedIn, currentProject.id);
+            setShowCreateModal(false);
             break;
           }
           case DUPLICATE_NAME: {
@@ -291,18 +302,13 @@ export const Applications = () => {
                 id='current-project'
               />
             </div>
-            <TextInput
-              value={applicationName}
-              handleOnChange={setApplicationName}
-              label='Application Name'
-              id='app-name'
-            />
             <button
-              onClick={handleCreateApp}
-              className='rounded disabled:bg-neutral-800 hover:disabled:cursor-default'
-              disabled={isLoading}
+              onClick={() => {
+                setShowCreateModal(true);
+              }}
+              className='rounded'
             >
-              {isLoading ? 'Creating...' : 'Create Application'}
+              Create Application
             </button>
 
             {isFetching && <Loading />}
@@ -325,11 +331,59 @@ export const Applications = () => {
         {(!apps || !projects) && <Loading />}
       </div>
 
+      {showCreateModal && (
+        <Modal componentRef={createRef}>
+          <div className='flex flex-col space-y-4'>
+            <div className='flex items-center justify-between'>
+              <span className='truncate font-bold uppercase'>
+                Create Project
+              </span>
+              <button
+                className='unstyled'
+                onClick={() => setShowCreateModal(false)}
+              >
+                <svg
+                  viewBox='0 0 16 16'
+                  xmlns='http://www.w3.org/2000/svg'
+                  className='h-6 w-6 fill-[--vscode-foreground]'
+                >
+                  <path
+                    fillRule='evenodd'
+                    clipRule='evenodd'
+                    d='M8 8.707l3.646 3.647.708-.707L8.707 8l3.647-3.646-.707-.708L8 7.293 4.354 3.646l-.707.708L7.293 8l-3.646 3.646.707.708L8 8.707z'
+                  />
+                </svg>
+              </button>
+            </div>
+            <TextInput
+              value={applicationName}
+              handleOnChange={setApplicationName}
+              label='Application Name'
+              id='app-name'
+            />
+            <div className='!mt-6 flex space-x-2'>
+              <SecondaryButton onClick={() => setShowCreateModal(false)}>
+                Cancel
+              </SecondaryButton>
+              <button
+                onClick={handleCreateApp}
+                className='truncate rounded disabled:bg-neutral-800 hover:disabled:cursor-default'
+                disabled={isLoading}
+              >
+                {isLoading ? 'Creating...' : 'Create Application'}
+              </button>
+            </div>
+          </div>
+        </Modal>
+      )}
+
       {showUpdateModal && (
         <Modal componentRef={updateRef} visible={!showDeleteModal}>
           <div className='flex flex-col space-y-4'>
             <div className='flex items-center justify-between'>
-              <span className='font-bold uppercase'>Update Application</span>
+              <span className='truncate font-bold uppercase'>
+                Update Application
+              </span>
               <div className='flex items-center justify-center space-x-2'>
                 <button
                   className='unstyled'
@@ -384,7 +438,7 @@ export const Applications = () => {
             <Modal componentRef={deleteRef}>
               <div className='flex flex-col space-y-4'>
                 <div className='flex items-center justify-between'>
-                  <span className='font-bold uppercase'>
+                  <span className='truncate font-bold uppercase'>
                     Delete Application
                   </span>
                   <button
@@ -412,17 +466,16 @@ export const Applications = () => {
                 <p>This action is irreversible.</p>
 
                 <div className='flex space-x-2'>
-                  <button
+                  <SecondaryButton
                     onClick={() => setShowDeleteModal(false)}
-                    className='rounded bg-neutral-800 hover:bg-neutral-800 hover:brightness-90  hover:disabled:cursor-default hover:disabled:brightness-100'
                     disabled={isDeleteLoading}
                   >
                     Cancel
-                  </button>
+                  </SecondaryButton>
                   <button
                     onClick={handleDelete}
                     disabled={isDeleteLoading}
-                    className='rounded bg-red-500 hover:bg-red-500 hover:brightness-90 disabled:bg-neutral-800 hover:disabled:cursor-default hover:disabled:brightness-100'
+                    className='truncate rounded bg-red-500 hover:bg-red-500 hover:brightness-90 disabled:bg-neutral-800 hover:disabled:cursor-default hover:disabled:brightness-100'
                   >
                     {isDeleteLoading ? 'Deleting...' : 'Delete'}
                   </button>

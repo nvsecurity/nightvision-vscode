@@ -27,6 +27,7 @@ import { Label } from '@components/Label';
 import { Loading } from '@components/Loading';
 import { Modal } from '@components/Modal';
 import { ReloadButton } from '@components/ReloadButton';
+import { SecondaryButton } from '@components/SecondaryButton';
 import { TabSelector } from '@components/TabSelector';
 import { TextInput } from '@components/TextInput';
 import { getProjects } from '@pages/Projects';
@@ -95,6 +96,11 @@ export const Targets = () => {
   const { setIsLoggedIn } = useUser();
 
   const {
+    componentRef: createRef,
+    showComponent: showCreateModal,
+    setShowComponent: setShowCreateModal,
+  } = useClickOutside();
+  const {
     componentRef: updateRef,
     showComponent: showUpdateModal,
     setShowComponent: setShowUpdateModal,
@@ -147,6 +153,16 @@ export const Targets = () => {
       ignore = true;
     };
   }, [currentProject]);
+
+  useEffect(() => {
+    setTargetName('');
+    setTargetUrl('');
+    setOpenApiUrl('');
+    setSwaggerFile(null);
+
+    setSelectedType(types[0]);
+    setSelectedApiSpec(apiSpecs[0]);
+  }, [showCreateModal]);
 
   const handleUpdate = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
@@ -276,6 +292,7 @@ export const Targets = () => {
         switch (response.command) {
           case CREATE_TARGET: {
             await getTargets(setTargets, setIsLoggedIn, currentProject.id);
+            setShowCreateModal(false);
             break;
           }
           case DUPLICATE_NAME: {
@@ -355,6 +372,62 @@ export const Targets = () => {
                 id='current-project'
               />
             </div>
+            <button
+              onClick={() => {
+                setShowCreateModal(true);
+              }}
+              className='rounded'
+            >
+              Create Target
+            </button>
+
+            {isFetching && <Loading />}
+            {!isFetching && (
+              <EditList
+                list={targets}
+                handleClick={(listItem) => {
+                  setShowUpdateModal((prevState) => !prevState);
+                  setUpdateValues({
+                    name: listItem.name,
+                    url: listItem.location,
+                  });
+                  setSelectedTarget(listItem);
+                }}
+              >
+                <span className='!mt-10 w-full text-center'>
+                  No targets found
+                </span>
+              </EditList>
+            )}
+          </>
+        )}
+        {(!targets || !projects) && <Loading />}
+      </div>
+
+      {showCreateModal && (
+        <Modal componentRef={createRef}>
+          <div className='flex flex-col space-y-4'>
+            <div className='flex items-center justify-between'>
+              <span className='truncate font-bold uppercase'>
+                Create Target
+              </span>
+              <button
+                className='unstyled'
+                onClick={() => setShowCreateModal(false)}
+              >
+                <svg
+                  viewBox='0 0 16 16'
+                  xmlns='http://www.w3.org/2000/svg'
+                  className='h-6 w-6 fill-[--vscode-foreground]'
+                >
+                  <path
+                    fillRule='evenodd'
+                    clipRule='evenodd'
+                    d='M8 8.707l3.646 3.647.708-.707L8.707 8l3.647-3.646-.707-.708L8 7.293 4.354 3.646l-.707.708L7.293 8l-3.646 3.646.707.708L8 8.707z'
+                  />
+                </svg>
+              </button>
+            </div>
             <div className='flex flex-col space-y-1'>
               <TabSelector
                 values={types}
@@ -381,14 +454,17 @@ export const Targets = () => {
                     setSelected={setSelectedApiSpec}
                     className='mt-4'
                   />
-                  {selectedApiSpec.type === 'URL' ? (
+
+                  {selectedApiSpec.type === 'URL' && (
                     <TextInput
                       value={openApiUrl}
                       handleOnChange={setOpenApiUrl}
                       label='OpenAPI URL'
                       id='open-api-url'
                     />
-                  ) : (
+                  )}
+
+                  {selectedApiSpec.type === 'FILE' && (
                     <>
                       {!swaggerFile && (
                         <label
@@ -439,41 +515,29 @@ export const Targets = () => {
                 </>
               )}
             </div>
-            <button
-              onClick={handleCreateTarget}
-              className='rounded disabled:bg-neutral-800 hover:disabled:cursor-default'
-              disabled={isLoading}
-            >
-              {isLoading ? 'Creating...' : 'Create Target'}
-            </button>
-
-            {isFetching && <Loading />}
-            {!isFetching && (
-              <EditList
-                list={targets}
-                handleClick={(listItem) => {
-                  setShowUpdateModal((prevState) => !prevState);
-                  setUpdateValues({
-                    name: listItem.name,
-                    url: listItem.location,
-                  });
-                  setSelectedTarget(listItem);
-                }}
+            <div className='!mt-6 flex space-x-2'>
+              <SecondaryButton onClick={() => setShowCreateModal(false)}>
+                Cancel
+              </SecondaryButton>
+              <button
+                onClick={handleCreateTarget}
+                className='truncate rounded disabled:bg-neutral-800 hover:disabled:cursor-default'
+                disabled={isLoading}
               >
-                <span className='!mt-10 w-full text-center'>
-                  No targets found
-                </span>
-              </EditList>
-            )}
-          </>
-        )}
-        {(!targets || !projects) && <Loading />}
-      </div>
+                {isLoading ? 'Creating...' : 'Create Target'}
+              </button>
+            </div>
+          </div>
+        </Modal>
+      )}
+
       {showUpdateModal && (
         <Modal componentRef={updateRef} visible={!showDeleteModal}>
           <div className='flex flex-col space-y-4'>
             <div className='flex items-center justify-between'>
-              <span className='font-bold uppercase'>Update Target</span>
+              <span className='truncate font-bold uppercase'>
+                Update Target
+              </span>
               <div className='flex items-center justify-center space-x-2'>
                 <button
                   className='unstyled'
@@ -544,7 +608,9 @@ export const Targets = () => {
             <Modal componentRef={deleteRef}>
               <div className='flex flex-col space-y-4'>
                 <div className='flex items-center justify-between'>
-                  <span className='font-bold uppercase'>Delete Target</span>
+                  <span className='truncate font-bold uppercase'>
+                    Delete Target
+                  </span>
                   <button
                     className='unstyled'
                     onClick={() => setShowDeleteModal(false)}
