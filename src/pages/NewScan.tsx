@@ -14,6 +14,7 @@ import { ScanParams } from '@commands/Scan';
 import { Dropdown } from '@components/Dropdown';
 import { Label } from '@components/Label';
 import { Loading } from '@components/Loading';
+import { ReloadButton } from '@components/ReloadButton';
 import { getApps } from '@pages/Applications';
 import { getAuths } from '@pages/Authentications';
 import { getProjects } from '@pages/Projects';
@@ -173,7 +174,8 @@ export const NewScan = () => {
             />
           </svg>
         </Link>
-        <h1 className='font-bold uppercase'>Scan</h1>
+        <h1 className='truncate font-bold uppercase'>Scan</h1>
+        <ReloadButton />
       </div>
 
       {apps && auths && projects && targets && (

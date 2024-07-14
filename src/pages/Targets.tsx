@@ -26,6 +26,7 @@ import { EditList } from '@components/EditList';
 import { Label } from '@components/Label';
 import { Loading } from '@components/Loading';
 import { Modal } from '@components/Modal';
+import { ReloadButton } from '@components/ReloadButton';
 import { TabSelector } from '@components/TabSelector';
 import { TextInput } from '@components/TextInput';
 import { getProjects } from '@pages/Projects';
@@ -338,7 +339,8 @@ export const Targets = () => {
               />
             </svg>
           </a>
-          <h1 className='font-bold uppercase'>Targets</h1>
+          <h1 className='truncate font-bold uppercase'>Targets</h1>
+          <ReloadButton />
         </div>
 
         {targets && projects && (

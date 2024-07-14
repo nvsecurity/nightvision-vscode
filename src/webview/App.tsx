@@ -30,6 +30,7 @@ import { Authentications } from '@pages/Authentications';
 import { NewScan } from '@pages/NewScan';
 import { Overview } from '@pages/Overview';
 import { Projects } from '@pages/Projects';
+import { Reload } from '@pages/Reload';
 import { Scan } from '@pages/Scan';
 import { Scans } from '@pages/Scans';
 import { Targets } from '@pages/Targets';
@@ -80,6 +81,10 @@ const router = createMemoryRouter(
         {
           path: '/targets',
           element: <Targets />,
+        },
+        {
+          path: '/reload',
+          element: <Reload />,
         },
       ],
     },

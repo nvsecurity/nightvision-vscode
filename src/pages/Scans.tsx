@@ -3,6 +3,7 @@ import { ScanType, Severity, normalizedSeverity } from '@types_/scan';
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Loading } from '@components/Loading';
+import { ReloadButton } from '@components/ReloadButton';
 import { messageHandler } from '@utils/MessageHandler';
 import formatDuration from '@utils/formatDuration';
 
@@ -206,7 +207,8 @@ export const Scans = () => {
             />
           </svg>
         </Link>
-        <h1 className='font-bold uppercase'>Scans</h1>
+        <h1 className='truncate font-bold uppercase'>Scans</h1>
+        <ReloadButton />
       </div>
       <Link to='/scans/new-scan' tabIndex={-1}>
         <button className='rounded text-white'>New Scan</button>

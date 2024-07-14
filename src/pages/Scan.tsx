@@ -5,6 +5,7 @@ import { Link, useParams } from 'react-router-dom';
 import { EditList } from '@components/EditList';
 import { Label } from '@components/Label';
 import { Loading } from '@components/Loading';
+import { ReloadButton } from '@components/ReloadButton';
 import { messageHandler } from '@utils/MessageHandler';
 import formatDuration from '@utils/formatDuration';
 
@@ -139,7 +140,8 @@ export const Scan = () => {
             />
           </svg>
         </Link>
-        <h1 className='font-bold uppercase'>Scan</h1>
+        <h1 className='truncate font-bold uppercase'>Scan</h1>
+        <ReloadButton />
       </div>
       {!scan || isFetchingApi ? (
         <Loading />

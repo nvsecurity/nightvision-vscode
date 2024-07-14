@@ -22,6 +22,7 @@ import { EditList } from '@components/EditList';
 import { Label } from '@components/Label';
 import { Loading } from '@components/Loading';
 import { Modal } from '@components/Modal';
+import { ReloadButton } from '@components/ReloadButton';
 import { TextInput } from '@components/TextInput';
 import { messageHandler } from '@utils/MessageHandler';
 
@@ -261,7 +262,8 @@ export const Projects = () => {
               />
             </svg>
           </a>
-          <h1 className='font-bold uppercase'>Projects</h1>
+          <h1 className='truncate font-bold uppercase'>Projects</h1>
+          <ReloadButton />
         </div>
 
         {projects && (
