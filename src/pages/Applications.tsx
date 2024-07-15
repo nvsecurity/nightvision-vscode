@@ -1,14 +1,16 @@
 import { Application } from '@contexts/AppContext';
-import { useApp } from '@hooks/useApp';
+import { Project } from '@contexts/ProjectContext';
 import useClickOutside from '@hooks/useClickOutside';
+import { useProject } from '@hooks/useProject';
 import { useUser } from '@hooks/useUser';
 import { v4 } from 'uuid';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   CREATE_APP,
   DELETE_APP,
+  DUPLICATE_NAME,
   INVALID_APP,
   INVALID_APP_DELETE,
   INVALID_NAME,
@@ -16,15 +18,73 @@ import {
   UNAUTHORIZED_ACCESS,
   UPDATE_APP,
 } from '@commands/CommandConstants';
+import { Dropdown } from '@components/Dropdown';
 import { EditList } from '@components/EditList';
+import { Label } from '@components/Label';
+import { Loading } from '@components/Loading';
 import { Modal } from '@components/Modal';
+import { ReloadButton } from '@components/ReloadButton';
+import { SecondaryButton } from '@components/SecondaryButton';
+import { TextInput } from '@components/TextInput';
+import { getProjects } from '@pages/Projects';
 import { messageHandler } from '@utils/MessageHandler';
+
+export const getApps = async (
+  setApps: React.Dispatch<React.SetStateAction<Application[] | undefined>>,
+  setIsLoggedIn: React.Dispatch<React.SetStateAction<boolean>>,
+  projectId: string,
+  ignore: boolean = false
+) => {
+  try {
+    const apps = (
+      await messageHandler.api(
+        'get',
+        `https://api.nightvision.net/api/v1/applications/?order=name&project=${projectId}`
+      )
+    ).results;
+
+    if (ignore) {
+      return;
+    }
+
+    setApps(
+      apps.map(
+        (app: any): Application => ({
+          id: app.id,
+          name: app.name,
+        })
+      )
+    );
+  } catch (err: any) {
+    if (
+      err?.type === 'client_error' ||
+      err?.type === 'validation_error' ||
+      err?.type === 'server_error'
+    ) {
+      for (const error of err.errors) {
+        switch (error.code) {
+          case 'not_authenticated':
+          case 'authentication_failed': {
+            setIsLoggedIn(false);
+          }
+        }
+      }
+    } else {
+      console.error(err);
+    }
+  }
+};
 
 export const Applications = () => {
   const navigate = useNavigate();
-  const { apps, setApps } = useApp();
+  const { currentProject, setCurrentProject } = useProject();
   const { setIsLoggedIn } = useUser();
 
+  const {
+    componentRef: createRef,
+    showComponent: showCreateModal,
+    setShowComponent: setShowCreateModal,
+  } = useClickOutside();
   const {
     componentRef: updateRef,
     showComponent: showUpdateModal,
@@ -36,6 +96,8 @@ export const Applications = () => {
     setShowComponent: setShowDeleteModal,
   } = useClickOutside();
 
+  const [apps, setApps] = useState<Application[]>();
+  const [projects, setProjects] = useState<Project[]>();
   const [applicationName, setApplicationName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
@@ -45,6 +107,28 @@ export const Applications = () => {
   });
   const [isUpdateLoading, setIsUpdateLoading] = useState(false);
   const [isDeleteLoading, setIsDeleteLoading] = useState(false);
+  const [isFetching, setIsFetching] = useState(false);
+
+  useEffect(() => {
+    let ignore = false;
+
+    const fetchApi = async () => {
+      setIsFetching(true);
+      await getApps(setApps, setIsLoggedIn, currentProject.id, ignore);
+      await getProjects(setProjects, setIsLoggedIn, ignore);
+      setIsFetching(false);
+    };
+
+    fetchApi();
+
+    return () => {
+      ignore = true;
+    };
+  }, [currentProject]);
+
+  useEffect(() => {
+    setApplicationName('');
+  }, [showCreateModal]);
 
   const handleUpdate = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
@@ -60,13 +144,7 @@ export const Applications = () => {
       for await (const response of requestGenerator) {
         switch (response.command) {
           case UPDATE_APP: {
-            setApps((prevState) =>
-              prevState.map((app) =>
-                app.id === selectedApp?.id
-                  ? { ...app, name: response.payload.name }
-                  : app
-              )
-            );
+            await getApps(setApps, setIsLoggedIn, currentProject.id);
             setSelectedApp(response.payload as Application);
             break;
           }
@@ -109,9 +187,7 @@ export const Applications = () => {
       for await (const response of requestGenerator) {
         switch (response.command) {
           case DELETE_APP: {
-            setApps((prevState) =>
-              prevState.filter((app) => app.id !== response.payload.id)
-            );
+            await getApps(setApps, setIsLoggedIn, currentProject.id);
             setShowDeleteModal(false);
             setShowUpdateModal(false);
             break;
@@ -160,11 +236,18 @@ export const Applications = () => {
       for await (const response of requestGenerator) {
         switch (response.command) {
           case CREATE_APP: {
-            setApps((prevState) => [response.payload, ...prevState]);
+            await getApps(setApps, setIsLoggedIn, currentProject.id);
+            setShowCreateModal(false);
+            break;
+          }
+          case DUPLICATE_NAME: {
+            // TODO
+            console.log(DUPLICATE_NAME);
             break;
           }
           case INVALID_NAME: {
             // TODO
+            console.log(INVALID_NAME);
             break;
           }
           case UNAUTHORIZED_ACCESS:
@@ -203,48 +286,104 @@ export const Applications = () => {
               />
             </svg>
           </a>
-          <h1 className='font-bold uppercase'>Application</h1>
+          <h1 className='truncate font-bold uppercase'>Applications</h1>
+          <ReloadButton />
         </div>
-        <div className='flex flex-col space-y-1'>
-          <div>
-            <label
-              className='mb-1 text-sm uppercase opacity-50'
-              htmlFor='application'
+
+        {apps && projects && (
+          <>
+            <div>
+              <Label htmlFor='current-project'>Current Project</Label>
+              <Dropdown
+                selectedItem={currentProject}
+                items={projects}
+                name='Project'
+                handleChange={setCurrentProject}
+                id='current-project'
+              />
+            </div>
+            <button
+              onClick={() => {
+                setShowCreateModal(true);
+              }}
+              className='rounded'
             >
-              Application Name
-            </label>
+              Create Application
+            </button>
 
-            <input
-              onChange={(e) => setApplicationName(e.target.value)}
-              value={applicationName}
-              className='w-full'
-              id='application'
-            />
-          </div>
-        </div>
-        <button
-          onClick={handleCreateApp}
-          className='rounded disabled:bg-neutral-800 hover:disabled:cursor-default'
-          disabled={isLoading}
-        >
-          {isLoading ? 'Creating...' : 'Create Application'}
-        </button>
-
-        <EditList
-          list={apps}
-          handleClick={(listItem) => {
-            setShowUpdateModal((prevState) => !prevState);
-            setUpdateValues({ name: listItem.name });
-            setSelectedApp(listItem);
-          }}
-        />
+            {isFetching && <Loading />}
+            {!isFetching && (
+              <EditList
+                list={apps}
+                handleClick={(listItem) => {
+                  setShowUpdateModal((prevState) => !prevState);
+                  setUpdateValues({ name: listItem.name });
+                  setSelectedApp(listItem);
+                }}
+              >
+                <span className='!mt-10 w-full text-center'>
+                  No applications found
+                </span>
+              </EditList>
+            )}
+          </>
+        )}
+        {(!apps || !projects) && <Loading />}
       </div>
+
+      {showCreateModal && (
+        <Modal componentRef={createRef}>
+          <div className='flex flex-col space-y-4'>
+            <div className='flex items-center justify-between'>
+              <span className='truncate font-bold uppercase'>
+                Create Project
+              </span>
+              <button
+                className='unstyled'
+                onClick={() => setShowCreateModal(false)}
+              >
+                <svg
+                  viewBox='0 0 16 16'
+                  xmlns='http://www.w3.org/2000/svg'
+                  className='h-6 w-6 fill-[--vscode-foreground]'
+                >
+                  <path
+                    fillRule='evenodd'
+                    clipRule='evenodd'
+                    d='M8 8.707l3.646 3.647.708-.707L8.707 8l3.647-3.646-.707-.708L8 7.293 4.354 3.646l-.707.708L7.293 8l-3.646 3.646.707.708L8 8.707z'
+                  />
+                </svg>
+              </button>
+            </div>
+            <TextInput
+              value={applicationName}
+              handleOnChange={setApplicationName}
+              label='Application Name'
+              id='app-name'
+            />
+            <div className='!mt-6 flex space-x-2'>
+              <SecondaryButton onClick={() => setShowCreateModal(false)}>
+                Cancel
+              </SecondaryButton>
+              <button
+                onClick={handleCreateApp}
+                className='truncate rounded disabled:bg-neutral-800 hover:disabled:cursor-default'
+                disabled={isLoading}
+              >
+                {isLoading ? 'Creating...' : 'Create Application'}
+              </button>
+            </div>
+          </div>
+        </Modal>
+      )}
 
       {showUpdateModal && (
         <Modal componentRef={updateRef} visible={!showDeleteModal}>
           <div className='flex flex-col space-y-4'>
             <div className='flex items-center justify-between'>
-              <span className='font-bold uppercase'>Update Application</span>
+              <span className='truncate font-bold uppercase'>
+                Update Application
+              </span>
               <div className='flex items-center justify-center space-x-2'>
                 <button
                   className='unstyled'
@@ -281,20 +420,12 @@ export const Applications = () => {
                 </button>
               </div>
             </div>
-            <div>
-              <label
-                className='mb-1 text-sm uppercase opacity-50'
-                htmlFor='app-name'
-              >
-                Application Name
-              </label>
-              <input
-                onChange={(e) => setUpdateValues({ name: e.target.value })}
-                value={updateValues.name}
-                className='w-full'
-                id='app-name'
-              />
-            </div>
+            <TextInput
+              value={updateValues.name}
+              handleOnChange={(value) => setUpdateValues({ name: value })}
+              label='Application Name'
+              id='app-name-update'
+            />
             <button
               onClick={handleUpdate}
               disabled={isUpdateLoading}
@@ -307,7 +438,7 @@ export const Applications = () => {
             <Modal componentRef={deleteRef}>
               <div className='flex flex-col space-y-4'>
                 <div className='flex items-center justify-between'>
-                  <span className='font-bold uppercase'>
+                  <span className='truncate font-bold uppercase'>
                     Delete Application
                   </span>
                   <button
@@ -335,17 +466,16 @@ export const Applications = () => {
                 <p>This action is irreversible.</p>
 
                 <div className='flex space-x-2'>
-                  <button
+                  <SecondaryButton
                     onClick={() => setShowDeleteModal(false)}
-                    className='rounded bg-neutral-800 hover:bg-neutral-800 hover:brightness-90  hover:disabled:cursor-default hover:disabled:brightness-100'
                     disabled={isDeleteLoading}
                   >
                     Cancel
-                  </button>
+                  </SecondaryButton>
                   <button
                     onClick={handleDelete}
                     disabled={isDeleteLoading}
-                    className='rounded bg-red-500 hover:bg-red-500 hover:brightness-90 disabled:bg-neutral-800 hover:disabled:cursor-default hover:disabled:brightness-100'
+                    className='truncate rounded bg-red-500 hover:bg-red-500 hover:brightness-90 disabled:bg-neutral-800 hover:disabled:cursor-default hover:disabled:brightness-100'
                   >
                     {isDeleteLoading ? 'Deleting...' : 'Delete'}
                   </button>

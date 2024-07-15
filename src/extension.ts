@@ -1,53 +1,70 @@
 import { ChildProcessWithoutNullStreams } from 'child_process';
+import os from 'os';
 import { join } from 'path';
+import path from 'path';
 import * as vscode from 'vscode';
 import { ExtensionContext, ExtensionMode, Uri } from 'vscode';
 import {
   CREATE_APP,
+  CREATE_AUTH,
   CREATE_PROJECT,
   CREATE_TARGET,
   DELETE_APP,
+  DELETE_AUTH,
   DELETE_PROJECT,
   DELETE_TARGET,
   GET_CURRENT_APP,
   GET_CURRENT_PROJECT,
   GET_CURRENT_TARGET,
-  GET_SCANS,
+  GET_NIGHTVISION_TOKEN,
   KILL,
-  LIST_APP,
-  LIST_PROJECT,
-  LIST_TARGET,
   LOGIN,
   SAVE_CURRENT_APP,
   SAVE_CURRENT_PROJECT,
   SAVE_CURRENT_TARGET,
-  SAVE_SCAN,
   SCAN,
   UPDATE_APP,
+  UPDATE_AUTH,
   UPDATE_PROJECT,
   UPDATE_TARGET,
 } from '@commands/CommandConstants';
 import CreateApp from '@commands/CreateApp';
+import CreateAuth from '@commands/CreateAuth';
 import CreateProject from '@commands/CreateProject';
 import CreateTarget from '@commands/CreateTarget';
 import DeleteApp from '@commands/DeleteApp';
+import DeleteAuth from '@commands/DeleteAuth';
 import DeleteProject from '@commands/DeleteProject';
 import DeleteTarget from '@commands/DeleteTarget';
 import GetCurrentApp from '@commands/GetCurrentApp';
 import GetCurrentProject from '@commands/GetCurrentProject';
-import ListApp from '@commands/ListApp';
-import ListProject from '@commands/ListProject';
-import ListTarget from '@commands/ListTarget';
 import Login from '@commands/Login';
 import SaveCurrentApp from '@commands/SaveCurrentApp';
 import SaveCurrentProject from '@commands/SaveCurrentProject';
 import Scan from '@commands/Scan';
 import UpdateApp from '@commands/UpdateApp';
+import UpdateAuth from '@commands/UpdateAuth';
 import UpdateProject from '@commands/UpdateProject';
 import UpdateTarget from '@commands/UpdateTarget';
+import fs from 'fs/promises';
 
-export function activate(context: vscode.ExtensionContext) {
-  const sidebarProvider = new SidebarProvider(context);
+const getNightVisionToken = async () => {
+  try {
+    const filePath = path.join(os.homedir(), '.nightvision', 'nightvision.yml');
+    const data = await fs.readFile(filePath, 'utf8');
+    const token = data.match(/token:\s*(.*)/);
+    return token?.at(1) ?? '';
+  } catch (err) {
+    console.error(err);
+  }
+  return '';
+};
+
+export async function activate(context: vscode.ExtensionContext) {
+  const sidebarProvider = new SidebarProvider(
+    context,
+    await getNightVisionToken()
+  );
 
   context.subscriptions.push(
     vscode.window.registerWebviewViewProvider(
@@ -61,10 +78,15 @@ export function activate(context: vscode.ExtensionContext) {
 export function deactivate() {}
 class SidebarProvider implements vscode.WebviewViewProvider {
   _view?: vscode.WebviewView;
-  _children: { [key: string]: ChildProcessWithoutNullStreams };
+  _children: { [key: string]: ChildProcessWithoutNullStreams | undefined };
+  nightvisionToken: string;
 
-  constructor(private readonly _extensionContext: ExtensionContext) {
+  constructor(
+    private readonly _extensionContext: ExtensionContext,
+    nightvisionToken: string
+  ) {
     this._children = {};
+    this.nightvisionToken = nightvisionToken;
   }
 
   public resolveWebviewView(
@@ -84,12 +106,53 @@ class SidebarProvider implements vscode.WebviewViewProvider {
       webviewView.webview
     );
 
-    webviewView.webview.onDidReceiveMessage((data) => {
+    webviewView.webview.onDidReceiveMessage(async (data) => {
       const {
         command,
         requestId,
         payload,
-      }: { command: string; requestId: string; payload: any } = data;
+        url,
+        method,
+        body,
+      }: {
+        command: string;
+        requestId: string;
+        payload: any;
+        url: string;
+        method: RequestInit['method'];
+        body: RequestInit['body'];
+      } = data;
+
+      if (url) {
+        try {
+          const response = await fetch(url, {
+            method,
+            body: JSON.stringify(body),
+            headers: {
+              accept: 'application/json',
+              'Content-Type': 'application/json',
+              Authorization: `Token ${this.nightvisionToken}`,
+            },
+          });
+
+          const data = await response.json();
+
+          if (!response.ok) {
+            throw data;
+          }
+
+          webviewView.webview.postMessage({
+            requestId,
+            payload: data,
+          });
+        } catch (err) {
+          webviewView.webview.postMessage({
+            requestId,
+            error: err,
+          });
+        }
+        return;
+      }
 
       try {
         switch (command) {
@@ -103,14 +166,7 @@ class SidebarProvider implements vscode.WebviewViewProvider {
             break;
           }
           case SCAN: {
-            const { application, target } = payload;
-
-            const command = new Scan(
-              webviewView.webview,
-              requestId,
-              application,
-              target
-            );
+            const command = new Scan(webviewView.webview, requestId, payload);
 
             this._children[requestId] = command.execute();
             break;
@@ -154,12 +210,6 @@ class SidebarProvider implements vscode.WebviewViewProvider {
             this._children[requestId] = command.execute();
             break;
           }
-          case LIST_APP: {
-            const command = new ListApp(webviewView.webview, requestId);
-
-            this._children[requestId] = command.execute();
-            break;
-          }
           case UPDATE_APP: {
             const { id, name } = payload;
             const command = new UpdateApp(
@@ -167,6 +217,33 @@ class SidebarProvider implements vscode.WebviewViewProvider {
               requestId,
               id,
               name
+            );
+
+            this._children[requestId] = command.execute();
+            break;
+          }
+          case CREATE_AUTH: {
+            const command = new CreateAuth(
+              webviewView.webview,
+              requestId,
+              payload
+            );
+
+            this._children[requestId] = command.execute();
+            break;
+          }
+          case DELETE_AUTH: {
+            const { id } = payload;
+            const command = new DeleteAuth(webviewView.webview, requestId, id);
+
+            this._children[requestId] = command.execute();
+            break;
+          }
+          case UPDATE_AUTH: {
+            const command = new UpdateAuth(
+              webviewView.webview,
+              requestId,
+              payload
             );
 
             this._children[requestId] = command.execute();
@@ -204,12 +281,6 @@ class SidebarProvider implements vscode.WebviewViewProvider {
             this._children[requestId] = command.execute();
             break;
           }
-          case LIST_PROJECT: {
-            const command = new ListProject(webviewView.webview, requestId);
-
-            this._children[requestId] = command.execute();
-            break;
-          }
           case UPDATE_PROJECT: {
             const { id, name } = payload;
             const command = new UpdateProject(
@@ -236,13 +307,10 @@ class SidebarProvider implements vscode.WebviewViewProvider {
             break;
           }
           case CREATE_TARGET: {
-            const { targetName, targetUrl } = payload;
-
             const command = new CreateTarget(
               webviewView.webview,
               requestId,
-              targetName,
-              targetUrl
+              payload
             );
 
             this._children[requestId] = command.execute();
@@ -286,12 +354,6 @@ class SidebarProvider implements vscode.WebviewViewProvider {
             });
             break;
           }
-          case LIST_TARGET: {
-            const command = new ListTarget(webviewView.webview, requestId);
-
-            this._children[requestId] = command.execute();
-            break;
-          }
           case UPDATE_TARGET: {
             const { id, name, url } = payload;
 
@@ -312,31 +374,8 @@ class SidebarProvider implements vscode.WebviewViewProvider {
             this._children[requestId] = command.execute();
             break;
           }
-          case GET_SCANS: {
-            const storedScans =
-              this._extensionContext.globalState.get<string>('scans');
-            const scans = storedScans ? JSON.parse(storedScans) : {};
-
-            webviewView.webview.postMessage({
-              command: GET_SCANS,
-              requestId,
-              payload: scans,
-              isFinal: true,
-            });
-            break;
-          }
-          case SAVE_SCAN: {
-            this._extensionContext.globalState.update(
-              'scans',
-              JSON.stringify(payload.scans)
-            );
-
-            webviewView.webview.postMessage({
-              command: SAVE_SCAN,
-              requestId,
-              isFinal: true,
-            });
-            break;
+          case GET_NIGHTVISION_TOKEN: {
+            this.nightvisionToken = await getNightVisionToken();
           }
         }
       } catch (err) {

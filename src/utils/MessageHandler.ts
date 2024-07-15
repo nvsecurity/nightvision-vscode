@@ -28,6 +28,36 @@ class MessageHandler {
     return MessageHandler.instance;
   }
 
+  public api(
+    method: RequestInit['method'],
+    url: string,
+    body?: any
+  ): Promise<any> {
+    const requestId = v4();
+
+    return new Promise((resolve, reject) => {
+      MessageHandler.listeners[requestId] = (
+        command: string,
+        payload: any,
+        error: string,
+        isFinal: boolean
+      ) => {
+        if (error) {
+          reject(error);
+        } else {
+          resolve(payload);
+        }
+
+        if (MessageHandler.listeners[requestId]) {
+          delete MessageHandler.listeners[requestId];
+        }
+      };
+
+      const vscode = Messenger.getVsCodeAPI();
+      vscode.postMessage({ url, method, body, requestId });
+    });
+  }
+
   public request(message: string, payload?: any): Promise<any> {
     const requestId = v4();
 
@@ -54,10 +84,10 @@ class MessageHandler {
   }
 
   // Async generator - allows us to await until isFinal or error
-  public async *requestGenerator(
+  public async *requestGenerator<T>(
     message: string,
     reqId?: string,
-    payload?: any
+    payload?: T
   ): AsyncGenerator<MessageData, void, unknown> {
     const requestId = reqId || v4();
     const iterator = new Promise<AsyncGenerator<any, void, unknown>>(
