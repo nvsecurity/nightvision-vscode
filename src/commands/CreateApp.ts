@@ -1,6 +1,10 @@
 import * as vscode from 'vscode';
 import Command from '@commands/Command';
-import { CREATE_APP, INVALID_NAME } from '@commands/CommandConstants';
+import {
+  CREATE_APP,
+  DUPLICATE_NAME,
+  INVALID_NAME,
+} from '@commands/CommandConstants';
 
 export default class CreateApp extends Command {
   protected applicationName: string;
@@ -16,7 +20,6 @@ export default class CreateApp extends Command {
 
   handleOutput(data: any) {
     const message = data.toString();
-    console.log(data.toString());
 
     if (!this.isLoggedIn(message)) {
       return;
@@ -30,6 +33,11 @@ export default class CreateApp extends Command {
           id: message.match(/Id:\s*(.*)/)[1],
           name: this.applicationName,
         },
+      });
+    } else if (/name.*already exists/.test(message)) {
+      this.webview.postMessage({
+        command: DUPLICATE_NAME,
+        requestId: this.requestId,
       });
     } else if (/ERROR name should have a max length/.test(message)) {
       this.webview.postMessage({

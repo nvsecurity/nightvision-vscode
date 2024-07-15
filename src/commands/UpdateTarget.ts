@@ -65,7 +65,10 @@ export default class UpdateTarget extends Command {
         command: INVALID_UUID,
         requestId: this.requestId,
       });
-    } else if (/Enter a valid URL/.test(message)) {
+    } else if (
+      /Enter a valid URL/.test(message) ||
+      /location: This field may not be blank/.test(message)
+    ) {
       this.webview.postMessage({
         command: INVALID_URL,
         requestId: this.requestId,

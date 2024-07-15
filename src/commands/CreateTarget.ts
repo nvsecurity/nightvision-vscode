@@ -1,11 +1,25 @@
+import { Project } from '@contexts/ProjectContext';
+import { ApiSpec, TargetType } from '@types_/target';
 import * as vscode from 'vscode';
-import Command from '@commands/Command';
+import Command, { Flag } from '@commands/Command';
 import {
   CREATE_TARGET,
-  DUPLICATE_TARGET,
+  DUPLICATE_NAME,
   INVALID_NAME,
+  INVALID_OPENAPI_EXT,
+  INVALID_OPENAPI_FILE,
   INVALID_URL,
 } from '@commands/CommandConstants';
+
+export interface CreateTargetParams {
+  project: Project;
+  targetName: string;
+  targetUrl: string;
+  type: TargetType;
+  apiSpecType: ApiSpec;
+  openApiUrl?: string;
+  swaggerFilePath?: string | null;
+}
 
 export default class CreateTarget extends Command {
   protected targetName: string;
@@ -14,14 +28,32 @@ export default class CreateTarget extends Command {
   constructor(
     webview: vscode.Webview,
     requestId: string,
-    targetName: string,
-    targetUrl: string
+    {
+      project,
+      targetName,
+      targetUrl,
+      type,
+      apiSpecType,
+      openApiUrl,
+      swaggerFilePath,
+    }: CreateTargetParams
   ) {
-    super(
-      `nightvision target create -n ${targetName} -u ${targetUrl}`,
-      webview,
-      requestId
-    );
+    const flags: Flag[] = [
+      { flag: '-P', value: project.id },
+      { flag: '-n', value: targetName },
+      { flag: '-u', value: targetUrl },
+      { flag: '-t', value: type === 'URL' ? 'WEB' : 'API' },
+    ];
+
+    if (type === 'OPENAPI') {
+      flags.push({
+        flag: apiSpecType === 'FILE' ? '-f' : '-s',
+        value: (apiSpecType === 'FILE' ? swaggerFilePath : openApiUrl) ?? '',
+      });
+    }
+
+    super('nightvision target create', webview, requestId, flags);
+
     this.targetName = targetName;
     this.targetUrl = targetUrl;
   }
@@ -43,9 +75,21 @@ export default class CreateTarget extends Command {
           url: this.targetUrl,
         },
       });
-    } else if (/already exists in the Project/.test(message)) {
+    } else if (/name.*already exists/.test(message)) {
       this.webview.postMessage({
-        command: DUPLICATE_TARGET,
+        command: DUPLICATE_NAME,
+        requestId: this.requestId,
+      });
+    } else if (/swagger specification.*must have a .yaml/.test(message)) {
+      this.webview.postMessage({
+        command: INVALID_OPENAPI_EXT,
+        requestId: this.requestId,
+      });
+    } else if (
+      /could not download swagger specification from provided url/.test(message)
+    ) {
+      this.webview.postMessage({
+        command: INVALID_OPENAPI_FILE,
         requestId: this.requestId,
       });
     } else if (/ERROR name should have a max length/.test(message)) {
@@ -53,7 +97,10 @@ export default class CreateTarget extends Command {
         command: INVALID_NAME,
         requestId: this.requestId,
       });
-    } else if (/Enter a valid URL/.test(message)) {
+    } else if (
+      /Enter a valid URL/.test(message) ||
+      /location: This field may not be blank/.test(message)
+    ) {
       this.webview.postMessage({
         command: INVALID_URL,
         requestId: this.requestId,

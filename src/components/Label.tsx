@@ -1,0 +1,17 @@
+import React from 'react';
+
+export const Label = ({
+  children,
+  htmlFor,
+}: {
+  children: React.ReactNode;
+  htmlFor: string;
+}) => {
+  return (
+    <div className='truncate'>
+      <label className='mb-1 text-sm uppercase' htmlFor={htmlFor}>
+        {children}
+      </label>
+    </div>
+  );
+};

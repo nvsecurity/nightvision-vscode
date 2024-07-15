@@ -1,8 +1,8 @@
 import { AppContext, Application } from '@contexts/AppContext';
 import { Project, ProjectContext } from '@contexts/ProjectContext';
-import { ScanContext, ScanType, ScansType } from '@contexts/ScanContext';
-import { Target, TargetContext } from '@contexts/TargetContext';
+import { TargetContext } from '@contexts/TargetContext';
 import { UserContext } from '@contexts/UserContext';
+import { Target } from '@types_/target';
 import { v4 } from 'uuid';
 import React, { useEffect, useState } from 'react';
 import {
@@ -16,22 +16,21 @@ import {
   GET_CURRENT_APP,
   GET_CURRENT_PROJECT,
   GET_CURRENT_TARGET,
-  GET_SCANS,
-  LIST_APP,
-  LIST_PROJECT,
-  LIST_TARGET,
+  GET_NIGHTVISION_TOKEN,
   LOGIN,
   SAVE_CURRENT_APP,
   SAVE_CURRENT_PROJECT,
   SAVE_CURRENT_TARGET,
-  SAVE_SCAN,
   UNAUTHORIZED_ACCESS,
 } from '@commands/CommandConstants';
 import { Layout } from '@components/Layout';
 import { Loading } from '@components/Loading';
 import { Applications } from '@pages/Applications';
+import { Authentications } from '@pages/Authentications';
+import { NewScan } from '@pages/NewScan';
 import { Overview } from '@pages/Overview';
 import { Projects } from '@pages/Projects';
+import { Reload } from '@pages/Reload';
 import { Scan } from '@pages/Scan';
 import { Scans } from '@pages/Scans';
 import { Targets } from '@pages/Targets';
@@ -60,12 +59,20 @@ const router = createMemoryRouter(
           element: <Scans />,
         },
         {
+          path: '/scans/new-scan',
+          element: <NewScan />,
+        },
+        {
           path: '/scans/:scanId?',
           element: <Scan />,
         },
         {
           path: '/applications',
           element: <Applications />,
+        },
+        {
+          path: '/authentications',
+          element: <Authentications />,
         },
         {
           path: '/projects',
@@ -75,6 +82,10 @@ const router = createMemoryRouter(
           path: '/targets',
           element: <Targets />,
         },
+        {
+          path: '/reload',
+          element: <Reload />,
+        },
       ],
     },
   ],
@@ -82,12 +93,8 @@ const router = createMemoryRouter(
 );
 
 export const App = () => {
-  const [apps, setApps] = useState<Application[]>([]);
   const [currentApp, setCurrentApp] = useState<Application>();
-  const [scans, setScans] = useState<{ [scanId: string]: ScanType }>({});
-  const [projects, setProjects] = useState<Project[]>([]);
   const [currentProject, setCurrentProject] = useState<Project>();
-  const [targets, setTargets] = useState<Target[]>([]);
   const [currentTarget, setCurrentTarget] = useState<Target>();
 
   const [isLoading, setIsLoading] = useState(true);
@@ -106,17 +113,19 @@ export const App = () => {
             break;
         }
       }
+
+      await messageHandler.request(GET_NIGHTVISION_TOKEN);
     } catch (err) {
       console.error(err);
     }
   };
 
-  const handleAppChange = async (application: Application) => {
+  const handleAppChange = async (application: Application | undefined) => {
     setCurrentApp(application);
     await messageHandler.request(SAVE_CURRENT_APP, { ...application });
   };
 
-  const handleTargetChange = async (target: Target) => {
+  const handleTargetChange = async (target: Target | undefined) => {
     setCurrentTarget(target);
     await messageHandler.request(SAVE_CURRENT_TARGET, { ...target });
   };
@@ -124,7 +133,6 @@ export const App = () => {
   const handleProjectChange = async (project: Project) => {
     setCurrentProject(project);
     await messageHandler.request(SAVE_CURRENT_PROJECT, { ...project });
-    await Promise.all([listApps(false), listTargets(false)]);
   };
 
   const getCurrentApp = async (ignore: boolean) => {
@@ -178,56 +186,6 @@ export const App = () => {
     }
   };
 
-  const listApps = async (ignore: boolean) => {
-    const appGenerator = messageHandler.requestGenerator(LIST_APP);
-    for await (const response of appGenerator) {
-      switch (response.command) {
-        case LIST_APP:
-          if (!ignore) {
-            setApps(response.payload);
-          }
-          break;
-        case UNAUTHORIZED_ACCESS:
-          setIsLoggedIn(false);
-          break;
-      }
-    }
-  };
-
-  const listProjects = async (ignore: boolean) => {
-    const projectGenerator = messageHandler.requestGenerator(LIST_PROJECT);
-    for await (const response of projectGenerator) {
-      switch (response.command) {
-        case LIST_PROJECT:
-          if (!ignore) {
-            setProjects(response.payload);
-          }
-          break;
-        case UNAUTHORIZED_ACCESS:
-          setIsLoggedIn(false);
-          break;
-      }
-    }
-  };
-
-  const listTargets = async (ignore: boolean) => {
-    const targetGenerator = messageHandler.requestGenerator(LIST_TARGET);
-    for await (const response of targetGenerator) {
-      switch (response.command) {
-        case LIST_TARGET: {
-          if (!ignore) {
-            setTargets(response.payload);
-          }
-          break;
-        }
-        case UNAUTHORIZED_ACCESS: {
-          setIsLoggedIn(false);
-          break;
-        }
-      }
-    }
-  };
-
   useEffect(() => {
     if (!isLoggedIn) {
       return;
@@ -235,37 +193,17 @@ export const App = () => {
 
     let ignore = false;
 
-    setApps([]);
     setCurrentApp(undefined);
-    setProjects([]);
     setCurrentProject(undefined);
-    setTargets([]);
     setCurrentTarget(undefined);
-    setScans({});
 
     (async () => {
       try {
         await Promise.all([
-          listApps(ignore),
-          listProjects(ignore),
-          listTargets(ignore),
           getCurrentApp(ignore),
           getCurrentProject(ignore),
           getCurrentTarget(ignore),
         ]);
-
-        const scans: ScansType = await messageHandler.request(GET_SCANS);
-        const newScans = Object.fromEntries(
-          Object.entries(scans).map(([scanId, scanData]) => [
-            scanId,
-            {
-              ...scanData,
-              isScanning: false,
-              isError: scanData.isError || scanData.isScanning,
-            },
-          ])
-        );
-        setScans(newScans);
       } catch (err) {
         console.error(err);
       }
@@ -277,25 +215,17 @@ export const App = () => {
     };
   }, [isLoggedIn]);
 
-  useEffect(() => {
-    (async () => {
-      if (Object.keys(scans).length > 0) {
-        await messageHandler.request(SAVE_SCAN, { scans });
-      }
-    })();
-  }, [scans]);
-
-  if (isLoading || !currentProject) {
+  if (!isLoggedIn) {
+    return (
+      <Layout>
+        <button onClick={handleLogin} className='mt-4 truncate rounded'>
+          Log in to NightVision
+        </button>
+      </Layout>
+    );
+  } else if (isLoading || !currentProject) {
     return <Loading />;
   }
-
-  const sortedApps = [...apps].sort((a, b) => a.name.localeCompare(b.name));
-  const sortedProjects = [...projects].sort((a, b) =>
-    a.name.localeCompare(b.name)
-  );
-  const sortedTargets = [...targets].sort((a, b) =>
-    a.name.localeCompare(b.name)
-  );
 
   return (
     <React.StrictMode>
@@ -303,37 +233,25 @@ export const App = () => {
         <UserContext.Provider value={{ setIsLoggedIn }}>
           <AppContext.Provider
             value={{
-              apps: sortedApps,
-              setApps,
               currentApp,
               setCurrentApp: handleAppChange,
             }}
           >
-            <ScanContext.Provider value={{ scans, setScans }}>
-              <ProjectContext.Provider
+            <ProjectContext.Provider
+              value={{
+                currentProject,
+                setCurrentProject: handleProjectChange,
+              }}
+            >
+              <TargetContext.Provider
                 value={{
-                  projects: sortedProjects,
-                  setProjects,
-                  currentProject,
-                  setCurrentProject: handleProjectChange,
+                  currentTarget,
+                  setCurrentTarget: handleTargetChange,
                 }}
               >
-                <TargetContext.Provider
-                  value={{
-                    targets: sortedTargets,
-                    setTargets,
-                    currentTarget,
-                    setCurrentTarget: handleTargetChange,
-                  }}
-                >
-                  {isLoggedIn ? (
-                    <RouterProvider router={router} />
-                  ) : (
-                    <button onClick={handleLogin}>Log in to NightVision</button>
-                  )}
-                </TargetContext.Provider>
-              </ProjectContext.Provider>
-            </ScanContext.Provider>
+                <RouterProvider router={router} />
+              </TargetContext.Provider>
+            </ProjectContext.Provider>
           </AppContext.Provider>
         </UserContext.Provider>
       </Layout>
