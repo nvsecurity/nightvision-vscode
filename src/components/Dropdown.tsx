@@ -1,5 +1,5 @@
 import { IdAndName } from '@contexts/ProjectContext';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 
 export const Dropdown = ({
@@ -21,6 +21,21 @@ export const Dropdown = ({
   disabled?: boolean;
   optional?: boolean;
 }) => {
+  useEffect(() => {
+    if (optional) {
+      return;
+    }
+
+    if (items.length === 0) {
+      handleChange({ id: '', name: '' });
+    } else if (
+      !selectedItem ||
+      !items.some((item) => item.id === selectedItem.id)
+    ) {
+      handleChange(items[0]);
+    }
+  }, [selectedItem]);
+
   return (
     <div className='flex flex-nowrap items-center space-x-2'>
       <select
