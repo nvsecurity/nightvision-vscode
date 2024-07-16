@@ -31,4 +31,3 @@ jobs:
           new_version=$(npm version patch --message "Chore(version): %s [skip-ci]")
           echo "new tag: $new_version"
           git push origin main
-          git push origin $new_version
