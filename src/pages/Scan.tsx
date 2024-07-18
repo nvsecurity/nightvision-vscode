@@ -65,9 +65,9 @@ export const Scan = () => {
             authentication: response.credentials,
             target: response.target,
             project: response.project,
-            createdAt: new Date(response.created_at).getTime(),
+            createdAt: new Date(response.created_at),
             endedAt: response.ended_at
-              ? new Date(response.ended_at).getTime()
+              ? new Date(response.ended_at)
               : undefined,
             status: response.status_value,
             isScanning: response.status_value === 'RUNNING',
@@ -231,7 +231,9 @@ export const Scan = () => {
                 )}
                 <span className='ml-2 font-bold'>
                   {formatDuration(
-                    (scan.endedAt || currentTime.getTime()) - scan.createdAt
+                    (scan.endedAt
+                      ? scan.endedAt.getTime()
+                      : currentTime.getTime()) - scan.createdAt.getTime()
                   )}
                 </span>
               </div>
@@ -275,11 +277,16 @@ export const Scan = () => {
               />
             </div>
             {toggled && (
-              <EditList handleClick={() => {}} list={toggledIssues}>
-                <span className='!mt-10 inline-block w-full text-center'>
-                  No issues found!
-                </span>
-              </EditList>
+              <EditList
+                list={toggledIssues}
+                emptyText='No issues found!'
+                handleClick={() => {}}
+                renderItem={(listItem) => (
+                  <span className='block max-w-full truncate'>
+                    {listItem.name}
+                  </span>
+                )}
+              />
             )}
           </div>
         </>

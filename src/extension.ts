@@ -383,14 +383,10 @@ class SidebarProvider implements vscode.WebviewViewProvider {
             break;
           }
           case UPDATE_TARGET: {
-            const { id, name, url } = payload;
-
             const command = new UpdateTarget(
               webviewView.webview,
               requestId,
-              id,
-              name,
-              url
+              payload
             );
 
             this._children[requestId] = command.execute();

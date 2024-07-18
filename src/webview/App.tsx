@@ -33,6 +33,7 @@ import { Projects } from '@pages/Projects';
 import { Reload } from '@pages/Reload';
 import { Scan } from '@pages/Scan';
 import { Scans } from '@pages/Scans';
+import { TargetPage } from '@pages/Target';
 import { Targets } from '@pages/Targets';
 import { messageHandler } from '@utils/MessageHandler';
 
@@ -63,7 +64,7 @@ const router = createMemoryRouter(
           element: <NewScan />,
         },
         {
-          path: '/scans/:scanId?',
+          path: '/scans/:scanId',
           element: <Scan />,
         },
         {
@@ -81,6 +82,10 @@ const router = createMemoryRouter(
         {
           path: '/targets',
           element: <Targets />,
+        },
+        {
+          path: '/targets/:targetType/:targetId',
+          element: <TargetPage />,
         },
         {
           path: '/reload',

@@ -42,8 +42,8 @@ export interface ScanType {
   authentication?: Auth;
   target: Target;
   project: Project;
-  createdAt: number;
-  endedAt?: number;
+  createdAt: Date;
+  endedAt?: Date;
   status: ScanStatus;
   isScanning: boolean;
   isError: boolean;
