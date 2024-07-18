@@ -108,13 +108,12 @@ export const App = () => {
       for await (const response of requestGenerator) {
         switch (response.command) {
           case LOGIN:
+            await messageHandler.request(GET_NIGHTVISION_TOKEN);
             setIsLoggedIn(true);
             setIsLoading(true);
             break;
         }
       }
-
-      await messageHandler.request(GET_NIGHTVISION_TOKEN);
     } catch (err) {
       console.error(err);
     }

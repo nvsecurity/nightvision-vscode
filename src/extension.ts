@@ -23,6 +23,7 @@ import {
   SAVE_CURRENT_PROJECT,
   SAVE_CURRENT_TARGET,
   SCAN,
+  UNAUTHORIZED_ACCESS,
   UPDATE_APP,
   UPDATE_AUTH,
   UPDATE_PROJECT,
@@ -49,22 +50,38 @@ import UpdateTarget from '@commands/UpdateTarget';
 import fs from 'fs/promises';
 
 const getNightVisionToken = async () => {
+  const dirPath = path.join(os.homedir(), '.nightvision');
+  const yamlFilePath = path.join(dirPath, 'nightvision.yaml');
+  const ymlFilePath = path.join(dirPath, 'nightvision.yml');
+
+  let filePath;
   try {
-    const filePath = path.join(os.homedir(), '.nightvision', 'nightvision.yml');
-    const data = await fs.readFile(filePath, 'utf8');
-    const token = data.match(/token:\s*(.*)/);
-    return token?.at(1) ?? '';
+    await fs.access(yamlFilePath);
+    filePath = yamlFilePath;
   } catch (err) {
-    console.error(err);
+    // If nightvision.yaml doesn't exist, check for nightvision.yml
+    try {
+      await fs.access(ymlFilePath);
+      filePath = ymlFilePath;
+    } catch (err) {
+      // If neither file exists, throw an error
+      throw new Error('Neither nightvision.yaml nor nightvision.yml found');
+    }
   }
-  return '';
+
+  const data = await fs.readFile(filePath, 'utf8');
+  const parsed = data.match(/token:\s*(.*)/);
+  const token = parsed?.[1];
+
+  if (!token) {
+    throw new Error('Empty NightVision token');
+  }
+
+  return token;
 };
 
 export async function activate(context: vscode.ExtensionContext) {
-  const sidebarProvider = new SidebarProvider(
-    context,
-    await getNightVisionToken()
-  );
+  const sidebarProvider = new SidebarProvider(context);
 
   context.subscriptions.push(
     vscode.window.registerWebviewViewProvider(
@@ -81,12 +98,9 @@ class SidebarProvider implements vscode.WebviewViewProvider {
   _children: { [key: string]: ChildProcessWithoutNullStreams | undefined };
   nightvisionToken: string;
 
-  constructor(
-    private readonly _extensionContext: ExtensionContext,
-    nightvisionToken: string
-  ) {
+  constructor(private readonly _extensionContext: ExtensionContext) {
     this._children = {};
-    this.nightvisionToken = nightvisionToken;
+    this.nightvisionToken = '';
   }
 
   public resolveWebviewView(
@@ -124,6 +138,20 @@ class SidebarProvider implements vscode.WebviewViewProvider {
       } = data;
 
       if (url) {
+        if (!this.nightvisionToken) {
+          try {
+            this.nightvisionToken = await getNightVisionToken();
+          } catch (err: any) {
+            webviewView.webview.postMessage({
+              command: UNAUTHORIZED_ACCESS,
+              requestId,
+              error: err instanceof Error ? err.message : JSON.stringify(err),
+              isFinal: true,
+            });
+            return;
+          }
+        }
+
         try {
           const response = await fetch(url, {
             method,
@@ -375,7 +403,21 @@ class SidebarProvider implements vscode.WebviewViewProvider {
             break;
           }
           case GET_NIGHTVISION_TOKEN: {
-            this.nightvisionToken = await getNightVisionToken();
+            try {
+              this.nightvisionToken = await getNightVisionToken();
+
+              webviewView.webview.postMessage({
+                requestId,
+                isFinal: true,
+              });
+            } catch (err: any) {
+              webviewView.webview.postMessage({
+                command: UNAUTHORIZED_ACCESS,
+                requestId,
+                error: err instanceof Error ? err.message : JSON.stringify(err),
+                isFinal: true,
+              });
+            }
           }
         }
       } catch (err) {
