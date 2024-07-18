@@ -93,10 +93,8 @@ export const Scans = () => {
               authentication: scan.credentials,
               target: scan.target,
               project: scan.project,
-              createdAt: new Date(scan.created_at).getTime(),
-              endedAt: scan.ended_at
-                ? new Date(scan.ended_at).getTime()
-                : undefined,
+              createdAt: new Date(scan.created_at),
+              endedAt: scan.ended_at ? new Date(scan.ended_at) : undefined,
               status: scan.status_value,
               isScanning: scan.status_value === 'RUNNING',
               isError:
@@ -264,7 +262,9 @@ export const Scans = () => {
                 )}
                 <span className='ml-2 font-bold'>
                   {formatDuration(
-                    (scan.endedAt || currentTime.getTime()) - scan.createdAt
+                    (scan.endedAt
+                      ? scan.endedAt.getTime()
+                      : currentTime.getTime()) - scan.createdAt.getTime()
                   )}
                 </span>
               </div>

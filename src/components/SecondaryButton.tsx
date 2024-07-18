@@ -5,7 +5,7 @@ export const SecondaryButton = (
 ) => {
   return (
     <button
-      className='relative truncate rounded !bg-transparent text-[--vscode-foreground] before:absolute before:inset-0 before:-z-50 before:bg-[--vscode-input-background] before:hover:bg-[--vscode-input-background] before:hover:brightness-75'
+      className='relative truncate rounded !bg-transparent text-[--vscode-foreground] before:absolute before:inset-0 before:-z-50 before:bg-[--vscode-input-background] before:hover:bg-[--vscode-input-background] before:hover:brightness-75 disabled:cursor-default disabled:before:hover:brightness-100'
       {...props}
     >
       {props.children}

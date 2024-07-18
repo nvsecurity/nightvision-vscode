@@ -1,12 +1,26 @@
+import { ApiSpec, TargetType } from '@types_/target';
 import * as vscode from 'vscode';
-import Command from '@commands/Command';
+import Command, { Flag } from '@commands/Command';
 import {
+  DUPLICATE_NAME,
   INVALID_NAME,
+  INVALID_OPENAPI_EXT,
+  INVALID_OPENAPI_FILE,
   INVALID_TARGET,
   INVALID_URL,
   INVALID_UUID,
   UPDATE_TARGET,
 } from '@commands/CommandConstants';
+
+export interface UpdateTargetParams {
+  targetId: string;
+  newTargetName: string;
+  newTargetUrl: string;
+  type: TargetType;
+  apiSpecType: ApiSpec;
+  openApiUrl?: string;
+  swaggerFilePath?: string | null;
+}
 
 export default class UpdateTarget extends Command {
   protected targetId: string;
@@ -16,15 +30,30 @@ export default class UpdateTarget extends Command {
   constructor(
     webview: vscode.Webview,
     requestId: string,
-    targetId: string,
-    newTargetName: string,
-    newTargetUrl: string
+    {
+      targetId,
+      newTargetName,
+      newTargetUrl,
+      type,
+      apiSpecType,
+      openApiUrl,
+      swaggerFilePath,
+    }: UpdateTargetParams
   ) {
-    super(
-      `nightvision target update -T ${targetId} -n ${newTargetName} -u ${newTargetUrl}`,
-      webview,
-      requestId
-    );
+    const flags: Flag[] = [
+      { flag: '-T', value: targetId },
+      { flag: '-n', value: newTargetName },
+      { flag: '-u', value: newTargetUrl },
+    ];
+
+    if (type === 'OPENAPI' && (openApiUrl || swaggerFilePath)) {
+      flags.push({
+        flag: apiSpecType === 'FILE' ? '-f' : '-s',
+        value: (apiSpecType === 'FILE' ? swaggerFilePath : openApiUrl) ?? '',
+      });
+    }
+
+    super('nightvision target update', webview, requestId, flags);
 
     this.targetId = targetId;
     this.newTargetName = newTargetName;
@@ -71,6 +100,23 @@ export default class UpdateTarget extends Command {
     ) {
       this.webview.postMessage({
         command: INVALID_URL,
+        requestId: this.requestId,
+      });
+    } else if (/swagger specification.*must have a .yaml/.test(message)) {
+      this.webview.postMessage({
+        command: INVALID_OPENAPI_EXT,
+        requestId: this.requestId,
+      });
+    } else if (
+      /could not download swagger specification from provided url/.test(message)
+    ) {
+      this.webview.postMessage({
+        command: INVALID_OPENAPI_FILE,
+        requestId: this.requestId,
+      });
+    } else if (/name.*already exists/.test(message)) {
+      this.webview.postMessage({
+        command: DUPLICATE_NAME,
         requestId: this.requestId,
       });
     }

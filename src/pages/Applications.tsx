@@ -315,16 +315,18 @@ export const Applications = () => {
             {!isFetching && (
               <EditList
                 list={apps}
+                emptyText='No applications found'
                 handleClick={(listItem) => {
                   setShowUpdateModal((prevState) => !prevState);
                   setUpdateValues({ name: listItem.name });
                   setSelectedApp(listItem);
                 }}
-              >
-                <span className='!mt-10 w-full text-center'>
-                  No applications found
-                </span>
-              </EditList>
+                renderItem={(listItem) => (
+                  <span className='block max-w-full truncate'>
+                    {listItem.name}
+                  </span>
+                )}
+              />
             )}
           </>
         )}
@@ -362,7 +364,10 @@ export const Applications = () => {
               id='app-name'
             />
             <div className='!mt-6 flex space-x-2'>
-              <SecondaryButton onClick={() => setShowCreateModal(false)}>
+              <SecondaryButton
+                onClick={() => setShowCreateModal(false)}
+                disabled={isLoading}
+              >
                 Cancel
               </SecondaryButton>
               <button

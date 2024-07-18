@@ -453,6 +453,7 @@ export const Authentications = () => {
             {!isFetching && (
               <EditList
                 list={auths}
+                emptyText='No authentications found'
                 handleClick={(listItem) => {
                   setShowUpdateModal((prevState) => !prevState);
                   setUpdateName(listItem.name);
@@ -461,11 +462,12 @@ export const Authentications = () => {
                   setUpdateUrl(listItem.url ?? '');
                   setSelectedAuth(listItem);
                 }}
-              >
-                <span className='!mt-10 w-full text-center'>
-                  No authentications found
-                </span>
-              </EditList>
+                renderItem={(listItem) => (
+                  <span className='block max-w-full truncate'>
+                    {listItem.name}
+                  </span>
+                )}
+              />
             )}
           </>
         )}
@@ -647,7 +649,10 @@ export const Authentications = () => {
               )}
             </div>
             <div className='flex space-x-2'>
-              <SecondaryButton onClick={() => setShowCreateModal(false)}>
+              <SecondaryButton
+                onClick={() => setShowCreateModal(false)}
+                disabled={isLoading}
+              >
                 Cancel
               </SecondaryButton>
               <button

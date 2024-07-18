@@ -13,7 +13,7 @@ export const Modal = ({
 }) => {
   return (
     <div
-      className={`absolute inset-0 flex items-start justify-center bg-black/75 px-6 ${visible ? 'visible' : 'invisible'}`}
+      className={`absolute inset-0 z-50 flex items-start justify-center bg-black/75 px-6 ${visible ? 'visible' : 'invisible'}`}
     >
       <div
         ref={componentRef}

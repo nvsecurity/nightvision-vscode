@@ -300,11 +300,17 @@ export const Projects = () => {
 
             <EditList
               list={projects}
+              emptyText='No projects found'
               handleClick={(listItem) => {
                 setShowUpdateModal((prevState) => !prevState);
                 setUpdateValues({ name: listItem.name });
                 setSelectedProject(listItem);
               }}
+              renderItem={(listItem) => (
+                <span className='block max-w-full truncate'>
+                  {listItem.name}
+                </span>
+              )}
             />
           </>
         )}
@@ -345,7 +351,10 @@ export const Projects = () => {
               id='project-name'
             />
             <div className='!mt-6 flex space-x-2'>
-              <SecondaryButton onClick={() => setShowCreateModal(false)}>
+              <SecondaryButton
+                onClick={() => setShowCreateModal(false)}
+                disabled={isLoading}
+              >
                 Cancel
               </SecondaryButton>
               <button
