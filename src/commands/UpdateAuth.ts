@@ -11,6 +11,7 @@ import {
   INVALID_NAME,
   INVALID_URL,
   INVALID_UUID,
+  NO_UPDATED_FIELD,
   UPDATE_AUTH,
 } from '@commands/CommandConstants';
 
@@ -170,6 +171,11 @@ export default class UpdateAuth extends Command {
     } else if (/No filled form fields detected/.test(message)) {
       this.webview.postMessage({
         command: INVALID_AUTH_FORM,
+        requestId: this.requestId,
+      });
+    } else if (/one update field required/.test(message)) {
+      this.webview.postMessage({
+        command: NO_UPDATED_FIELD,
         requestId: this.requestId,
       });
     }

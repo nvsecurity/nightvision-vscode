@@ -6,12 +6,20 @@ import {
   INVALID_UUID,
 } from '@commands/CommandConstants';
 
+export interface DeleteAuthParams {
+  authId: string;
+}
+
 export default class DeleteAuth extends Command {
   protected id: string;
 
-  constructor(webview: vscode.Webview, requestId: string, id: string) {
-    super(`nightvision auth delete -C ${id}`, webview, requestId);
-    this.id = id;
+  constructor(
+    webview: vscode.Webview,
+    requestId: string,
+    { authId }: DeleteAuthParams
+  ) {
+    super(`nightvision auth delete -C ${authId}`, webview, requestId);
+    this.id = authId;
   }
 
   handleOutput(data: any) {

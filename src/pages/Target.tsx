@@ -143,7 +143,7 @@ export const TargetPage = () => {
   const [selectedApiSpec, setSelectedApiSpec] = useState(apiSpecs[1]);
 
   const [isTargetIdCopied, setIsTargetIdCopied] = useState(false);
-  const targetTypeTimer = useRef<NodeJS.Timeout>();
+  const targetIdCopyTimer = useRef<NodeJS.Timeout>();
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = event.target.files?.[0] || null;
@@ -168,7 +168,7 @@ export const TargetPage = () => {
 
   useEffect(() => {
     return () => {
-      clearTimeout(targetTypeTimer.current);
+      clearTimeout(targetIdCopyTimer.current);
     };
   }, []);
 
@@ -409,8 +409,8 @@ export const TargetPage = () => {
                         navigator.clipboard.writeText(targetId ?? '');
 
                         setIsTargetIdCopied(true);
-                        clearTimeout(targetTypeTimer.current);
-                        targetTypeTimer.current = setTimeout(() => {
+                        clearTimeout(targetIdCopyTimer.current);
+                        targetIdCopyTimer.current = setTimeout(() => {
                           setIsTargetIdCopied(false);
                         }, 1000);
                       }}

@@ -261,8 +261,11 @@ class SidebarProvider implements vscode.WebviewViewProvider {
             break;
           }
           case DELETE_AUTH: {
-            const { id } = payload;
-            const command = new DeleteAuth(webviewView.webview, requestId, id);
+            const command = new DeleteAuth(
+              webviewView.webview,
+              requestId,
+              payload
+            );
 
             this._children[requestId] = command.execute();
             break;

@@ -84,6 +84,8 @@ a:active {
 code {
   font-size: var(--vscode-editor-font-size);
   font-family: var(--vscode-editor-font-family);
+  color: white;
+  background-color: transparent;
 }
 
 button {
