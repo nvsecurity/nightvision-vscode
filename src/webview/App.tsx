@@ -26,6 +26,7 @@ import {
 import { Layout } from '@components/Layout';
 import { Loading } from '@components/Loading';
 import { Applications } from '@pages/Applications';
+import { AuthenticationPage } from '@pages/Authentication';
 import { Authentications } from '@pages/Authentications';
 import { NewScan } from '@pages/NewScan';
 import { Overview } from '@pages/Overview';
@@ -74,6 +75,10 @@ const router = createMemoryRouter(
         {
           path: '/authentications',
           element: <Authentications />,
+        },
+        {
+          path: '/authentications/:authId',
+          element: <AuthenticationPage />,
         },
         {
           path: '/projects',

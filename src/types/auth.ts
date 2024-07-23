@@ -10,3 +10,11 @@ export interface Auth extends IdAndName {
   headers?: AuthHeader[] | null;
   url?: string | null;
 }
+
+export interface AuthInfo extends Auth {
+  projectId: string;
+  projectName: string;
+  createdAt: Date;
+  lastUpdatedAt?: Date | null;
+  scriptContent?: string;
+}
