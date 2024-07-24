@@ -13,10 +13,11 @@ import {
   useRouteError,
 } from 'react-router-dom';
 import {
+  CREATE_TOKEN,
+  DELETE_TOKENS,
   GET_CURRENT_APP,
   GET_CURRENT_PROJECT,
   GET_CURRENT_TARGET,
-  GET_NIGHTVISION_TOKEN,
   LOGIN,
   SAVE_CURRENT_APP,
   SAVE_CURRENT_PROJECT,
@@ -118,7 +119,7 @@ export const App = () => {
       for await (const response of requestGenerator) {
         switch (response.command) {
           case LOGIN:
-            await messageHandler.request(GET_NIGHTVISION_TOKEN);
+            await createToken();
             setIsLoggedIn(true);
             setIsLoading(true);
             break;
@@ -195,6 +196,69 @@ export const App = () => {
     }
   };
 
+  const createToken = async () => {
+    const createTokenGenerator = messageHandler.requestGenerator(CREATE_TOKEN);
+    for await (const response of createTokenGenerator) {
+      switch (response.command) {
+        case CREATE_TOKEN: {
+          return {
+            tokens: response.payload.tokens,
+            currentToken: response.payload.currentToken,
+          };
+        }
+        case UNAUTHORIZED_ACCESS:
+          setIsLoggedIn(false);
+          break;
+      }
+    }
+  };
+
+  const deleteTokens = async ({
+    tokens,
+    currentToken,
+  }: {
+    tokens: string[];
+    currentToken: string;
+  }) => {
+    try {
+      let apiTokens: { digest: string; token_key: string }[] = [];
+      let url = 'https://api.nightvision.net/api/v1/auth/cli/token/';
+
+      while (true) {
+        const response = await messageHandler.api('GET', url);
+        apiTokens = [...apiTokens, ...response.results];
+
+        if (response.next) {
+          url = response.next;
+          continue;
+        }
+        break;
+      }
+
+      const missingTokens = tokens.filter(
+        (token) => !apiTokens.some((apiToken) => token === apiToken.token_key)
+      );
+
+      await messageHandler.request(DELETE_TOKENS, missingTokens);
+
+      for (const token of apiTokens) {
+        if (
+          token.token_key === currentToken ||
+          !tokens.some((_token: string) => _token === token.token_key)
+        ) {
+          continue;
+        }
+        await messageHandler.api(
+          'DELETE',
+          `https://api.nightvision.net/api/v1/auth/cli/token/${token.digest}/`
+        );
+        await messageHandler.request(DELETE_TOKENS, [token.token_key]);
+      }
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
   useEffect(() => {
     if (!isLoggedIn) {
       return;
@@ -208,11 +272,16 @@ export const App = () => {
 
     (async () => {
       try {
-        await Promise.all([
+        const promises = await Promise.all([
           getCurrentApp(ignore),
           getCurrentProject(ignore),
           getCurrentTarget(ignore),
+          createToken(),
         ]);
+
+        if (promises[3]) {
+          deleteTokens(promises[3]);
+        }
       } catch (err) {
         console.error(err);
       }
