@@ -1,7 +1,5 @@
 import { ChildProcessWithoutNullStreams } from 'child_process';
-import os from 'os';
 import { join } from 'path';
-import path from 'path';
 import * as vscode from 'vscode';
 import { ExtensionContext, ExtensionMode, Uri } from 'vscode';
 import {
@@ -9,21 +7,21 @@ import {
   CREATE_AUTH,
   CREATE_PROJECT,
   CREATE_TARGET,
+  CREATE_TOKEN,
   DELETE_APP,
   DELETE_AUTH,
   DELETE_PROJECT,
   DELETE_TARGET,
+  DELETE_TOKENS,
   GET_CURRENT_APP,
   GET_CURRENT_PROJECT,
   GET_CURRENT_TARGET,
-  GET_NIGHTVISION_TOKEN,
   KILL,
   LOGIN,
   SAVE_CURRENT_APP,
   SAVE_CURRENT_PROJECT,
   SAVE_CURRENT_TARGET,
   SCAN,
-  UNAUTHORIZED_ACCESS,
   UPDATE_APP,
   UPDATE_AUTH,
   UPDATE_PROJECT,
@@ -33,6 +31,7 @@ import CreateApp from '@commands/CreateApp';
 import CreateAuth from '@commands/CreateAuth';
 import CreateProject from '@commands/CreateProject';
 import CreateTarget from '@commands/CreateTarget';
+import CreateToken from '@commands/CreateToken';
 import DeleteApp from '@commands/DeleteApp';
 import DeleteAuth from '@commands/DeleteAuth';
 import DeleteProject from '@commands/DeleteProject';
@@ -48,37 +47,6 @@ import UpdateAuth from '@commands/UpdateAuth';
 import UpdateProject from '@commands/UpdateProject';
 import UpdateTarget from '@commands/UpdateTarget';
 import fs from 'fs/promises';
-
-const getNightVisionToken = async () => {
-  const dirPath = path.join(os.homedir(), '.nightvision');
-  const yamlFilePath = path.join(dirPath, 'nightvision.yaml');
-  const ymlFilePath = path.join(dirPath, 'nightvision.yml');
-
-  let filePath;
-  try {
-    await fs.access(yamlFilePath);
-    filePath = yamlFilePath;
-  } catch (err) {
-    // If nightvision.yaml doesn't exist, check for nightvision.yml
-    try {
-      await fs.access(ymlFilePath);
-      filePath = ymlFilePath;
-    } catch (err) {
-      // If neither file exists, throw an error
-      throw new Error('Neither nightvision.yaml nor nightvision.yml found');
-    }
-  }
-
-  const data = await fs.readFile(filePath, 'utf8');
-  const parsed = data.match(/token:\s*(.*)/);
-  const token = parsed?.[1];
-
-  if (!token) {
-    throw new Error('Empty NightVision token');
-  }
-
-  return token;
-};
 
 export async function activate(context: vscode.ExtensionContext) {
   const sidebarProvider = new SidebarProvider(context);
@@ -96,11 +64,11 @@ export function deactivate() {}
 class SidebarProvider implements vscode.WebviewViewProvider {
   _view?: vscode.WebviewView;
   _children: { [key: string]: ChildProcessWithoutNullStreams | undefined };
-  nightvisionToken: string;
+  nightvisionToken: { value: string };
 
   constructor(private readonly _extensionContext: ExtensionContext) {
     this._children = {};
-    this.nightvisionToken = '';
+    this.nightvisionToken = { value: '' };
   }
 
   public resolveWebviewView(
@@ -138,20 +106,6 @@ class SidebarProvider implements vscode.WebviewViewProvider {
       } = data;
 
       if (url) {
-        if (!this.nightvisionToken) {
-          try {
-            this.nightvisionToken = await getNightVisionToken();
-          } catch (err: any) {
-            webviewView.webview.postMessage({
-              command: UNAUTHORIZED_ACCESS,
-              requestId,
-              error: err instanceof Error ? err.message : JSON.stringify(err),
-              isFinal: true,
-            });
-            return;
-          }
-        }
-
         try {
           const response = await fetch(url, {
             method,
@@ -159,9 +113,16 @@ class SidebarProvider implements vscode.WebviewViewProvider {
             headers: {
               accept: 'application/json',
               'Content-Type': 'application/json',
-              Authorization: `Token ${this.nightvisionToken}`,
+              Authorization: `Token ${this.nightvisionToken.value}`,
             },
           });
+
+          if (response.headers.get('Content-Length') === '0') {
+            webviewView.webview.postMessage({
+              requestId,
+            });
+            return;
+          }
 
           const data = await response.json();
 
@@ -176,7 +137,7 @@ class SidebarProvider implements vscode.WebviewViewProvider {
         } catch (err) {
           webviewView.webview.postMessage({
             requestId,
-            error: err,
+            error: err instanceof Error ? err.message : JSON.stringify(err),
           });
         }
         return;
@@ -401,22 +362,40 @@ class SidebarProvider implements vscode.WebviewViewProvider {
             this._children[requestId] = command.execute();
             break;
           }
-          case GET_NIGHTVISION_TOKEN: {
-            try {
-              this.nightvisionToken = await getNightVisionToken();
+          case CREATE_TOKEN: {
+            const command = new CreateToken(
+              webviewView.webview,
+              requestId,
+              this._extensionContext,
+              this.nightvisionToken
+            );
 
-              webviewView.webview.postMessage({
-                requestId,
-                isFinal: true,
-              });
-            } catch (err: any) {
-              webviewView.webview.postMessage({
-                command: UNAUTHORIZED_ACCESS,
-                requestId,
-                error: err instanceof Error ? err.message : JSON.stringify(err),
-                isFinal: true,
-              });
-            }
+            this._children[requestId] = command.execute();
+            break;
+          }
+          case DELETE_TOKENS: {
+            const storedTokens =
+              this._extensionContext.globalState.get<string>('tokens');
+            const tokens: string[] = storedTokens
+              ? JSON.parse(storedTokens)
+              : [];
+
+            const newTokens = tokens.filter(
+              (token) =>
+                !payload.some((deleteToken: string) => token === deleteToken)
+            );
+
+            this._extensionContext.globalState.update(
+              'tokens',
+              JSON.stringify(newTokens)
+            );
+
+            webviewView.webview.postMessage({
+              command: DELETE_TOKENS,
+              requestId,
+              isFinal: true,
+            });
+            break;
           }
         }
       } catch (err) {
