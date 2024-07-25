@@ -391,41 +391,22 @@ export const ApplicationPage = () => {
               <span className='truncate font-bold uppercase'>
                 Update Application
               </span>
-              <div className='flex items-center justify-center space-x-2'>
-                <button
-                  className='unstyled'
-                  onClick={() => setShowDeleteModal(true)}
+              <button
+                className='unstyled'
+                onClick={() => setShowUpdateModal(false)}
+              >
+                <svg
+                  viewBox='0 0 16 16'
+                  xmlns='http://www.w3.org/2000/svg'
+                  className='h-6 w-6 fill-[--vscode-foreground]'
                 >
-                  <svg
-                    viewBox='0 0 16 16'
-                    xmlns='http://www.w3.org/2000/svg'
-                    fill='currentColor'
-                    className='mt-0.5 h-5 w-5 fill-[--vscode-foreground]'
-                  >
-                    <path
-                      fillRule='evenodd'
-                      clipRule='evenodd'
-                      d='M10 3h3v1h-1v9l-1 1H4l-1-1V4H2V3h3V2a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1v1zM9 2H6v1h3V2zM4 13h7V4H4v9zm2-8H5v7h1V5zm1 0h1v7H7V5zm2 0h1v7H9V5z'
-                    />
-                  </svg>
-                </button>
-                <button
-                  className='unstyled'
-                  onClick={() => setShowUpdateModal(false)}
-                >
-                  <svg
-                    viewBox='0 0 16 16'
-                    xmlns='http://www.w3.org/2000/svg'
-                    className='h-6 w-6 fill-[--vscode-foreground]'
-                  >
-                    <path
-                      fillRule='evenodd'
-                      clipRule='evenodd'
-                      d='M8 8.707l3.646 3.647.708-.707L8.707 8l3.647-3.646-.707-.708L8 7.293 4.354 3.646l-.707.708L7.293 8l-3.646 3.646.707.708L8 8.707z'
-                    />
-                  </svg>
-                </button>
-              </div>
+                  <path
+                    fillRule='evenodd'
+                    clipRule='evenodd'
+                    d='M8 8.707l3.646 3.647.708-.707L8.707 8l3.647-3.646-.707-.708L8 7.293 4.354 3.646l-.707.708L7.293 8l-3.646 3.646.707.708L8 8.707z'
+                  />
+                </svg>
+              </button>
             </div>
             <TextInput
               value={updateName}
