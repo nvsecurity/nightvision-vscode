@@ -35,6 +35,17 @@ export const getApp = async (
       `https://api.nightvision.net/api/v1/applications/${appId}/`
     );
 
+    const results = (
+      await messageHandler.api(
+        'get',
+        `https://api.nightvision.net/api/v1/applications/?filter=${app.name}&project=${app.project}`
+      )
+    ).results;
+
+    const result = results.filter(
+      (result: { id: string }) => app.id === result.id
+    )?.[0];
+
     if (ignore) {
       return;
     }
@@ -45,8 +56,8 @@ export const getApp = async (
       projectId: app.project,
       projectName: app.project_name,
       createdAt: new Date(app.created_at),
-      lastScanEndedAt: app.last_scan_ended_at
-        ? new Date(app.last_scan_ended_at)
+      lastScanEndedAt: result?.last_scan_ended_at
+        ? new Date(result?.last_scan_ended_at)
         : null,
       lastUpdatedAt: app.last_updated_at ? new Date(app.last_updated_at) : null,
     });
