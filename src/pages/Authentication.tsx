@@ -294,7 +294,7 @@ export const AuthenticationPage = () => {
       for await (const response of requestGenerator) {
         switch (response.command) {
           case DELETE_AUTH: {
-            navigate('/authentications');
+            navigate(-1);
             break;
           }
           case INVALID_AUTH: {

@@ -277,7 +277,7 @@ export const TargetPage = () => {
       for await (const response of requestGenerator) {
         switch (response.command) {
           case DELETE_TARGET: {
-            navigate('/targets');
+            navigate(-1);
             break;
           }
           case INVALID_TARGET: {

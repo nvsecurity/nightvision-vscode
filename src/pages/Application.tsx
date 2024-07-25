@@ -187,7 +187,7 @@ export const ApplicationPage = () => {
       for await (const response of requestGenerator) {
         switch (response.command) {
           case DELETE_APP: {
-            navigate('/applications');
+            navigate(-1);
             break;
           }
           case INVALID_APP: {
