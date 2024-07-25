@@ -440,6 +440,19 @@ export const TargetPage = () => {
                     </button>
                   </div>
 
+                  <span>Date Created:</span>
+                  <span>
+                    {new Date(target.createdAt).toLocaleString('en-US', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: '2-digit',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                      second: '2-digit',
+                      hour12: true,
+                    })}
+                  </span>
+
                   <span>Last Scanned:</span>
                   <span>
                     {target.lastScannedAt
@@ -453,19 +466,6 @@ export const TargetPage = () => {
                           hour12: true,
                         })
                       : 'N/A'}
-                  </span>
-
-                  <span>Date Created:</span>
-                  <span>
-                    {new Date(target.createdAt).toLocaleString('en-US', {
-                      year: 'numeric',
-                      month: 'long',
-                      day: '2-digit',
-                      hour: '2-digit',
-                      minute: '2-digit',
-                      second: '2-digit',
-                      hour12: true,
-                    })}
                   </span>
 
                   <span>Base URL:</span>

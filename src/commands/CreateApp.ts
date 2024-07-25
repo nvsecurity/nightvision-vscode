@@ -6,13 +6,17 @@ import {
   INVALID_NAME,
 } from '@commands/CommandConstants';
 
+export interface CreateAppParams {
+  applicationName: string;
+}
+
 export default class CreateApp extends Command {
   protected applicationName: string;
 
   constructor(
     webview: vscode.Webview,
     requestId: string,
-    applicationName: string
+    { applicationName }: CreateAppParams
   ) {
     super(`nightvision app create -n ${applicationName}`, webview, requestId);
     this.applicationName = applicationName;

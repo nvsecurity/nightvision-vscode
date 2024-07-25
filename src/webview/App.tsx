@@ -1,7 +1,8 @@
-import { AppContext, Application } from '@contexts/AppContext';
+import { AppContext } from '@contexts/AppContext';
 import { Project, ProjectContext } from '@contexts/ProjectContext';
 import { TargetContext } from '@contexts/TargetContext';
 import { UserContext } from '@contexts/UserContext';
+import { Application } from '@types_/app';
 import { Target } from '@types_/target';
 import { v4 } from 'uuid';
 import React, { useEffect, useState } from 'react';
@@ -26,6 +27,7 @@ import {
 } from '@commands/CommandConstants';
 import { Layout } from '@components/Layout';
 import { Loading } from '@components/Loading';
+import { ApplicationPage } from '@pages/Application';
 import { Applications } from '@pages/Applications';
 import { AuthenticationPage } from '@pages/Authentication';
 import { Authentications } from '@pages/Authentications';
@@ -72,6 +74,10 @@ const router = createMemoryRouter(
         {
           path: '/applications',
           element: <Applications />,
+        },
+        {
+          path: '/applications/:appId',
+          element: <ApplicationPage />,
         },
         {
           path: '/authentications',
@@ -255,7 +261,7 @@ export const App = () => {
         await messageHandler.request(DELETE_TOKENS, [token.token_key]);
       }
     } catch (err) {
-      console.log(err);
+      console.error(err);
     }
   };
 

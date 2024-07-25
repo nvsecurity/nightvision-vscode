@@ -7,10 +7,18 @@ import {
   INVALID_UUID,
 } from '@commands/CommandConstants';
 
+export interface DeleteAppParams {
+  id: string;
+}
+
 export default class DeleteApp extends Command {
   protected id: string;
 
-  constructor(webview: vscode.Webview, requestId: string, id: string) {
+  constructor(
+    webview: vscode.Webview,
+    requestId: string,
+    { id }: DeleteAppParams
+  ) {
     super(`nightvision app delete -A ${id}`, webview, requestId);
     this.id = id;
   }
