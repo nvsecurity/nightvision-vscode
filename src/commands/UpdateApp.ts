@@ -7,6 +7,11 @@ import {
   UPDATE_APP,
 } from '@commands/CommandConstants';
 
+export interface UpdateAppParams {
+  appId: string;
+  newAppName: string;
+}
+
 export default class UpdateApp extends Command {
   protected appId: string;
   protected newAppName: string;
@@ -14,8 +19,7 @@ export default class UpdateApp extends Command {
   constructor(
     webview: vscode.Webview,
     requestId: string,
-    appId: string,
-    newAppName: string
+    { appId, newAppName }: UpdateAppParams
   ) {
     super(
       `nightvision app update -A ${appId} -n ${newAppName}`,

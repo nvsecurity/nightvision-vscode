@@ -161,21 +161,21 @@ class SidebarProvider implements vscode.WebviewViewProvider {
             break;
           }
           case CREATE_APP: {
-            const { applicationName } = payload;
-
             const command = new CreateApp(
               webviewView.webview,
               requestId,
-              applicationName
+              payload
             );
 
             this._children[requestId] = command.execute();
             break;
           }
           case DELETE_APP: {
-            const { id } = payload;
-
-            const command = new DeleteApp(webviewView.webview, requestId, id);
+            const command = new DeleteApp(
+              webviewView.webview,
+              requestId,
+              payload
+            );
 
             this._children[requestId] = command.execute();
             break;
@@ -200,12 +200,10 @@ class SidebarProvider implements vscode.WebviewViewProvider {
             break;
           }
           case UPDATE_APP: {
-            const { id, name } = payload;
             const command = new UpdateApp(
               webviewView.webview,
               requestId,
-              id,
-              name
+              payload
             );
 
             this._children[requestId] = command.execute();

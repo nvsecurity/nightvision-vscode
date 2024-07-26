@@ -1,5 +1,5 @@
-import { Application } from '@contexts/AppContext';
 import { Project } from '@contexts/ProjectContext';
+import { Application } from '@types_/app';
 import { Auth } from '@types_/auth';
 import { Target } from '@types_/target';
 import * as vscode from 'vscode';

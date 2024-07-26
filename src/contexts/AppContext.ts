@@ -1,7 +1,6 @@
-import { IdAndName } from '@contexts/ProjectContext';
+import { Application } from '@types_/app';
 import { createContext } from 'react';
 
-export interface Application extends IdAndName {}
 interface AppContextType {
   currentApp?: Application;
   setCurrentApp: (app: Application | undefined) => void;
