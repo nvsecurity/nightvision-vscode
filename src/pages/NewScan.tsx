@@ -1,9 +1,9 @@
-import { Application } from '@contexts/AppContext';
 import { IdAndName, Project } from '@contexts/ProjectContext';
 import { useApp } from '@hooks/useApp';
 import { useProject } from '@hooks/useProject';
 import { useTarget } from '@hooks/useTarget';
 import { useUser } from '@hooks/useUser';
+import { Application } from '@types_/app';
 import { Auth } from '@types_/auth';
 import { Target } from '@types_/target';
 import { v4 } from 'uuid';
