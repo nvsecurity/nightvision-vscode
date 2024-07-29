@@ -85,7 +85,15 @@ export default class Command {
 
   isLoggedIn(message: string) {
     if (
-      /Please try to log in again by running `nightvision login`/.test(message)
+      /Please try to log in again by running `nightvision login`/.test(
+        message
+      ) ||
+      /ERROR error logging in to API err=": You do not have permission to perform this action.."/.test(
+        message
+      ) ||
+      /ERROR unkown error occurred err=": You do not have permission to perform this action.."/.test(
+        message
+      )
     ) {
       this.webview.postMessage({
         command: UNAUTHORIZED_ACCESS,

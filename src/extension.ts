@@ -18,6 +18,7 @@ import {
   GET_CURRENT_TARGET,
   KILL,
   LOGIN,
+  LOGOUT,
   SAVE_CURRENT_APP,
   SAVE_CURRENT_PROJECT,
   SAVE_CURRENT_TARGET,
@@ -39,6 +40,7 @@ import DeleteTarget from '@commands/DeleteTarget';
 import GetCurrentApp from '@commands/GetCurrentApp';
 import GetCurrentProject from '@commands/GetCurrentProject';
 import Login from '@commands/Login';
+import Logout from '@commands/Logout';
 import SaveCurrentApp from '@commands/SaveCurrentApp';
 import SaveCurrentProject from '@commands/SaveCurrentProject';
 import Scan from '@commands/Scan';
@@ -350,6 +352,12 @@ class SidebarProvider implements vscode.WebviewViewProvider {
           }
           case LOGIN: {
             const command = new Login(webviewView.webview, requestId);
+
+            this._children[requestId] = command.execute();
+            break;
+          }
+          case LOGOUT: {
+            const command = new Logout(webviewView.webview, requestId);
 
             this._children[requestId] = command.execute();
             break;

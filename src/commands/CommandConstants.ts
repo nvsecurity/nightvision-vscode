@@ -32,6 +32,7 @@ export const INVALID_UUID = 'invalid-uuid';
 export const ISSUES = 'issues';
 export const KILL = 'kill';
 export const LOGIN = 'login';
+export const LOGOUT = 'logout';
 export const NO_UPDATED_FIELD = 'no-updated-field';
 export const UPDATE_APP = 'update-app';
 export const UPDATE_AUTH = 'update-auth';
