@@ -1,11 +1,5 @@
+import { Project } from '@types_/project';
 import { createContext } from 'react';
-
-export interface IdAndName {
-  id: string;
-  name: string;
-}
-
-export interface Project extends IdAndName {}
 
 export interface ProjectContextType {
   currentProject?: Project;

@@ -1,4 +1,4 @@
-import { IdAndName } from '@contexts/ProjectContext';
+import { IdAndName } from '@types_/idAndName';
 import React, { ReactNode } from 'react';
 
 export const EditList = <T extends IdAndName>({

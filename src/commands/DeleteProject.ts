@@ -7,10 +7,18 @@ import {
   INVALID_UUID,
 } from '@commands/CommandConstants';
 
+export interface DeleteProjectParams {
+  id: string;
+}
+
 export default class DeleteProject extends Command {
   protected id: string;
 
-  constructor(webview: vscode.Webview, requestId: string, id: string) {
+  constructor(
+    webview: vscode.Webview,
+    requestId: string,
+    { id }: DeleteProjectParams
+  ) {
     super(`nightvision project delete -P ${id}`, webview, requestId);
     this.id = id;
   }

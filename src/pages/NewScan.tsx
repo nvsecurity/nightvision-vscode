@@ -1,10 +1,11 @@
-import { IdAndName, Project } from '@contexts/ProjectContext';
 import { useApp } from '@hooks/useApp';
 import { useProject } from '@hooks/useProject';
 import { useTarget } from '@hooks/useTarget';
 import { useUser } from '@hooks/useUser';
 import { Application } from '@types_/app';
 import { Auth } from '@types_/auth';
+import { IdAndName } from '@types_/idAndName';
+import { Project } from '@types_/project';
 import { Target } from '@types_/target';
 import { v4 } from 'uuid';
 import React, { useEffect, useState } from 'react';

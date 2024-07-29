@@ -539,7 +539,7 @@ export const AuthenticationPage = () => {
       </div>
 
       {auth && showUpdateModal && (
-        <Modal componentRef={updateRef} visible={!showDeleteModal}>
+        <Modal componentRef={updateRef}>
           <div className='flex flex-col space-y-1'>
             <div className='flex items-center justify-between'>
               <span className='truncate font-bold uppercase'>

@@ -1,9 +1,11 @@
 import { AppContext } from '@contexts/AppContext';
-import { Project, ProjectContext } from '@contexts/ProjectContext';
+import { ProjectContext } from '@contexts/ProjectContext';
 import { TargetContext } from '@contexts/TargetContext';
 import { UserContext } from '@contexts/UserContext';
 import { Application } from '@types_/app';
+import { Project } from '@types_/project';
 import { Target } from '@types_/target';
+import { User } from '@types_/user';
 import { v4 } from 'uuid';
 import React, { useEffect, useState } from 'react';
 import {
@@ -33,6 +35,7 @@ import { AuthenticationPage } from '@pages/Authentication';
 import { Authentications } from '@pages/Authentications';
 import { NewScan } from '@pages/NewScan';
 import { Overview } from '@pages/Overview';
+import { ProjectPage } from '@pages/Project';
 import { Projects } from '@pages/Projects';
 import { Reload } from '@pages/Reload';
 import { Scan } from '@pages/Scan';
@@ -92,6 +95,10 @@ const router = createMemoryRouter(
           element: <Projects />,
         },
         {
+          path: '/projects/:projectId',
+          element: <ProjectPage />,
+        },
+        {
           path: '/targets',
           element: <Targets />,
         },
@@ -113,6 +120,7 @@ export const App = () => {
   const [currentApp, setCurrentApp] = useState<Application>();
   const [currentProject, setCurrentProject] = useState<Project>();
   const [currentTarget, setCurrentTarget] = useState<Target>();
+  const [currentUser, setCurrentUser] = useState<User>();
 
   const [isLoading, setIsLoading] = useState(true);
   const [isLoggedIn, setIsLoggedIn] = useState(true);
@@ -265,6 +273,27 @@ export const App = () => {
     }
   };
 
+  const getUser = async () => {
+    try {
+      const user = (
+        await messageHandler.api(
+          'get',
+          'https://api.nightvision.net/api/v1/user/me/'
+        )
+      ).user;
+
+      setCurrentUser({
+        id: user.id,
+        name: user.username,
+        firstName: user.first_name,
+        lastName: user.last_name,
+        avatarUrl: user.avatar_url,
+      });
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   useEffect(() => {
     if (!isLoggedIn) {
       return;
@@ -286,7 +315,8 @@ export const App = () => {
         ]);
 
         if (promises[3]) {
-          deleteTokens(promises[3]);
+          await deleteTokens(promises[3]);
+          await getUser();
         }
       } catch (err) {
         console.error(err);
@@ -314,7 +344,7 @@ export const App = () => {
   return (
     <React.StrictMode>
       <Layout>
-        <UserContext.Provider value={{ setIsLoggedIn }}>
+        <UserContext.Provider value={{ currentUser, setIsLoggedIn }}>
           <AppContext.Provider
             value={{
               currentApp,

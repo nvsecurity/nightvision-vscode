@@ -1,7 +1,7 @@
-import { Project } from '@contexts/ProjectContext';
 import useClickOutside from '@hooks/useClickOutside';
 import { useProject } from '@hooks/useProject';
 import { useUser } from '@hooks/useUser';
+import { Project } from '@types_/project';
 import { ApiSpec, Target, TargetType } from '@types_/target';
 import { v4 } from 'uuid';
 import React, { useEffect } from 'react';

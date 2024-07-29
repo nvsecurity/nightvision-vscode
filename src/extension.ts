@@ -46,7 +46,6 @@ import UpdateApp from '@commands/UpdateApp';
 import UpdateAuth from '@commands/UpdateAuth';
 import UpdateProject from '@commands/UpdateProject';
 import UpdateTarget from '@commands/UpdateTarget';
-import fs from 'fs/promises';
 
 export async function activate(context: vscode.ExtensionContext) {
   const sidebarProvider = new SidebarProvider(context);
@@ -240,12 +239,10 @@ class SidebarProvider implements vscode.WebviewViewProvider {
             break;
           }
           case CREATE_PROJECT: {
-            const { projectName } = payload;
-
             const command = new CreateProject(
               webviewView.webview,
               requestId,
-              projectName
+              payload
             );
 
             this._children[requestId] = command.execute();
@@ -261,23 +258,20 @@ class SidebarProvider implements vscode.WebviewViewProvider {
             break;
           }
           case DELETE_PROJECT: {
-            const { id } = payload;
             const command = new DeleteProject(
               webviewView.webview,
               requestId,
-              id
+              payload
             );
 
             this._children[requestId] = command.execute();
             break;
           }
           case UPDATE_PROJECT: {
-            const { id, name } = payload;
             const command = new UpdateProject(
               webviewView.webview,
               requestId,
-              id,
-              name
+              payload
             );
 
             this._children[requestId] = command.execute();
@@ -434,7 +428,7 @@ class SidebarProvider implements vscode.WebviewViewProvider {
     <html lang="en">
     <head>
       <meta charset="UTF-8">
-      <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline' ${webview.cspSource}; script-src 'nonce-${nonce}';">
+      <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self' data: *; style-src 'unsafe-inline' ${webview.cspSource}; script-src 'nonce-${nonce}';">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
     </head>
     <body>

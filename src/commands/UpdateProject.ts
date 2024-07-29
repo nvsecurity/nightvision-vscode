@@ -7,12 +7,16 @@ import {
   UPDATE_PROJECT,
 } from '@commands/CommandConstants';
 
+export interface UpdateProjectParams {
+  projectId: string;
+  newProjectName: string;
+}
+
 export default class UpdateProject extends Command {
   constructor(
     webview: vscode.Webview,
     requestId: string,
-    projectId: string,
-    newProjectName: string
+    { projectId, newProjectName }: UpdateProjectParams
   ) {
     super(
       `nightvision project update -P ${projectId} -n ${newProjectName}`,
