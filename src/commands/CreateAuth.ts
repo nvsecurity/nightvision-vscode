@@ -1,5 +1,5 @@
-import { Project } from '@contexts/ProjectContext';
 import { AuthHeader, AuthType } from '@types_/auth';
+import { Project } from '@types_/project';
 import * as vscode from 'vscode';
 import Command, { Flag } from '@commands/Command';
 import {

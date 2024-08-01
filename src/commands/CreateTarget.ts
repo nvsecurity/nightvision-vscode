@@ -1,4 +1,4 @@
-import { Project } from '@contexts/ProjectContext';
+import { Project } from '@types_/project';
 import { ApiSpec, TargetType } from '@types_/target';
 import * as vscode from 'vscode';
 import Command, { Flag } from '@commands/Command';

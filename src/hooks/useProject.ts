@@ -1,8 +1,5 @@
-import {
-  Project,
-  ProjectContext,
-  ProjectContextType,
-} from '@contexts/ProjectContext';
+import { ProjectContext, ProjectContextType } from '@contexts/ProjectContext';
+import { Project } from '@types_/project';
 import { useContext } from 'react';
 
 export const useProject = () => {

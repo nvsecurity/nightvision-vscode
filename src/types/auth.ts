@@ -1,4 +1,4 @@
-import { IdAndName } from '@contexts/ProjectContext';
+import { IdAndName } from '@types_/idAndName';
 
 export type AuthType = 'COOKIE' | 'HEADER' | 'SCRIPT';
 

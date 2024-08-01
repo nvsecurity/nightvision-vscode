@@ -1,4 +1,4 @@
-import { IdAndName } from '@contexts/ProjectContext';
+import { IdAndName } from '@types_/idAndName';
 import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 

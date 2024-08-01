@@ -6,10 +6,18 @@ import {
   INVALID_NAME,
 } from '@commands/CommandConstants';
 
+export interface CreateProjectParams {
+  projectName: string;
+}
+
 export default class CreateProject extends Command {
   protected projectName: string;
 
-  constructor(webview: vscode.Webview, requestId: string, projectName: string) {
+  constructor(
+    webview: vscode.Webview,
+    requestId: string,
+    { projectName }: CreateProjectParams
+  ) {
     super(`nightvision project create -n ${projectName}`, webview, requestId);
     this.projectName = projectName;
   }

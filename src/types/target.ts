@@ -1,5 +1,5 @@
-import { IdAndName } from '@contexts/ProjectContext';
 import { Application } from '@types_/app';
+import { IdAndName } from '@types_/idAndName';
 
 export interface Target extends IdAndName {
   location: string;
