@@ -158,13 +158,15 @@ export const Scan = () => {
               </select>
             </div>
             <div>
-              <Label htmlFor='target-name'>Target</Label>
+              <Label htmlFor='target-name'>
+                Target ({scan.target.type === 'URL' ? 'WEB' : 'API'})
+              </Label>
               <select
                 className='w-full bg-[--vscode-settings-dropdownBackground] px-0.5 py-1.5'
                 disabled
               >
                 <option>
-                  {scan.target.name} - {scan.target.location}
+                  {scan.target.name} ({scan.target.location})
                 </option>
               </select>
             </div>

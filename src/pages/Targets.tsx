@@ -34,13 +34,15 @@ export const getTargets = async (
   setTargets: React.Dispatch<React.SetStateAction<Target[] | undefined>>,
   setIsLoggedIn: React.Dispatch<React.SetStateAction<boolean>>,
   projectId: string,
+  type?: TargetType,
   ignore: boolean = false
 ) => {
   try {
+    const _type = type ? type.toLocaleLowerCase() + '/' : '';
     const targets = (
       await messageHandler.api(
         'get',
-        `https://api.nightvision.net/api/v1/targets/?order=name&project=${projectId}`
+        `https://api.nightvision.net/api/v1/targets/${_type}?order=name&project=${projectId}`
       )
     ).results;
 
@@ -122,7 +124,13 @@ export const Targets = () => {
 
     const fetchApi = async () => {
       setIsFetching(true);
-      await getTargets(setTargets, setIsLoggedIn, currentProject.id, ignore);
+      await getTargets(
+        setTargets,
+        setIsLoggedIn,
+        currentProject.id,
+        undefined,
+        ignore
+      );
       await getProjects(setProjects, setIsLoggedIn, ignore);
       setIsFetching(false);
     };

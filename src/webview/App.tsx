@@ -68,7 +68,7 @@ const router = createMemoryRouter(
           element: <Scans />,
         },
         {
-          path: '/scans/new-scan',
+          path: '/scans/new-scan/:targetType',
           element: <NewScan />,
         },
         {

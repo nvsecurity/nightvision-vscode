@@ -9,7 +9,7 @@ import { Project } from '@types_/project';
 import { Target } from '@types_/target';
 import { v4 } from 'uuid';
 import React, { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { SCAN, SCAN_ID, UNAUTHORIZED_ACCESS } from '@commands/CommandConstants';
 import { ScanParams } from '@commands/Scan';
 import { Dropdown } from '@components/Dropdown';
@@ -23,6 +23,8 @@ import { getTargets } from '@pages/Targets';
 import { messageHandler } from '@utils/MessageHandler';
 
 export const NewScan = () => {
+  const { targetType } = useParams();
+
   const navigate = useNavigate();
 
   const { currentApp, setCurrentApp } = useApp();
@@ -48,7 +50,13 @@ export const NewScan = () => {
       await getApps(setApps, setIsLoggedIn, currentProject.id, ignore);
       await getAuths(setAuths, setIsLoggedIn, currentProject.id, ignore);
       await getProjects(setProjects, setIsLoggedIn, ignore);
-      await getTargets(setTargets, setIsLoggedIn, currentProject.id, ignore);
+      await getTargets(
+        setTargets,
+        setIsLoggedIn,
+        currentProject.id,
+        targetType === 'url' ? 'URL' : 'OPENAPI',
+        ignore
+      );
       setIsFetching(false);
     };
 
@@ -208,12 +216,14 @@ export const NewScan = () => {
                   />
                 </div>
                 <div>
-                  <Label htmlFor='target'>Target</Label>
+                  <Label htmlFor='target'>
+                    Target ({targetType === 'url' ? 'WEB' : 'API'})
+                  </Label>
                   <Dropdown
                     selectedItem={currentTarget}
                     items={targets.map((target) => ({
                       ...target,
-                      name: `${target.name} - ${target.location}`,
+                      name: `${target.name} (${target.location})`,
                     }))}
                     name='Target'
                     route={isLoading ? '.' : `/targets`}
