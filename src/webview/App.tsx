@@ -40,6 +40,7 @@ import { Projects } from '@pages/Projects';
 import { Reload } from '@pages/Reload';
 import { Scan } from '@pages/Scan';
 import { Scans } from '@pages/Scans';
+import { Settings } from '@pages/Settings';
 import { TargetPage } from '@pages/Target';
 import { Targets } from '@pages/Targets';
 import { messageHandler } from '@utils/MessageHandler';
@@ -105,6 +106,10 @@ const router = createMemoryRouter(
         {
           path: '/targets/:targetType/:targetId',
           element: <TargetPage />,
+        },
+        {
+          path: '/settings',
+          element: <Settings />,
         },
         {
           path: '/reload',
