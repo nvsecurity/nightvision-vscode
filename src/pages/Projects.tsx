@@ -277,16 +277,17 @@ export const Projects = () => {
                 renderItem={(listItem) => (
                   <div className='flex max-w-full flex-nowrap justify-between truncate'>
                     <span className='mr-2 truncate'>{listItem.name}</span>
-                    <div className='flex flex-nowrap'>
-                      {[...listItem.sharedWithUsers, listItem.owner].map(
-                        (user, index) => (
-                          <img
-                            key={user.id}
-                            src={user.avatarUrl}
-                            className={`size-7 rounded-full border-2 border-[--vscode-sideBar-background] ${index !== 0 ? '-ml-4' : ''}`}
-                          />
-                        )
-                      )}
+                    <div className='flex flex-shrink-0 flex-nowrap'>
+                      {[
+                        ...listItem.sharedWithUsers.slice(0, 6),
+                        listItem.owner,
+                      ].map((user, index) => (
+                        <img
+                          key={user.id}
+                          src={user.avatarUrl}
+                          className={`size-7 rounded-full border-2 border-[--vscode-sideBar-background] ${index !== 0 ? '-ml-4' : ''}`}
+                        />
+                      ))}
                     </div>
                   </div>
                 )}
