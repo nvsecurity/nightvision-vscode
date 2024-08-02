@@ -647,7 +647,7 @@ export const TargetPage = () => {
               </SecondaryButton>
               <button
                 onClick={handleUpdate}
-                className='truncate rounded disabled:bg-neutral-800 hover:disabled:cursor-default'
+                className='truncate rounded disabled:cursor-not-allowed disabled:opacity-75 disabled:hover:bg-[--vscode-button-background]'
                 disabled={isUpdateLoading}
               >
                 {isUpdateLoading ? 'Updating...' : 'Update Target'}
@@ -699,7 +699,7 @@ export const TargetPage = () => {
               <button
                 onClick={handleDelete}
                 disabled={isDeleteLoading}
-                className='rounded bg-red-500 hover:bg-red-500 hover:brightness-90 disabled:bg-neutral-800 hover:disabled:cursor-default hover:disabled:brightness-100'
+                className='truncate rounded bg-red-500 hover:bg-red-500 hover:brightness-90 disabled:cursor-not-allowed disabled:opacity-75 hover:disabled:brightness-100'
               >
                 {isDeleteLoading ? 'Deleting...' : 'Delete'}
               </button>

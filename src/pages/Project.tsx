@@ -335,6 +335,7 @@ export const ProjectPage = () => {
     setUserName('');
     setSearchedUsers([]);
     setAddUsers([]);
+    setProjectNameErrors([]);
   }, [showShareModal]);
 
   useEffect(() => {
@@ -443,7 +444,8 @@ export const ProjectPage = () => {
       for await (const response of requestGenerator) {
         switch (response.command) {
           case DELETE_PROJECT:
-          case INVALID_PROJECT: {
+          case INVALID_PROJECT:
+          case INVALID_UUID: {
             navigate(-1);
             break;
           }

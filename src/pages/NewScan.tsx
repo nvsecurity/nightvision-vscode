@@ -250,7 +250,7 @@ export const NewScan = () => {
               </div>
               <button
                 onClick={handleScanClick}
-                className='rounded disabled:bg-neutral-800 hover:disabled:cursor-default'
+                className='truncate rounded disabled:cursor-not-allowed disabled:opacity-75 disabled:hover:bg-[--vscode-button-background]'
                 disabled={isLoading}
               >
                 {isLoading ? 'Loading...' : 'Start Scan'}
