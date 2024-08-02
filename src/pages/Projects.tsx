@@ -2,6 +2,7 @@ import useClickOutside from '@hooks/useClickOutside';
 import { useProject } from '@hooks/useProject';
 import { useUser } from '@hooks/useUser';
 import { Project, ProjectInfo } from '@types_/project';
+import { useDebounce } from 'use-debounce';
 import { v4 } from 'uuid';
 import React, { useEffect } from 'react';
 import { useState } from 'react';
@@ -67,6 +68,7 @@ export const getProjects = async (
               lastName: user.last_name,
               avatarUrl: user.avatar_url,
             })),
+          isDefault: project.is_default,
         })
       )
     );
@@ -102,8 +104,12 @@ export const Projects = () => {
   } = useClickOutside();
 
   const [projects, setProjects] = useState<ProjectInfo[]>();
-  const [projectName, setProjectName] = useState('');
+  const [_projectName, setProjectName] = useState('');
+  const [projectName] = useDebounce(_projectName, 500);
 
+  const [projectNameErrors, setProjectNameErrors] = useState<string[]>([]);
+
+  const [isCreateDisabled, setIsCreateDisabled] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [isFetching, setIsFetching] = useState(false);
 
@@ -125,19 +131,55 @@ export const Projects = () => {
 
   useEffect(() => {
     setProjectName('');
+    setProjectNameErrors([]);
   }, [showCreateModal]);
+
+  useEffect(() => {
+    setIsCreateDisabled(true);
+  }, [_projectName]);
+
+  useEffect(() => {
+    setProjectNameErrors([]);
+    setIsCreateDisabled(true);
+
+    const errors: string[] = [];
+
+    if (!projectName) {
+      errors.push('Name is required');
+    }
+
+    if (projectName.length > 100) {
+      errors.push('Name must be at most 100 characters');
+    }
+
+    if (/[^\w_-]/.test(projectName)) {
+      errors.push(
+        "Only characters 'A-Z', 'a-z', '0-9', '-', and '_' are allowed"
+      );
+    }
+
+    if (projects?.some((project) => project.name === projectName)) {
+      errors.push('Project name already exists');
+    }
+
+    if (errors.length > 0) {
+      setProjectNameErrors((prevState) => [...prevState, ...errors]);
+      return;
+    }
+
+    setIsCreateDisabled(false);
+  }, [projectName]);
 
   const handleCreateProject = async (
     e: React.MouseEvent<HTMLButtonElement>
   ) => {
     e.preventDefault();
 
-    const reqId = v4();
     const requestGenerator =
       messageHandler.requestGenerator<CreateProjectParams>(
         CREATE_PROJECT,
-        reqId,
-        { projectName }
+        v4(),
+        { projectName: projectName }
       );
 
     setIsLoading(true);
@@ -150,13 +192,17 @@ export const Projects = () => {
             setShowCreateModal(false);
             break;
           case DUPLICATE_NAME: {
-            // TODO
-            console.log(DUPLICATE_NAME);
+            setProjectNameErrors((prevState) => [
+              ...prevState,
+              'Project name already exists',
+            ]);
             break;
           }
           case INVALID_NAME: {
-            // TODO
-            console.log(INVALID_NAME);
+            setProjectNameErrors((prevState) => [
+              ...prevState,
+              "Name should have a max length of 100 and should have characters 'A-Z', 'a-z', '0-9', '-', and '_' only",
+            ]);
             break;
           }
           case UNAUTHORIZED_ACCESS:
@@ -276,10 +322,11 @@ export const Projects = () => {
               </button>
             </div>
             <TextInput
-              value={projectName}
+              value={_projectName}
               handleOnChange={setProjectName}
               label='Project Name'
               id='project-name'
+              errors={projectNameErrors}
             />
             <div className='!mt-6 flex space-x-2'>
               <SecondaryButton
@@ -290,8 +337,10 @@ export const Projects = () => {
               </SecondaryButton>
               <button
                 onClick={handleCreateProject}
-                className='truncate rounded disabled:bg-neutral-800 hover:disabled:cursor-default'
-                disabled={isLoading}
+                className='truncate rounded disabled:cursor-not-allowed disabled:opacity-75 disabled:hover:bg-[--vscode-button-background]'
+                disabled={
+                  isLoading || isCreateDisabled || projectNameErrors.length > 0
+                }
               >
                 {isLoading ? 'Creating...' : 'Create Project'}
               </button>

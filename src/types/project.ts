@@ -8,4 +8,5 @@ export interface ProjectInfo extends Project {
   lastUpdatedAt?: Date | null;
   owner: User;
   sharedWithUsers: User[];
+  isDefault: boolean;
 }
