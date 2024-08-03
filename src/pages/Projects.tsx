@@ -109,9 +109,12 @@ export const Projects = () => {
 
   const [projectNameErrors, setProjectNameErrors] = useState<string[]>([]);
 
-  const [isCreateDisabled, setIsCreateDisabled] = useState(true);
+  const [isValidatingInput, setIsValidatingInput] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [isFetching, setIsFetching] = useState(false);
+
+  const hasEmptyRequiredInputs = !projectName;
+  const hasErrors = projectNameErrors.length > 0;
 
   useEffect(() => {
     let ignore = false;
@@ -135,12 +138,12 @@ export const Projects = () => {
   }, [showCreateModal]);
 
   useEffect(() => {
-    setIsCreateDisabled(true);
+    setIsValidatingInput(true);
   }, [_projectName]);
 
   useEffect(() => {
     setProjectNameErrors([]);
-    setIsCreateDisabled(true);
+    setIsValidatingInput(true);
 
     const errors: string[] = [];
 
@@ -167,7 +170,7 @@ export const Projects = () => {
       return;
     }
 
-    setIsCreateDisabled(false);
+    setIsValidatingInput(false);
   }, [projectName]);
 
   const handleCreateProject = async (
@@ -340,7 +343,10 @@ export const Projects = () => {
                 onClick={handleCreateProject}
                 className='truncate rounded disabled:cursor-not-allowed disabled:opacity-75 disabled:hover:bg-[--vscode-button-background]'
                 disabled={
-                  isLoading || isCreateDisabled || projectNameErrors.length > 0
+                  isLoading ||
+                  isValidatingInput ||
+                  hasEmptyRequiredInputs ||
+                  hasErrors
                 }
               >
                 {isLoading ? 'Creating...' : 'Create Project'}

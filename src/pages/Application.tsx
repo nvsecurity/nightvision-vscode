@@ -110,13 +110,17 @@ export const ApplicationPage = () => {
   );
   const [deleteErrors, setDeleteErrors] = useState<string[]>([]);
 
-  const [isUpdateDisabled, setIsUpdateDisabled] = useState(true);
+  const [isValidatingInput, setIsValidatingInput] = useState(true);
   const [isUpdateLoading, setIsUpdateLoading] = useState(false);
   const [isDeleteLoading, setIsDeleteLoading] = useState(false);
   const [isFetching, setIsFetching] = useState(false);
 
   const [isAppIdCopied, setIsAppIdCopied] = useState(false);
   const appIdCopyTimer = useRef<NodeJS.Timeout>();
+
+  const hasEmptyRequiredInputs = !updateName;
+  const hasErrors = applicationNameErrors.length > 0;
+  const hasChanges = updateName !== app?.name;
 
   useEffect(() => {
     let ignore = false;
@@ -135,12 +139,19 @@ export const ApplicationPage = () => {
   }, [appId]);
 
   useEffect(() => {
-    setIsUpdateDisabled(true);
+    setUpdateName(app?.name ?? '');
+
+    setApplicationNameErrors([]);
+    setDeleteErrors([]);
+  }, [app, showUpdateModal]);
+
+  useEffect(() => {
+    setIsValidatingInput(true);
   }, [_updateName]);
 
   useEffect(() => {
     setApplicationNameErrors([]);
-    setIsUpdateDisabled(true);
+    setIsValidatingInput(true);
 
     const errors: string[] = [];
 
@@ -163,7 +174,7 @@ export const ApplicationPage = () => {
       return;
     }
 
-    setIsUpdateDisabled(false);
+    setIsValidatingInput(false);
   }, [updateName]);
 
   const handleUpdate = async (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -306,10 +317,7 @@ export const ApplicationPage = () => {
                     <button
                       className='unstyled'
                       title='Update'
-                      onClick={() => {
-                        setShowUpdateModal(true);
-                        setUpdateName(app.name);
-                      }}
+                      onClick={() => setShowUpdateModal(true)}
                     >
                       <svg
                         viewBox='0 0 16 16'
@@ -477,9 +485,10 @@ export const ApplicationPage = () => {
                 className='truncate rounded disabled:cursor-not-allowed disabled:opacity-75 disabled:hover:bg-[--vscode-button-background]'
                 disabled={
                   isUpdateLoading ||
-                  isUpdateDisabled ||
-                  applicationNameErrors.length > 0 ||
-                  updateName === app?.name
+                  isValidatingInput ||
+                  hasEmptyRequiredInputs ||
+                  hasErrors ||
+                  !hasChanges
                 }
               >
                 {isUpdateLoading ? 'Updating...' : 'Update Application'}

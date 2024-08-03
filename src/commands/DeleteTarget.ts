@@ -1,16 +1,23 @@
 import * as vscode from 'vscode';
 import Command from '@commands/Command';
 import {
-  DELETE_APP,
   DELETE_TARGET,
   INVALID_TARGET,
   INVALID_UUID,
 } from '@commands/CommandConstants';
 
+export interface DeleteTargetParams {
+  id: string;
+}
+
 export default class DeleteTarget extends Command {
   protected id: string;
 
-  constructor(webview: vscode.Webview, requestId: string, id: string) {
+  constructor(
+    webview: vscode.Webview,
+    requestId: string,
+    { id }: DeleteTargetParams
+  ) {
     super(`nightvision target delete -T ${id}`, webview, requestId);
     this.id = id;
   }

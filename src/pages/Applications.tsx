@@ -92,9 +92,12 @@ export const Applications = () => {
     []
   );
 
-  const [isCreateDisabled, setIsCreateDisabled] = useState(true);
+  const [isValidatingInput, setIsValidatingInput] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [isFetching, setIsFetching] = useState(false);
+
+  const hasEmptyRequiredInputs = !applicationName;
+  const hasErrors = applicationNameErrors.length > 0;
 
   useEffect(() => {
     let ignore = false;
@@ -119,12 +122,12 @@ export const Applications = () => {
   }, [showCreateModal]);
 
   useEffect(() => {
-    setIsCreateDisabled(true);
+    setIsValidatingInput(true);
   }, [_applicationName]);
 
   useEffect(() => {
     setApplicationNameErrors([]);
-    setIsCreateDisabled(true);
+    setIsValidatingInput(true);
 
     const errors: string[] = [];
 
@@ -151,7 +154,7 @@ export const Applications = () => {
       return;
     }
 
-    setIsCreateDisabled(false);
+    setIsValidatingInput(false);
   }, [applicationName]);
 
   const handleCreateApp = async (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -317,8 +320,9 @@ export const Applications = () => {
                 className='truncate rounded disabled:cursor-not-allowed disabled:opacity-75 disabled:hover:bg-[--vscode-button-background]'
                 disabled={
                   isLoading ||
-                  isCreateDisabled ||
-                  applicationNameErrors.length > 0
+                  isValidatingInput ||
+                  hasEmptyRequiredInputs ||
+                  hasErrors
                 }
               >
                 {isLoading ? 'Creating...' : 'Create Application'}

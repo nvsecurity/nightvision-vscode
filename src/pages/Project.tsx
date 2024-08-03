@@ -268,7 +268,7 @@ export const ProjectPage = () => {
   const [projectNameErrors, setProjectNameErrors] = useState<string[]>([]);
   const [deleteErrors, setDeleteErrors] = useState<string[]>([]);
 
-  const [isUpdateDisabled, setIsUpdateDisabled] = useState(true);
+  const [isValidatingInput, setIsValidatingInput] = useState(true);
   const [isUpdateLoading, setIsUpdateLoading] = useState(false);
   const [isDeleteLoading, setIsDeleteLoading] = useState(false);
   const [isLeaveLoading, setIsLeaveLoading] = useState(false);
@@ -280,6 +280,10 @@ export const ProjectPage = () => {
 
   const [isProjectIdCopied, setIsProjectIdCopied] = useState(false);
   const projectIdCopyTimer = useRef<NodeJS.Timeout>();
+
+  const hasEmptyRequiredInputs = !updateName;
+  const hasErrors = projectNameErrors.length > 0;
+  const hasChanges = updateName !== project?.name;
 
   useEffect(() => {
     let ignore = false;
@@ -332,19 +336,22 @@ export const ProjectPage = () => {
   }, [userName]);
 
   useEffect(() => {
+    setUpdateName(project?.name ?? '');
     setUserName('');
     setSearchedUsers([]);
     setAddUsers([]);
+
     setProjectNameErrors([]);
-  }, [showShareModal]);
+    setDeleteErrors([]);
+  }, [project, showUpdateModal]);
 
   useEffect(() => {
-    setIsUpdateDisabled(true);
+    setIsValidatingInput(true);
   }, [_updateName]);
 
   useEffect(() => {
     setProjectNameErrors([]);
-    setIsUpdateDisabled(true);
+    setIsValidatingInput(true);
 
     const errors: string[] = [];
 
@@ -367,7 +374,7 @@ export const ProjectPage = () => {
       return;
     }
 
-    setIsUpdateDisabled(false);
+    setIsValidatingInput(false);
   }, [updateName]);
 
   const handleUpdate = async (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -577,10 +584,7 @@ export const ProjectPage = () => {
                     <button
                       className='unstyled'
                       title='Update'
-                      onClick={() => {
-                        setShowUpdateModal(true);
-                        setUpdateName(project.name);
-                      }}
+                      onClick={() => setShowUpdateModal(true)}
                     >
                       <svg
                         viewBox='0 0 16 16'
@@ -827,9 +831,10 @@ export const ProjectPage = () => {
                 className='truncate rounded disabled:cursor-not-allowed disabled:opacity-75 disabled:hover:bg-[--vscode-button-background]'
                 disabled={
                   isUpdateLoading ||
-                  isUpdateDisabled ||
-                  projectNameErrors.length > 0 ||
-                  updateName === project?.name
+                  isValidatingInput ||
+                  hasEmptyRequiredInputs ||
+                  hasErrors ||
+                  !hasChanges
                 }
               >
                 {isUpdateLoading ? 'Updating...' : 'Update Project'}

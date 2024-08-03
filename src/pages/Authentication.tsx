@@ -759,7 +759,7 @@ export const AuthenticationPage = () => {
               <button
                 onClick={handleDelete}
                 disabled={isDeleteLoading}
-                className='truncate rounded bg-red-500 hover:bg-red-500 hover:brightness-90 disabled:cursor-not-allowed disabled:opacity-75 hover:disabled:brightness-100'
+                className='truncate rounded bg-red-500 hover:bg-red-500 hover:brightness-90 disabled:bg-neutral-800 hover:disabled:cursor-default hover:disabled:brightness-100'
               >
                 {isDeleteLoading ? 'Deleting...' : 'Delete'}
               </button>
