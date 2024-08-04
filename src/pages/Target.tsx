@@ -841,7 +841,7 @@ export const TargetPage = () => {
                 </svg>
               </button>
             </div>
-            <p>
+            <p className='overflow-hidden'>
               Are you sure you want to delete <strong>{target?.name}</strong>{' '}
               from your account?
             </p>

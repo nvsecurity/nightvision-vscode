@@ -864,7 +864,7 @@ export const ProjectPage = () => {
                 </svg>
               </button>
             </div>
-            <p>
+            <p className='overflow-hidden'>
               Are you sure you want to delete <strong>{project?.name}</strong>?
             </p>
             <p>
@@ -928,7 +928,7 @@ export const ProjectPage = () => {
                 </svg>
               </button>
             </div>
-            <p>
+            <p className='overflow-hidden'>
               Are you sure you want to leave <strong>{project?.name}</strong>{' '}
               project?
             </p>
@@ -1122,7 +1122,7 @@ export const ProjectPage = () => {
                 </svg>
               </button>
             </div>
-            <p>
+            <p className='overflow-hidden'>
               Are you sure you want to remove{' '}
               <strong>
                 {removeUser?.firstName} {removeUser?.lastName} (

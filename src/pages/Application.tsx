@@ -518,7 +518,7 @@ export const ApplicationPage = () => {
                 </svg>
               </button>
             </div>
-            <p>
+            <p className='overflow-hidden'>
               Are you sure you want to delete <strong>{app?.name}</strong> from
               your account?
             </p>

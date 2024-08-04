@@ -880,7 +880,7 @@ export const AuthenticationPage = () => {
                 </svg>
               </button>
             </div>
-            <p>
+            <p className='overflow-hidden'>
               Are you sure you want to delete <strong>{auth.name}</strong> from
               your account?
             </p>
