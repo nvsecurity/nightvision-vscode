@@ -150,7 +150,6 @@ export const ApplicationPage = () => {
   }, [_updateName]);
 
   useEffect(() => {
-    setApplicationNameErrors([]);
     setIsValidatingInput(true);
 
     const errors: string[] = [];
@@ -169,11 +168,7 @@ export const ApplicationPage = () => {
       );
     }
 
-    if (errors.length > 0) {
-      setApplicationNameErrors((prevState) => [...prevState, ...errors]);
-      return;
-    }
-
+    setApplicationNameErrors(errors);
     setIsValidatingInput(false);
   }, [updateName]);
 

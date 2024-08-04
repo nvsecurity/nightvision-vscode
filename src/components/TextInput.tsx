@@ -8,6 +8,7 @@ export const TextInput = ({
   id,
   isLoading,
   errors,
+  touched = false,
 }: {
   value?: string | null;
   handleOnChange: (e: string) => void;
@@ -15,6 +16,7 @@ export const TextInput = ({
   id: string;
   isLoading?: boolean;
   errors?: string[];
+  touched?: boolean;
 }) => {
   const [isTouched, setIsTouched] = useState(false);
 
@@ -48,7 +50,7 @@ export const TextInput = ({
           </svg>
         )}
       </div>
-      {errors && isTouched && (
+      {errors && (isTouched || touched) && (
         <ul className='list-disc'>
           {Array.from(new Set(errors)).map((error) => (
             <li key={error} className='font-semibold text-red-600'>

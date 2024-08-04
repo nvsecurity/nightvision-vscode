@@ -126,7 +126,6 @@ export const Applications = () => {
   }, [_applicationName]);
 
   useEffect(() => {
-    setApplicationNameErrors([]);
     setIsValidatingInput(true);
 
     const errors: string[] = [];
@@ -149,13 +148,9 @@ export const Applications = () => {
       errors.push('Application name already exists');
     }
 
-    if (errors.length > 0) {
-      setApplicationNameErrors((prevState) => [...prevState, ...errors]);
-      return;
-    }
-
+    setApplicationNameErrors(errors);
     setIsValidatingInput(false);
-  }, [applicationName]);
+  }, [apps, applicationName]);
 
   const handleCreateApp = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();

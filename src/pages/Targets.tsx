@@ -186,7 +186,6 @@ export const Targets = () => {
   }, [_targetName, _targetUrl, _openApiUrl]);
 
   useEffect(() => {
-    setTargetNameErrors([]);
     setIsValidatingInput(true);
 
     const errors: string[] = [];
@@ -209,16 +208,11 @@ export const Targets = () => {
       errors.push('Target name already exists');
     }
 
-    if (errors.length > 0) {
-      setTargetNameErrors((prevState) => [...prevState, ...errors]);
-      return;
-    }
-
+    setTargetNameErrors(errors);
     setIsValidatingInput(false);
-  }, [targetName]);
+  }, [targets, targetName]);
 
   useEffect(() => {
-    setTargetUrlErrors([]);
     setIsValidatingInput(true);
 
     const errors: string[] = [];
@@ -227,16 +221,11 @@ export const Targets = () => {
       errors.push('URL is required');
     }
 
-    if (errors.length > 0) {
-      setTargetUrlErrors((prevState) => [...prevState, ...errors]);
-      return;
-    }
-
+    setTargetUrlErrors(errors);
     setIsValidatingInput(false);
   }, [targetUrl]);
 
   useEffect(() => {
-    setOpenApiUrlErrors([]);
     setIsValidatingInput(true);
 
     const errors: string[] = [];
@@ -255,16 +244,11 @@ export const Targets = () => {
       );
     }
 
-    if (errors.length > 0) {
-      setOpenApiUrlErrors((prevState) => [...prevState, ...errors]);
-      return;
-    }
-
+    setOpenApiUrlErrors(errors);
     setIsValidatingInput(false);
   }, [openApiUrl]);
 
   useEffect(() => {
-    setSwaggerFileErrors([]);
     setIsValidatingInput(true);
 
     const errors: string[] = [];
@@ -283,11 +267,7 @@ export const Targets = () => {
       );
     }
 
-    if (errors.length > 0) {
-      setSwaggerFileErrors((prevState) => [...prevState, ...errors]);
-      return;
-    }
-
+    setSwaggerFileErrors(errors);
     setIsValidatingInput(false);
   }, [swaggerFile]);
 

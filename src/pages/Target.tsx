@@ -225,7 +225,6 @@ export const TargetPage = () => {
   }, [_updateName, _updateLocation, _updateOpenApiUrl]);
 
   useEffect(() => {
-    setTargetNameErrors([]);
     setIsValidatingInput(true);
 
     const errors: string[] = [];
@@ -244,16 +243,11 @@ export const TargetPage = () => {
       );
     }
 
-    if (errors.length > 0) {
-      setTargetNameErrors((prevState) => [...prevState, ...errors]);
-      return;
-    }
-
+    setTargetNameErrors(errors);
     setIsValidatingInput(false);
   }, [updateName]);
 
   useEffect(() => {
-    setTargetUrlErrors([]);
     setIsValidatingInput(true);
 
     const errors: string[] = [];
@@ -262,16 +256,11 @@ export const TargetPage = () => {
       errors.push('URL is required');
     }
 
-    if (errors.length > 0) {
-      setTargetUrlErrors((prevState) => [...prevState, ...errors]);
-      return;
-    }
-
+    setTargetUrlErrors(errors);
     setIsValidatingInput(false);
   }, [updateLocation]);
 
   useEffect(() => {
-    setOpenApiUrlErrors([]);
     setIsValidatingInput(true);
 
     const errors: string[] = [];
@@ -290,16 +279,11 @@ export const TargetPage = () => {
       );
     }
 
-    if (errors.length > 0) {
-      setOpenApiUrlErrors((prevState) => [...prevState, ...errors]);
-      return;
-    }
-
+    setOpenApiUrlErrors(errors);
     setIsValidatingInput(false);
   }, [updateOpenApiUrl]);
 
   useEffect(() => {
-    setSwaggerFileErrors([]);
     if (oldSwaggerFileName) {
       return;
     }
@@ -322,11 +306,7 @@ export const TargetPage = () => {
       );
     }
 
-    if (errors.length > 0) {
-      setSwaggerFileErrors((prevState) => [...prevState, ...errors]);
-      return;
-    }
-
+    setSwaggerFileErrors(errors);
     setIsValidatingInput(false);
   }, [updateSwaggerFile, oldSwaggerFileName]);
 

@@ -3,6 +3,7 @@ import { useProject } from '@hooks/useProject';
 import { useUser } from '@hooks/useUser';
 import { Auth, AuthHeader, AuthType } from '@types_/auth';
 import { Project } from '@types_/project';
+import { useDebounce } from 'use-debounce';
 import { v4 } from 'uuid';
 import React, { useEffect } from 'react';
 import { useState } from 'react';
@@ -11,18 +12,13 @@ import {
   AUTH_DESCRIPTION_LENGTH,
   AUTH_MISSING_HEADERS,
   CREATE_AUTH,
-  DELETE_AUTH,
   DUPLICATE_NAME,
-  INVALID_AUTH,
   INVALID_AUTH_FORM,
   INVALID_NAME,
   INVALID_URL,
-  INVALID_UUID,
   UNAUTHORIZED_ACCESS,
-  UPDATE_AUTH,
 } from '@commands/CommandConstants';
 import { CreateAuthParams } from '@commands/CreateAuth';
-import { UpdateAuthParams } from '@commands/UpdateAuth';
 import { Dropdown } from '@components/Dropdown';
 import { EditList } from '@components/EditList';
 import { Label } from '@components/Label';
@@ -105,20 +101,48 @@ export const Authentications = () => {
   const [auths, setAuths] = useState<Auth[]>();
   const [projects, setProjects] = useState<Project[]>();
 
-  const [authName, setAuthName] = useState('');
-  const [authDescription, setAuthDescription] = useState('');
-  const [authHeaders, setAuthHeaders] = useState<AuthHeader[]>([
+  const [_authName, setAuthName] = useState('');
+  const [_authDescription, setAuthDescription] = useState('');
+  const [_authHeaders, setAuthHeaders] = useState<AuthHeader[]>([
     { name: '', value: '' },
   ]);
-  const [authCookies, setAuthCookies] = useState<AuthHeader[]>([
+  const [_authCookies, setAuthCookies] = useState<AuthHeader[]>([
     { name: '', value: '' },
   ]);
-  const [authUrl, setAuthUrl] = useState('');
+  const [_authUrl, setAuthUrl] = useState('');
 
+  const [authName] = useDebounce(_authName, 500);
+  const [authDescription] = useDebounce(_authDescription, 500);
+  const [authHeaders] = useDebounce(_authHeaders, 500);
+  const [authCookies] = useDebounce(_authCookies, 500);
+  const [authUrl] = useDebounce(_authUrl, 500);
+
+  const [authNameErrors, setAuthNameErrors] = useState<string[]>([]);
+  const [authDescriptionErrors, setAuthDescriptionErrors] = useState<string[]>(
+    []
+  );
+  const [authHeaderErrors, setAuthHeaderErrors] = useState<string[]>([]);
+  const [authCookieErrors, setAuthCookieErrors] = useState<string[]>([]);
+  const [authUrlErrors, setAuthUrlErrors] = useState<string[]>([]);
+  const [playwrightFormErrors, setPlaywrightFormErrors] = useState<string[]>(
+    []
+  );
+
+  const [isValidatingInput, setIsValidatingInput] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [isFetching, setIsFetching] = useState(false);
 
   const [selectedType, setSelectedType] = useState(types[0]);
+
+  const hasEmptyRequiredInputs =
+    !authName || (selectedType.type === 'SCRIPT' && !authUrl);
+
+  const hasErrors =
+    authNameErrors.length > 0 ||
+    authDescriptionErrors.length > 0 ||
+    (selectedType.type === 'COOKIE' && authCookieErrors.length > 0) ||
+    (selectedType.type === 'HEADER' && authHeaderErrors.length > 0) ||
+    (selectedType.type === 'SCRIPT' && authUrlErrors.length > 0);
 
   useEffect(() => {
     let ignore = false;
@@ -144,27 +168,104 @@ export const Authentications = () => {
     setAuthCookies([{ name: '', value: '' }]);
     setAuthUrl('');
 
+    setAuthNameErrors([]);
+    setAuthDescriptionErrors([]);
+    setAuthHeaderErrors([]);
+    setAuthCookieErrors([]);
+    setAuthUrlErrors([]);
+    setPlaywrightFormErrors([]);
+
     setSelectedType(types[0]);
   }, [showCreateModal]);
+
+  useEffect(() => {
+    setIsValidatingInput(true);
+  }, [_authName, _authDescription, _authCookies, _authHeaders, _authUrl]);
+
+  useEffect(() => {
+    setIsValidatingInput(true);
+
+    const errors: string[] = [];
+
+    if (!authName) {
+      errors.push('Name is required');
+    }
+
+    if (authName.length > 100) {
+      errors.push('Name must be at most 100 characters');
+    }
+
+    if (/[^\w_-]/.test(authName)) {
+      errors.push(
+        "Only characters 'A-Z', 'a-z', '0-9', '-', and '_' are allowed"
+      );
+    }
+
+    if (auths?.some((auth) => auth.name === authName)) {
+      errors.push('Authentication name already exists');
+    }
+
+    setAuthNameErrors(errors);
+    setIsValidatingInput(false);
+  }, [auths, authName]);
+
+  useEffect(() => {
+    setIsValidatingInput(true);
+
+    const errors: string[] = [];
+
+    if (authDescription.length > 100) {
+      errors.push('Description must be at most 500 characters');
+    }
+
+    setAuthDescriptionErrors(errors);
+    setIsValidatingInput(false);
+  }, [authDescription]);
+
+  useEffect(() => {
+    setIsValidatingInput(false);
+    setAuthCookieErrors([]);
+  }, [authCookies]);
+
+  useEffect(() => {
+    setIsValidatingInput(false);
+    setAuthHeaderErrors([]);
+  }, [authHeaders]);
+
+  useEffect(() => {
+    setIsValidatingInput(true);
+
+    const errors: string[] = [];
+
+    if (!authUrl) {
+      errors.push('URL is required');
+    }
+
+    setAuthUrlErrors(errors);
+    setIsValidatingInput(false);
+  }, [authUrl]);
 
   const handleCreateAuth = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
 
-    // TODO
     if (!authName) {
       return;
     }
 
-    if (selectedType.type === 'COOKIE') {
-      if (authCookies.some((cookie) => !cookie.name || !cookie.value)) {
-        return;
-      }
+    if (
+      selectedType.type === 'COOKIE' &&
+      authCookies.some((cookie) => !cookie.name || !cookie.value)
+    ) {
+      setAuthCookieErrors(['Cookie names and values are required']);
+      return;
     }
 
-    if (selectedType.type === 'HEADER') {
-      if (authHeaders.some((header) => !header.name || !header.value)) {
-        return;
-      }
+    if (
+      selectedType.type === 'HEADER' &&
+      authHeaders.some((header) => !header.name || !header.value)
+    ) {
+      setAuthHeaderErrors(['Header names and values are required']);
+      return;
     }
 
     if (selectedType.type === 'SCRIPT') {
@@ -197,33 +298,54 @@ export const Authentications = () => {
             break;
           }
           case AUTH_MISSING_HEADERS: {
-            // TODO
-            console.log(AUTH_MISSING_HEADERS);
+            if (
+              selectedType.type === 'COOKIE' &&
+              authCookies.some((cookie) => !cookie.name || !cookie.value)
+            ) {
+              setAuthCookieErrors(['Cookie names and values are required']);
+              return;
+            }
+
+            if (
+              selectedType.type === 'HEADER' &&
+              authHeaders.some((header) => !header.name || !header.value)
+            ) {
+              setAuthHeaderErrors(['Header names and values are required']);
+              return;
+            }
+
             break;
           }
           case AUTH_DESCRIPTION_LENGTH: {
-            // TODO
-            console.log(AUTH_DESCRIPTION_LENGTH);
+            setAuthDescriptionErrors((prevState) => [
+              ...prevState,
+              'Name must be at most 500 characters',
+            ]);
             break;
           }
           case DUPLICATE_NAME: {
-            // TODO
-            console.log(DUPLICATE_NAME);
+            setAuthNameErrors((prevState) => [
+              ...prevState,
+              'Authentication name already exists',
+            ]);
             break;
           }
           case INVALID_NAME: {
-            // TODO
-            console.log(INVALID_NAME);
+            setAuthNameErrors((prevState) => [
+              ...prevState,
+              "Name should have a max length of 100 and should have characters 'A-Z', 'a-z', '0-9', '-', and '_' only",
+            ]);
             break;
           }
           case INVALID_URL: {
-            // TODO
-            console.log(INVALID_URL);
+            setAuthUrlErrors((prevState) => [...prevState, 'Invalid URL']);
             break;
           }
           case INVALID_AUTH_FORM: {
-            // TODO
-            console.log(INVALID_AUTH_FORM);
+            setPlaywrightFormErrors((prevState) => [
+              ...prevState,
+              'No authentication workflow recorded. Please log in to get authentication credentials.',
+            ]);
             break;
           }
           case UNAUTHORIZED_ACCESS:
@@ -343,156 +465,138 @@ export const Authentications = () => {
                 setSelected={setSelectedType}
               />
               <TextInput
-                value={authName}
+                value={_authName}
                 handleOnChange={setAuthName}
                 label='Authetication Name'
                 id='auth-name'
+                errors={authNameErrors}
               />
               <TextInput
-                value={authDescription}
+                value={_authDescription}
                 handleOnChange={setAuthDescription}
                 label='Description (Optional)'
                 id='auth-description'
+                errors={authDescriptionErrors}
               />
-              {selectedType.type === 'SCRIPT' && (
-                <>
-                  <TextInput
-                    value={authUrl}
-                    handleOnChange={setAuthUrl}
-                    label='Authentication URL'
-                    id='auth-url'
-                  />
 
-                  <p className='!mt-6'>
-                    Will launch an incognito Chrome Window to record the login
-                    process. <b>Instructions</b>:
-                  </p>
-                  <ul className='!mb-4 list-disc'>
-                    <li>
-                      Follow the steps to log into the application (type in the
-                      username and password)
-                    </li>
-                    <li>
-                      When you are done, exit the Chrome window. This will
-                      upload the login sequence to NightVision Cloud.
-                    </li>
-                  </ul>
-                </>
-              )}
-              {selectedType.type !== 'SCRIPT' && (
-                <>
-                  {(selectedType.type === 'HEADER'
-                    ? authHeaders
-                    : authCookies
-                  ).map((header, index) => (
-                    <div className='flex flex-nowrap' key={index}>
-                      <div className='grid w-full grid-cols-2 gap-2'>
-                        <TextInput
-                          value={header.name}
-                          handleOnChange={(value) =>
-                            selectedType.type === 'HEADER'
-                              ? setAuthHeaders((prevState) =>
-                                  prevState.map((header, i) =>
-                                    index === i
-                                      ? { ...header, name: value }
-                                      : header
-                                  )
-                                )
-                              : setAuthCookies((prevState) =>
-                                  prevState.map((header, i) =>
-                                    index === i
-                                      ? { ...header, name: value }
-                                      : header
-                                  )
-                                )
-                          }
-                          label={`${selectedType.name} Name`}
-                          id={`header-name-${index}`}
-                        />
-                        <TextInput
-                          value={header.value}
-                          handleOnChange={(value) =>
-                            selectedType.type === 'HEADER'
-                              ? setAuthHeaders((prevState) =>
-                                  prevState.map((header, i) =>
-                                    index === i
-                                      ? { ...header, value: value }
-                                      : header
-                                  )
-                                )
-                              : setAuthCookies((prevState) =>
-                                  prevState.map((header, i) =>
-                                    index === i
-                                      ? { ...header, value: value }
-                                      : header
-                                  )
-                                )
-                          }
-                          label={`${selectedType.name} Value`}
-                          id={`header-value-${index}`}
-                        />
-                      </div>
-                      <button
-                        className='unstyled h-min w-min hover:brightness-75'
-                        onClick={() =>
-                          selectedType.type === 'HEADER'
-                            ? setAuthHeaders((prevState) =>
-                                prevState.length > 1
-                                  ? prevState.filter((_, i) => i !== index)
-                                  : prevState
-                              )
-                            : setAuthCookies((prevState) =>
-                                prevState.length > 1
-                                  ? prevState.filter((_, i) => i !== index)
-                                  : prevState
-                              )
-                        }
-                      >
-                        <svg
-                          viewBox='0 0 16 16'
-                          xmlns='http://www.w3.org/2000/svg'
-                          className='h-6 w-6 fill-[--vscode-foreground]'
-                        >
-                          <path
-                            fillRule='evenodd'
-                            clipRule='evenodd'
-                            d='M8 8.707l3.646 3.647.708-.707L8.707 8l3.647-3.646-.707-.708L8 7.293 4.354 3.646l-.707.708L7.293 8l-3.646 3.646.707.708L8 8.707z'
-                          />
-                        </svg>
-                      </button>
-                    </div>
+              <div
+                className={`${selectedType.type === 'SCRIPT' ? 'block' : 'hidden'}`}
+              >
+                <TextInput
+                  value={_authUrl}
+                  handleOnChange={setAuthUrl}
+                  label='Authentication URL'
+                  id='auth-url'
+                  errors={authUrlErrors}
+                />
+
+                <p className='!mt-6'>
+                  Will launch an incognito Chrome Window to record the login
+                  process. <b>Instructions</b>:
+                </p>
+                <ul className='!mb-4 list-disc'>
+                  <li>
+                    Follow the steps to log into the application (type in the
+                    username and password)
+                  </li>
+                  <li>
+                    When you are done, exit the Chrome window. This will upload
+                    the login sequence to NightVision Cloud.
+                  </li>
+                </ul>
+              </div>
+
+              <div
+                className={`flex flex-col ${selectedType.type !== 'SCRIPT' ? 'block' : 'hidden'}`}
+              >
+                <div
+                  className={`${selectedType.type === 'COOKIE' ? 'block' : 'hidden'}`}
+                >
+                  {_authCookies.map((cookie, index) => (
+                    <Headers
+                      key={index}
+                      name={cookie.name}
+                      value={cookie.value}
+                      setHeaders={setAuthCookies}
+                      index={index}
+                      selectedType={selectedType}
+                    />
                   ))}
-                  <button
-                    className='unstyled flex !w-min flex-nowrap items-center justify-center self-end text-[--vscode-foreground] hover:brightness-75'
-                    onClick={() =>
-                      selectedType.type === 'HEADER'
-                        ? setAuthHeaders((prevState) => [
-                            ...prevState,
-                            { name: '', value: '' },
-                          ])
-                        : setAuthCookies((prevState) => [
-                            ...prevState,
-                            { name: '', value: '' },
-                          ])
-                    }
+                </div>
+
+                <div
+                  className={`${selectedType.type === 'HEADER' ? 'block' : 'hidden'}`}
+                >
+                  {_authHeaders.map((header, index) => (
+                    <Headers
+                      key={index}
+                      name={header.name}
+                      value={header.value}
+                      setHeaders={setAuthHeaders}
+                      index={index}
+                      selectedType={selectedType}
+                    />
+                  ))}
+                </div>
+                <button
+                  className='unstyled mt-1 flex !w-min flex-nowrap items-center justify-center self-end text-[--vscode-foreground] hover:brightness-75'
+                  onClick={() =>
+                    selectedType.type === 'HEADER'
+                      ? setAuthHeaders((prevState) => [
+                          ...prevState,
+                          { name: '', value: '' },
+                        ])
+                      : setAuthCookies((prevState) => [
+                          ...prevState,
+                          { name: '', value: '' },
+                        ])
+                  }
+                >
+                  <svg
+                    xmlns='http://www.w3.org/2000/svg'
+                    viewBox='0 0 24 24'
+                    strokeWidth={1.5}
+                    stroke='currentColor'
+                    className='mt-0.5 h-5 w-5'
                   >
-                    <svg
-                      xmlns='http://www.w3.org/2000/svg'
-                      viewBox='0 0 24 24'
-                      strokeWidth={1.5}
-                      stroke='currentColor'
-                      className='mt-0.5 h-5 w-5'
-                    >
-                      <path
-                        strokeLinecap='round'
-                        strokeLinejoin='round'
-                        d='M12 4.5v15m7.5-7.5h-15'
-                      />
-                    </svg>
-                    <span className='text-nowrap'>Add {selectedType.name}</span>
-                  </button>
-                </>
-              )}
+                    <path
+                      strokeLinecap='round'
+                      strokeLinejoin='round'
+                      d='M12 4.5v15m7.5-7.5h-15'
+                    />
+                  </svg>
+                  <span className='text-nowrap'>Add {selectedType.name}</span>
+                </button>
+              </div>
+              {selectedType.type === 'SCRIPT' &&
+                playwrightFormErrors.length > 0 && (
+                  <ul className='list-disc'>
+                    {Array.from(new Set(playwrightFormErrors)).map((error) => (
+                      <li key={error} className='font-semibold text-red-600'>
+                        {error}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              {selectedType.type !== 'SCRIPT' &&
+                (selectedType.type === 'HEADER'
+                  ? authHeaderErrors
+                  : authCookieErrors
+                ).length > 0 && (
+                  <ul className='list-disc'>
+                    {Array.from(
+                      new Set(
+                        selectedType.type === 'HEADER'
+                          ? authHeaderErrors
+                          : authCookieErrors
+                      )
+                    ).map((error) => (
+                      <li key={error} className='font-semibold text-red-600'>
+                        {error}
+                      </li>
+                    ))}
+                  </ul>
+                )}
             </div>
             <div className='flex space-x-2'>
               <SecondaryButton
@@ -504,7 +608,12 @@ export const Authentications = () => {
               <button
                 onClick={handleCreateAuth}
                 className='truncate rounded disabled:cursor-not-allowed disabled:opacity-75 disabled:hover:bg-[--vscode-button-background]'
-                disabled={isLoading}
+                disabled={
+                  isLoading ||
+                  isValidatingInput ||
+                  hasEmptyRequiredInputs ||
+                  hasErrors
+                }
               >
                 {isLoading ? 'Creating...' : 'Create Authentication'}
               </button>
@@ -513,5 +622,75 @@ export const Authentications = () => {
         </Modal>
       )}
     </>
+  );
+};
+
+const Headers = ({
+  name,
+  value,
+  setHeaders,
+  index,
+  selectedType,
+}: {
+  name: string;
+  value: string;
+  setHeaders: React.Dispatch<React.SetStateAction<AuthHeader[]>>;
+  index: number;
+  selectedType: {
+    type: AuthType;
+    name: string;
+  };
+}) => {
+  return (
+    <div className='mb-1 flex flex-nowrap' key={index}>
+      <div className='grid w-full grid-cols-2 gap-2'>
+        <TextInput
+          value={name}
+          handleOnChange={(value) =>
+            setHeaders((prevState) =>
+              prevState.map((header, i) =>
+                index === i ? { ...header, name: value } : header
+              )
+            )
+          }
+          label={`${selectedType.name} Name`}
+          id={`header-name-${index}`}
+        />
+        <TextInput
+          value={value}
+          handleOnChange={(value) =>
+            setHeaders((prevState) =>
+              prevState.map((header, i) =>
+                index === i ? { ...header, value: value } : header
+              )
+            )
+          }
+          label={`${selectedType.name} Value`}
+          id={`header-value-${index}`}
+        />
+      </div>
+      <button
+        className='unstyled h-min w-min hover:brightness-75'
+        onClick={() =>
+          setHeaders((prevState) =>
+            prevState.length > 1
+              ? prevState.filter((_, i) => i !== index)
+              : prevState
+          )
+        }
+      >
+        <svg
+          viewBox='0 0 16 16'
+          xmlns='http://www.w3.org/2000/svg'
+          className='h-6 w-6 fill-[--vscode-foreground]'
+        >
+          <path
+            fillRule='evenodd'
+            clipRule='evenodd'
+            d='M8 8.707l3.646 3.647.708-.707L8.707 8l3.647-3.646-.707-.708L8 7.293 4.354 3.646l-.707.708L7.293 8l-3.646 3.646.707.708L8 8.707z'
+          />
+        </svg>
+      </button>
+    </div>
   );
 };

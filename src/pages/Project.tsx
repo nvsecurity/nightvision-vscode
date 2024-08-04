@@ -350,7 +350,6 @@ export const ProjectPage = () => {
   }, [_updateName]);
 
   useEffect(() => {
-    setProjectNameErrors([]);
     setIsValidatingInput(true);
 
     const errors: string[] = [];
@@ -369,11 +368,7 @@ export const ProjectPage = () => {
       );
     }
 
-    if (errors.length > 0) {
-      setProjectNameErrors((prevState) => [...prevState, ...errors]);
-      return;
-    }
-
+    setProjectNameErrors(errors);
     setIsValidatingInput(false);
   }, [updateName]);
 

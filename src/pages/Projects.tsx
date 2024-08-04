@@ -142,7 +142,6 @@ export const Projects = () => {
   }, [_projectName]);
 
   useEffect(() => {
-    setProjectNameErrors([]);
     setIsValidatingInput(true);
 
     const errors: string[] = [];
@@ -165,13 +164,9 @@ export const Projects = () => {
       errors.push('Project name already exists');
     }
 
-    if (errors.length > 0) {
-      setProjectNameErrors((prevState) => [...prevState, ...errors]);
-      return;
-    }
-
+    setProjectNameErrors(errors);
     setIsValidatingInput(false);
-  }, [projectName]);
+  }, [projects, projectName]);
 
   const handleCreateProject = async (
     e: React.MouseEvent<HTMLButtonElement>
