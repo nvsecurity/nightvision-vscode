@@ -76,11 +76,13 @@ export default class Scan extends Command {
       this.webview.postMessage({
         command: INVALID_TARGET,
         requestId: this.requestId,
+        payload: 'error validating target location',
       });
     } else if (/target connectivity test failed/.test(message)) {
       this.webview.postMessage({
         command: INVALID_TARGET,
         requestId: this.requestId,
+        payload: 'target connectivity test failed',
       });
     }
   }
