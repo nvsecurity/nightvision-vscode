@@ -40,20 +40,15 @@ export const Overview = () => {
         ))}
       </div>
       {cliVersion && isCliOutdated(cliVersion) && (
-        <>
-          <InstallButton
-            installText='Update NightVison CLI'
-            installingText='Updating...'
-            setIsCliInstalled={(val) => {
-              setIsCliInstalled(val);
-              setCliVersion(process.env.CLI_VERSION);
-            }}
-          />
-          <span className='font-semibold text-red-600'>
-            You have version {cliVersion} of the NightVison CLI, but the plugin
-            requires version {process.env.CLI_VERSION} to be fully operational.
-          </span>
-        </>
+        <InstallButton
+          installText='Update NightVison CLI'
+          installingText='Updating...'
+          cliVersion={cliVersion}
+          setIsCliInstalled={(val) => {
+            setIsCliInstalled(val);
+            setCliVersion(process.env.CLI_VERSION);
+          }}
+        />
       )}
     </div>
   );

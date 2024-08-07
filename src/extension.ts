@@ -187,7 +187,6 @@ class SidebarProvider implements vscode.WebviewViewProvider {
               webviewView.webview.postMessage({
                 command: CLI_INSTALL_FAILED,
                 requestId,
-                error: CLI_INSTALL_FAILED,
                 isFinal: true,
               });
               return;
@@ -210,7 +209,6 @@ class SidebarProvider implements vscode.WebviewViewProvider {
                   webviewView.webview.postMessage({
                     command: CLI_INSTALL_FAILED,
                     requestId,
-                    error: CLI_INSTALL_FAILED,
                     isFinal: true,
                   });
                   stop = true;
@@ -231,7 +229,6 @@ class SidebarProvider implements vscode.WebviewViewProvider {
                 webviewView.webview.postMessage({
                   command: CLI_INSTALL_FAILED,
                   requestId,
-                  error: CLI_INSTALL_FAILED,
                   isFinal: true,
                 });
                 return;
