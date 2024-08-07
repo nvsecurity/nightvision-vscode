@@ -3,6 +3,7 @@ import { useProject } from '@hooks/useProject';
 import { useUser } from '@hooks/useUser';
 import { Project } from '@types_/project';
 import { ApiSpec, Target, TargetType } from '@types_/target';
+import { useDebounce } from 'use-debounce';
 import { v4 } from 'uuid';
 import React, { useEffect } from 'react';
 import { useState } from 'react';
@@ -103,16 +104,39 @@ export const Targets = () => {
 
   const [targets, setTargets] = useState<Target[]>();
   const [projects, setProjects] = useState<Project[]>();
-  const [targetName, setTargetName] = useState('');
-  const [targetUrl, setTargetUrl] = useState('');
-  const [openApiUrl, setOpenApiUrl] = useState('');
+  const [_targetName, setTargetName] = useState('');
+  const [targetName] = useDebounce(_targetName, 500);
+  const [_targetUrl, setTargetUrl] = useState('');
+  const [targetUrl] = useDebounce(_targetUrl, 500);
+  const [_openApiUrl, setOpenApiUrl] = useState('');
+  const [openApiUrl] = useDebounce(_openApiUrl, 500);
   const [swaggerFile, setSwaggerFile] = useState<File | null>();
 
+  const [targetNameErrors, setTargetNameErrors] = useState<string[]>([]);
+  const [targetUrlErrors, setTargetUrlErrors] = useState<string[]>([]);
+  const [openApiUrlErrors, setOpenApiUrlErrors] = useState<string[]>([]);
+  const [swaggerFileErrors, setSwaggerFileErrors] = useState<string[]>([]);
+
+  const [isValidatingInput, setIsValidatingInput] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [isFetching, setIsFetching] = useState(false);
 
   const [selectedType, setSelectedType] = useState(types[0]);
   const [selectedApiSpec, setSelectedApiSpec] = useState(apiSpecs[0]);
+
+  const hasEmptyRequiredInputs =
+    !targetName ||
+    !targetUrl ||
+    (selectedType.type === 'OPENAPI' &&
+      ((selectedApiSpec.type === 'URL' && !openApiUrl) ||
+        (selectedApiSpec.type === 'FILE' && !swaggerFile)));
+
+  const hasErrors =
+    targetNameErrors.length > 0 ||
+    targetUrlErrors.length > 0 ||
+    (selectedType.type === 'OPENAPI' &&
+      ((selectedApiSpec.type === 'URL' && openApiUrlErrors.length > 0) ||
+        (selectedApiSpec.type === 'FILE' && swaggerFileErrors.length > 0)));
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = event.target.files?.[0] || null;
@@ -148,14 +172,108 @@ export const Targets = () => {
     setOpenApiUrl('');
     setSwaggerFile(null);
 
+    setTargetNameErrors([]);
+    setTargetUrlErrors([]);
+    setOpenApiUrlErrors([]);
+    setSwaggerFileErrors([]);
+
     setSelectedType(types[0]);
     setSelectedApiSpec(apiSpecs[0]);
   }, [showCreateModal]);
 
+  useEffect(() => {
+    setIsValidatingInput(true);
+  }, [_targetName, _targetUrl, _openApiUrl]);
+
+  useEffect(() => {
+    setIsValidatingInput(true);
+
+    const errors: string[] = [];
+
+    if (!targetName) {
+      errors.push('Name is required');
+    }
+
+    if (targetName.length > 100) {
+      errors.push('Name must be at most 100 characters');
+    }
+
+    if (/[^\w_-]/.test(targetName)) {
+      errors.push(
+        "Only characters 'A-Z', 'a-z', '0-9', '-', and '_' are allowed"
+      );
+    }
+
+    if (targets?.some((target) => target.name === targetName)) {
+      errors.push('Target name already exists');
+    }
+
+    setTargetNameErrors(errors);
+    setIsValidatingInput(false);
+  }, [targets, targetName]);
+
+  useEffect(() => {
+    setIsValidatingInput(true);
+
+    const errors: string[] = [];
+
+    if (!targetUrl) {
+      errors.push('URL is required');
+    }
+
+    setTargetUrlErrors(errors);
+    setIsValidatingInput(false);
+  }, [targetUrl]);
+
+  useEffect(() => {
+    setIsValidatingInput(true);
+
+    const errors: string[] = [];
+
+    if (!openApiUrl) {
+      errors.push('URL is required');
+    }
+
+    if (
+      !openApiUrl.endsWith('.yml') &&
+      !openApiUrl.endsWith('.yaml') &&
+      !openApiUrl.endsWith('.json')
+    ) {
+      errors.push(
+        'The swagger specification url must have a .yml, .yaml, or .json extension'
+      );
+    }
+
+    setOpenApiUrlErrors(errors);
+    setIsValidatingInput(false);
+  }, [openApiUrl]);
+
+  useEffect(() => {
+    setIsValidatingInput(true);
+
+    const errors: string[] = [];
+
+    if (!swaggerFile) {
+      errors.push('Swagger file is required');
+    }
+
+    if (
+      !swaggerFile?.path?.endsWith('.yml') &&
+      !swaggerFile?.path?.endsWith('.yaml') &&
+      !swaggerFile?.path?.endsWith('.json')
+    ) {
+      errors.push(
+        'The swagger specification file must have a .yml, .yaml, or .json extension'
+      );
+    }
+
+    setSwaggerFileErrors(errors);
+    setIsValidatingInput(false);
+  }, [swaggerFile]);
+
   const handleCreateTarget = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
 
-    // TODO
     if (selectedType.type === 'OPENAPI') {
       if (selectedApiSpec.type === 'URL' && !openApiUrl.trim()) {
         return;
@@ -172,8 +290,9 @@ export const Targets = () => {
         targetUrl,
         type: selectedType.type,
         apiSpecType: selectedApiSpec.type,
-        openApiUrl,
-        swaggerFilePath: swaggerFile?.path,
+        openApiUrl: selectedApiSpec.type === 'URL' ? openApiUrl : undefined,
+        swaggerFilePath:
+          selectedApiSpec.type === 'FILE' ? swaggerFile?.path : undefined,
       });
 
     setIsLoading(true);
@@ -187,28 +306,42 @@ export const Targets = () => {
             break;
           }
           case DUPLICATE_NAME: {
-            // TODO
-            console.log(DUPLICATE_NAME);
+            setTargetNameErrors((prevState) => [
+              ...prevState,
+              'Target name already exists',
+            ]);
             break;
           }
           case INVALID_NAME: {
-            // TODO
-            console.log(INVALID_NAME);
+            setTargetNameErrors((prevState) => [
+              ...prevState,
+              "Name should have a max length of 100 and should have characters 'A-Z', 'a-z', '0-9', '-', and '_' only",
+            ]);
             break;
           }
           case INVALID_URL: {
-            // TODO
-            console.log(INVALID_URL);
+            setTargetUrlErrors((prevState) => [...prevState, 'Invalid URL']);
             break;
           }
           case INVALID_OPENAPI_EXT: {
-            // TODO
-            console.log(INVALID_OPENAPI_EXT);
+            if (selectedApiSpec.type === 'URL') {
+              setOpenApiUrlErrors((prevState) => [
+                ...prevState,
+                'The swagger specification url must have a .yml, .yaml, or .json extension',
+              ]);
+            } else {
+              setSwaggerFileErrors((prevState) => [
+                ...prevState,
+                'The swagger specification file must have a .yml, .yaml, or .json extension',
+              ]);
+            }
             break;
           }
           case INVALID_OPENAPI_FILE: {
-            // TODO
-            console.log(INVALID_OPENAPI_FILE);
+            setOpenApiUrlErrors((prevState) => [
+              ...prevState,
+              'Could not download swagger specification from provided url',
+            ]);
             break;
           }
           case UNAUTHORIZED_ACCESS:
@@ -326,16 +459,18 @@ export const Targets = () => {
                 setSelected={setSelectedType}
               />
               <TextInput
-                value={targetName}
+                value={_targetName}
                 handleOnChange={setTargetName}
                 label='Target Name'
                 id='target-name'
+                errors={targetNameErrors}
               />
               <TextInput
-                value={targetUrl}
+                value={_targetUrl}
                 handleOnChange={setTargetUrl}
                 label='Target URL'
                 id='target-url'
+                errors={targetUrlErrors}
               />
               {selectedType.type === 'OPENAPI' && (
                 <>
@@ -346,14 +481,17 @@ export const Targets = () => {
                     className='mt-4'
                   />
 
-                  {selectedApiSpec.type === 'URL' && (
+                  <div
+                    className={`${selectedApiSpec.type === 'URL' ? 'block' : 'hidden'}`}
+                  >
                     <TextInput
-                      value={openApiUrl}
+                      value={_openApiUrl}
                       handleOnChange={setOpenApiUrl}
                       label='OpenAPI URL'
                       id='open-api-url'
+                      errors={openApiUrlErrors}
                     />
-                  )}
+                  </div>
 
                   {selectedApiSpec.type === 'FILE' && (
                     <>
@@ -401,6 +539,20 @@ export const Targets = () => {
                           </button>
                         </div>
                       )}
+                      {swaggerFileErrors.length > 0 && (
+                        <ul className='list-disc'>
+                          {Array.from(new Set(swaggerFileErrors)).map(
+                            (error) => (
+                              <li
+                                key={error}
+                                className='font-semibold text-red-600'
+                              >
+                                {error}
+                              </li>
+                            )
+                          )}
+                        </ul>
+                      )}
                     </>
                   )}
                 </>
@@ -415,8 +567,13 @@ export const Targets = () => {
               </SecondaryButton>
               <button
                 onClick={handleCreateTarget}
-                className='truncate rounded disabled:bg-neutral-800 hover:disabled:cursor-default'
-                disabled={isLoading}
+                className='truncate rounded disabled:cursor-not-allowed disabled:opacity-75 disabled:hover:bg-[--vscode-button-background]'
+                disabled={
+                  isLoading ||
+                  isValidatingInput ||
+                  hasEmptyRequiredInputs ||
+                  hasErrors
+                }
               >
                 {isLoading ? 'Creating...' : 'Create Target'}
               </button>

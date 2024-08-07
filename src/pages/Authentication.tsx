@@ -1,6 +1,7 @@
 import useClickOutside from '@hooks/useClickOutside';
 import { useUser } from '@hooks/useUser';
 import { AuthHeader, AuthInfo, AuthType } from '@types_/auth';
+import { useDebounce } from 'use-debounce';
 import { v4 } from 'uuid';
 import React, { useEffect, useRef } from 'react';
 import { useState } from 'react';
@@ -113,11 +114,27 @@ export const AuthenticationPage = () => {
 
   const [auth, setAuth] = useState<AuthInfo>();
 
-  const [updateName, setUpdateName] = useState('');
-  const [updateDescription, setUpdateDescription] = useState('');
-  const [updateHeaders, setUpdateHeaders] = useState<AuthHeader[]>([]);
-  const [updateUrl, setUpdateUrl] = useState('');
+  const [_updateName, setUpdateName] = useState('');
+  const [_updateDescription, setUpdateDescription] = useState('');
+  const [_updateHeaders, setUpdateHeaders] = useState<AuthHeader[]>([]);
+  const [_updateUrl, setUpdateUrl] = useState('');
 
+  const [updateName] = useDebounce(_updateName, 500);
+  const [updateDescription] = useDebounce(_updateDescription, 500);
+  const [updateHeaders] = useDebounce(_updateHeaders, 500);
+  const [updateUrl] = useDebounce(_updateUrl, 500);
+
+  const [authNameErrors, setAuthNameErrors] = useState<string[]>([]);
+  const [authDescriptionErrors, setAuthDescriptionErrors] = useState<string[]>(
+    []
+  );
+  const [authHeaderErrors, setAuthHeaderErrors] = useState<string[]>([]);
+  const [authUrlErrors, setAuthUrlErrors] = useState<string[]>([]);
+  const [playwrightFormErrors, setPlaywrightFormErrors] = useState<string[]>(
+    []
+  );
+
+  const [isValidatingInput, setIsValidatingInput] = useState(true);
   const [isUpdateLoading, setIsUpdateLoading] = useState(false);
   const [isDeleteLoading, setIsDeleteLoading] = useState(false);
   const [isFetching, setIsFetching] = useState(false);
@@ -127,6 +144,22 @@ export const AuthenticationPage = () => {
   const [isScriptCopied, setIsScriptCopied] = useState(false);
   const authIdCopyTimer = useRef<NodeJS.Timeout>();
   const scriptCopyTimer = useRef<NodeJS.Timeout>();
+
+  const hasEmptyRequiredInputs =
+    !updateName || (auth?.type === 'SCRIPT' && !updateUrl);
+
+  const hasErrors =
+    authNameErrors.length > 0 ||
+    authDescriptionErrors.length > 0 ||
+    (auth?.type === 'HEADER' && authHeaderErrors.length > 0) ||
+    (auth?.type === 'SCRIPT' && authUrlErrors.length > 0);
+
+  const hasChanges =
+    updateName !== auth?.name ||
+    updateDescription !== (auth?.description ?? '') ||
+    (auth?.type !== 'SCRIPT' &&
+      JSON.stringify(auth?.headers) !== JSON.stringify(updateHeaders)) ||
+    (auth?.type === 'SCRIPT' && updateUrl !== auth?.url);
 
   useEffect(() => {
     let ignore = false;
@@ -151,14 +184,91 @@ export const AuthenticationPage = () => {
     };
   }, []);
 
+  useEffect(() => {
+    setUpdateName(auth?.name ?? '');
+    setUpdateDescription(auth?.description ?? '');
+    setUpdateHeaders([...(auth?.headers ?? [])]);
+    setUpdateUrl(auth?.url ?? '');
+
+    setAuthNameErrors([]);
+    setAuthDescriptionErrors([]);
+    setAuthHeaderErrors([]);
+    setAuthUrlErrors([]);
+    setPlaywrightFormErrors([]);
+  }, [auth, showUpdateModal]);
+
+  useEffect(() => {
+    setIsValidatingInput(true);
+  }, [_updateName, _updateDescription, _updateHeaders, _updateUrl]);
+
+  useEffect(() => {
+    setIsValidatingInput(true);
+
+    const errors: string[] = [];
+
+    if (!updateName) {
+      errors.push('Name is required');
+    }
+
+    if (updateName.length > 100) {
+      errors.push('Name must be at most 100 characters');
+    }
+
+    if (/[^\w_-]/.test(updateName)) {
+      errors.push(
+        "Only characters 'A-Z', 'a-z', '0-9', '-', and '_' are allowed"
+      );
+    }
+
+    setAuthNameErrors(errors);
+    setIsValidatingInput(false);
+  }, [updateName]);
+
+  useEffect(() => {
+    setIsValidatingInput(true);
+
+    const errors: string[] = [];
+
+    if (updateDescription.length > 100) {
+      errors.push('Description must be at most 500 characters');
+    }
+
+    setAuthDescriptionErrors(errors);
+    setIsValidatingInput(false);
+  }, [updateDescription]);
+
+  useEffect(() => {
+    setIsValidatingInput(false);
+    setAuthHeaderErrors([]);
+  }, [updateHeaders]);
+
+  useEffect(() => {
+    setIsValidatingInput(true);
+
+    const errors: string[] = [];
+
+    if (!updateUrl) {
+      errors.push('URL is required');
+    }
+
+    setAuthUrlErrors(errors);
+    setIsValidatingInput(false);
+  }, [updateUrl]);
+
   const handleUpdate = async (
     e: React.MouseEvent<HTMLButtonElement>,
     rerecord?: boolean
   ) => {
     e.preventDefault();
 
-    // TODO
     if (!auth) {
+      return;
+    }
+
+    if (updateHeaders.some((header) => !header.name || !header.value)) {
+      setAuthHeaderErrors([
+        `${auth.type === 'COOKIE' ? 'Cookie' : 'Header'} names and values are required`,
+      ]);
       return;
     }
 
@@ -194,49 +304,47 @@ export const AuthenticationPage = () => {
             setShowUpdateModal(false);
             break;
           }
-          case INVALID_AUTH: {
-            // TODO
-            console.log(INVALID_AUTH);
-            break;
-          }
-          case INVALID_NAME: {
-            // TODO
-            console.log(INVALID_NAME);
-            break;
-          }
+          case INVALID_AUTH:
           case INVALID_UUID: {
-            // TODO
-            console.log(INVALID_UUID);
+            navigate(-1);
             break;
           }
           case INVALID_URL: {
-            // TODO
-            console.log(INVALID_URL);
+            setAuthUrlErrors((prevState) => [...prevState, 'Invalid URL']);
             break;
           }
           case AUTH_MISSING_HEADERS: {
-            // TODO
-            console.log(AUTH_MISSING_HEADERS);
+            setAuthHeaderErrors([
+              `${auth.type === 'COOKIE' ? 'Cookie' : 'Header'} names and values are required`,
+            ]);
             break;
           }
           case AUTH_DESCRIPTION_LENGTH: {
-            // TODO
-            console.log(AUTH_DESCRIPTION_LENGTH);
+            setAuthDescriptionErrors((prevState) => [
+              ...prevState,
+              'Name must be at most 500 characters',
+            ]);
             break;
           }
           case DUPLICATE_NAME: {
-            // TODO
-            console.log(DUPLICATE_NAME);
+            setAuthNameErrors((prevState) => [
+              ...prevState,
+              'Authentication name already exists',
+            ]);
             break;
           }
           case INVALID_NAME: {
-            // TODO
-            console.log(INVALID_NAME);
+            setAuthNameErrors((prevState) => [
+              ...prevState,
+              "Name should have a max length of 100 and should have characters 'A-Z', 'a-z', '0-9', '-', and '_' only",
+            ]);
             break;
           }
           case INVALID_AUTH_FORM: {
-            // TODO
-            console.log(INVALID_AUTH_FORM);
+            setPlaywrightFormErrors((prevState) => [
+              ...prevState,
+              'No authentication workflow recorded. Please log in to get authentication credentials.',
+            ]);
             break;
           }
           case UNAUTHORIZED_ACCESS:
@@ -257,11 +365,20 @@ export const AuthenticationPage = () => {
               setIsLoggedIn(false);
             }
             case 'invalid':
-            case 'max_length':
+            case 'max_length': {
+              setAuthDescriptionErrors((prevState) => [
+                ...prevState,
+                'Name must be at most 500 characters',
+              ]);
+              break;
+            }
             case 'null_characters_not_allowed':
             case 'surrogate_characters_not_allowed': {
-              // TODO
-              console.log(error.detail);
+              setAuthDescriptionErrors((prevState) => [
+                ...prevState,
+                error.detail,
+              ]);
+              break;
             }
           }
         }
@@ -293,18 +410,10 @@ export const AuthenticationPage = () => {
     try {
       for await (const response of requestGenerator) {
         switch (response.command) {
-          case DELETE_AUTH: {
-            navigate(-1);
-            break;
-          }
-          case INVALID_AUTH: {
-            // TODO
-            console.log(INVALID_AUTH);
-            break;
-          }
+          case DELETE_AUTH:
+          case INVALID_AUTH:
           case INVALID_UUID: {
-            // TODO
-            console.log(INVALID_UUID);
+            navigate(-1);
             break;
           }
           case UNAUTHORIZED_ACCESS:
@@ -362,13 +471,7 @@ export const AuthenticationPage = () => {
                     <button
                       className='unstyled'
                       title='Update'
-                      onClick={() => {
-                        setShowUpdateModal(true);
-                        setUpdateName(auth.name);
-                        setUpdateDescription(auth.description ?? '');
-                        setUpdateHeaders([...(auth.headers ?? [])]);
-                        setUpdateUrl(auth.url ?? '');
-                      }}
+                      onClick={() => setShowUpdateModal(true)}
                     >
                       <svg
                         viewBox='0 0 16 16'
@@ -565,16 +668,18 @@ export const AuthenticationPage = () => {
             {!isRerecording && (
               <>
                 <TextInput
-                  value={updateName}
+                  value={_updateName}
                   handleOnChange={setUpdateName}
                   label='Authetication Name'
                   id='auth-name-update'
+                  errors={authNameErrors}
                 />
                 <TextInput
-                  value={updateDescription}
+                  value={_updateDescription}
                   handleOnChange={setUpdateDescription}
                   label='Description (Optional)'
                   id='description-update'
+                  errors={authDescriptionErrors}
                 />
               </>
             )}
@@ -582,14 +687,16 @@ export const AuthenticationPage = () => {
               <>
                 {!isRerecording && (
                   <TextInput
-                    value={updateUrl}
+                    value={_updateUrl}
                     handleOnChange={setUpdateUrl}
                     label='Authentication URL'
                     id='auth-url'
+                    errors={authUrlErrors}
+                    touched={true}
                   />
                 )}
 
-                {(updateUrl !== auth.url || isRerecording) && (
+                {(_updateUrl !== auth.url || isRerecording) && (
                   <>
                     <p className='!mt-6'>
                       Will launch an incognito Chrome Window to record the login
@@ -605,16 +712,31 @@ export const AuthenticationPage = () => {
                         upload the login sequence to NightVision Cloud.
                       </li>
                     </ul>
+                    {auth.type === 'SCRIPT' &&
+                      playwrightFormErrors.length > 0 && (
+                        <ul className='list-disc'>
+                          {Array.from(new Set(playwrightFormErrors)).map(
+                            (error) => (
+                              <li
+                                key={error}
+                                className='font-semibold text-red-600'
+                              >
+                                {error}
+                              </li>
+                            )
+                          )}
+                        </ul>
+                      )}
                   </>
                 )}
-                {updateUrl === auth.url &&
+                {_updateUrl === auth.url &&
                   (!isUpdateLoading || isRerecording) && (
                     <button
                       onClick={(e) => {
                         setIsRerecording(true);
                         handleUpdate(e, true);
                       }}
-                      disabled={isUpdateLoading}
+                      disabled={isRerecording}
                       className='relative !mt-4 rounded !bg-transparent text-[--vscode-foreground] before:absolute before:inset-0 before:-z-10 before:rounded before:bg-[--vscode-input-background] before:hover:bg-[--vscode-input-background] before:hover:brightness-75 disabled:cursor-default disabled:before:hover:brightness-100'
                     >
                       {isRerecording ? 'Recording...' : 'Re-record Script'}
@@ -624,7 +746,7 @@ export const AuthenticationPage = () => {
             )}
             {auth && auth.type !== 'SCRIPT' && (
               <>
-                {(updateHeaders ?? []).map((header, index) => (
+                {(_updateHeaders ?? []).map((header, index) => (
                   <div className='flex flex-nowrap' key={index}>
                     <div className='grid w-full grid-cols-2 gap-2'>
                       <TextInput
@@ -703,13 +825,28 @@ export const AuthenticationPage = () => {
                     {types.filter((type) => type.type === auth.type)[0].name}
                   </span>
                 </button>
+                {authHeaderErrors.length > 0 && (
+                  <ul className='list-disc'>
+                    {Array.from(new Set(authHeaderErrors)).map((error) => (
+                      <li key={error} className='font-semibold text-red-600'>
+                        {error}
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </>
             )}
             {!isRerecording && (
               <button
                 onClick={handleUpdate}
-                className='!mt-4 truncate rounded disabled:bg-neutral-800 hover:disabled:cursor-default'
-                disabled={isUpdateLoading}
+                className='!mt-4 truncate rounded disabled:cursor-not-allowed disabled:opacity-75 disabled:hover:bg-[--vscode-button-background]'
+                disabled={
+                  isUpdateLoading ||
+                  isValidatingInput ||
+                  hasEmptyRequiredInputs ||
+                  hasErrors ||
+                  !hasChanges
+                }
               >
                 {isUpdateLoading ? 'Updating...' : 'Update Authentication'}
               </button>
@@ -743,7 +880,7 @@ export const AuthenticationPage = () => {
                 </svg>
               </button>
             </div>
-            <p>
+            <p className='overflow-hidden'>
               Are you sure you want to delete <strong>{auth.name}</strong> from
               your account?
             </p>
@@ -759,7 +896,7 @@ export const AuthenticationPage = () => {
               <button
                 onClick={handleDelete}
                 disabled={isDeleteLoading}
-                className='truncate rounded bg-red-500 hover:bg-red-500 hover:brightness-90 disabled:bg-neutral-800 hover:disabled:cursor-default hover:disabled:brightness-100'
+                className='truncate rounded bg-red-500 hover:bg-red-500 hover:brightness-90 disabled:cursor-not-allowed disabled:opacity-75 hover:disabled:brightness-100'
               >
                 {isDeleteLoading ? 'Deleting...' : 'Delete'}
               </button>

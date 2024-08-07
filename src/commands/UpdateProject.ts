@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import Command from '@commands/Command';
 import {
+  DUPLICATE_NAME,
   INVALID_NAME,
   INVALID_PROJECT,
   INVALID_UUID,
@@ -56,6 +57,11 @@ export default class UpdateProject extends Command {
     } else if (/is not a valid UUID/.test(message)) {
       this.webview.postMessage({
         command: INVALID_UUID,
+        requestId: this.requestId,
+      });
+    } else if (/name.*already exists/.test(message)) {
+      this.webview.postMessage({
+        command: DUPLICATE_NAME,
         requestId: this.requestId,
       });
     }

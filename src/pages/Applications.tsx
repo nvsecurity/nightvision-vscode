@@ -3,6 +3,7 @@ import { useProject } from '@hooks/useProject';
 import { useUser } from '@hooks/useUser';
 import { Application } from '@types_/app';
 import { Project } from '@types_/project';
+import { useDebounce } from 'use-debounce';
 import { v4 } from 'uuid';
 import React, { useEffect } from 'react';
 import { useState } from 'react';
@@ -84,10 +85,19 @@ export const Applications = () => {
 
   const [apps, setApps] = useState<Application[]>();
   const [projects, setProjects] = useState<Project[]>();
-  const [applicationName, setApplicationName] = useState('');
+  const [_applicationName, setApplicationName] = useState('');
+  const [applicationName] = useDebounce(_applicationName, 500);
 
+  const [applicationNameErrors, setApplicationNameErrors] = useState<string[]>(
+    []
+  );
+
+  const [isValidatingInput, setIsValidatingInput] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [isFetching, setIsFetching] = useState(false);
+
+  const hasEmptyRequiredInputs = !applicationName;
+  const hasErrors = applicationNameErrors.length > 0;
 
   useEffect(() => {
     let ignore = false;
@@ -108,7 +118,39 @@ export const Applications = () => {
 
   useEffect(() => {
     setApplicationName('');
+    setApplicationNameErrors([]);
   }, [showCreateModal]);
+
+  useEffect(() => {
+    setIsValidatingInput(true);
+  }, [_applicationName]);
+
+  useEffect(() => {
+    setIsValidatingInput(true);
+
+    const errors: string[] = [];
+
+    if (!applicationName) {
+      errors.push('Name is required');
+    }
+
+    if (applicationName.length > 100) {
+      errors.push('Name must be at most 100 characters');
+    }
+
+    if (/[^\w_-]/.test(applicationName)) {
+      errors.push(
+        "Only characters 'A-Z', 'a-z', '0-9', '-', and '_' are allowed"
+      );
+    }
+
+    if (apps?.some((app) => app.name === applicationName)) {
+      errors.push('Application name already exists');
+    }
+
+    setApplicationNameErrors(errors);
+    setIsValidatingInput(false);
+  }, [apps, applicationName]);
 
   const handleCreateApp = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
@@ -136,13 +178,17 @@ export const Applications = () => {
             break;
           }
           case DUPLICATE_NAME: {
-            // TODO
-            console.log(DUPLICATE_NAME);
+            setApplicationNameErrors((prevState) => [
+              ...prevState,
+              'Application name already exists',
+            ]);
             break;
           }
           case INVALID_NAME: {
-            // TODO
-            console.log(INVALID_NAME);
+            setApplicationNameErrors((prevState) => [
+              ...prevState,
+              "Name should have a max length of 100 and should have characters 'A-Z', 'a-z', '0-9', '-', and '_' only",
+            ]);
             break;
           }
           case UNAUTHORIZED_ACCESS:
@@ -251,10 +297,11 @@ export const Applications = () => {
               </button>
             </div>
             <TextInput
-              value={applicationName}
+              value={_applicationName}
               handleOnChange={setApplicationName}
               label='Application Name'
               id='app-name'
+              errors={applicationNameErrors}
             />
             <div className='!mt-6 flex space-x-2'>
               <SecondaryButton
@@ -265,8 +312,13 @@ export const Applications = () => {
               </SecondaryButton>
               <button
                 onClick={handleCreateApp}
-                className='truncate rounded disabled:bg-neutral-800 hover:disabled:cursor-default'
-                disabled={isLoading}
+                className='truncate rounded disabled:cursor-not-allowed disabled:opacity-75 disabled:hover:bg-[--vscode-button-background]'
+                disabled={
+                  isLoading ||
+                  isValidatingInput ||
+                  hasEmptyRequiredInputs ||
+                  hasErrors
+                }
               >
                 {isLoading ? 'Creating...' : 'Create Application'}
               </button>

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Label } from '@components/Label';
 
 export const TextInput = ({
@@ -7,21 +7,31 @@ export const TextInput = ({
   label,
   id,
   isLoading,
+  errors,
+  touched = false,
 }: {
   value?: string | null;
   handleOnChange: (e: string) => void;
   label: string;
   id: string;
   isLoading?: boolean;
+  errors?: string[];
+  touched?: boolean;
 }) => {
+  const [isTouched, setIsTouched] = useState(false);
+
   return (
     <div>
       <Label htmlFor={id}>{label}</Label>
       <div className='relative'>
         <input
-          onChange={(e) => handleOnChange(e.target.value)}
+          onChange={(e) => {
+            handleOnChange(e.target.value);
+            setIsTouched(true);
+          }}
           value={value ?? ''}
           id={id}
+          onBlur={() => setIsTouched(true)}
         />
         {isLoading && (
           <svg
@@ -40,6 +50,15 @@ export const TextInput = ({
           </svg>
         )}
       </div>
+      {errors && (isTouched || touched) && (
+        <ul className='list-disc'>
+          {Array.from(new Set(errors)).map((error) => (
+            <li key={error} className='font-semibold text-red-600'>
+              {error}
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 };

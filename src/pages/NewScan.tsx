@@ -10,7 +10,13 @@ import { Target } from '@types_/target';
 import { v4 } from 'uuid';
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { SCAN, SCAN_ID, UNAUTHORIZED_ACCESS } from '@commands/CommandConstants';
+import {
+  INVALID_APP,
+  INVALID_TARGET,
+  SCAN,
+  SCAN_ID,
+  UNAUTHORIZED_ACCESS,
+} from '@commands/CommandConstants';
 import { ScanParams } from '@commands/Scan';
 import { Dropdown } from '@components/Dropdown';
 import { Label } from '@components/Label';
@@ -38,6 +44,9 @@ export const NewScan = () => {
   const [projects, setProjects] = useState<Project[]>();
   const [targets, setTargets] = useState<Target[]>();
 
+  const [appErrors, setAppErrors] = useState<string[]>([]);
+  const [targetErrors, setTargetErrors] = useState<string[]>([]);
+
   const [isLoading, setIsLoading] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [isFetching, setIsFetching] = useState(false);
@@ -61,6 +70,8 @@ export const NewScan = () => {
     };
 
     fetchApi();
+    setAppErrors([]);
+    setTargetErrors([]);
 
     return () => {
       ignore = true;
@@ -69,6 +80,14 @@ export const NewScan = () => {
 
   const handleScanClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
+
+    if (!currentApp) {
+      setAppErrors(['Application is required']);
+    }
+
+    if (!currentTarget) {
+      setTargetErrors(['Target is required']);
+    }
 
     if (!currentApp || !currentTarget) {
       return;
@@ -93,6 +112,14 @@ export const NewScan = () => {
           const scanId = response.payload;
           navigate(`/scans/${scanId}`, { replace: true });
           setIsLoading(false);
+          break;
+        }
+        case INVALID_APP: {
+          setAppErrors(['Application is required']);
+          break;
+        }
+        case INVALID_TARGET: {
+          setTargetErrors(['Invalid target: ' + response.payload]);
           break;
         }
         case UNAUTHORIZED_ACCESS:
@@ -214,6 +241,15 @@ export const NewScan = () => {
                     id='application'
                     disabled={isLoading}
                   />
+                  {appErrors.length > 0 && (
+                    <ul className='list-disc'>
+                      {Array.from(new Set(appErrors)).map((error) => (
+                        <li key={error} className='font-semibold text-red-600'>
+                          {error}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                 </div>
                 <div>
                   <Label htmlFor='target'>
@@ -233,6 +269,15 @@ export const NewScan = () => {
                     id='target'
                     disabled={isLoading}
                   />
+                  {targetErrors.length > 0 && (
+                    <ul className='list-disc'>
+                      {Array.from(new Set(targetErrors)).map((error) => (
+                        <li key={error} className='font-semibold text-red-600'>
+                          {error}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                 </div>
                 <div>
                   <Label htmlFor='auth'>Authentication (Optional)</Label>
@@ -250,7 +295,7 @@ export const NewScan = () => {
               </div>
               <button
                 onClick={handleScanClick}
-                className='rounded disabled:bg-neutral-800 hover:disabled:cursor-default'
+                className='truncate rounded disabled:cursor-not-allowed disabled:opacity-75 disabled:hover:bg-[--vscode-button-background]'
                 disabled={isLoading}
               >
                 {isLoading ? 'Loading...' : 'Start Scan'}

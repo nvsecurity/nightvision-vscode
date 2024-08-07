@@ -1,12 +1,14 @@
 import useClickOutside from '@hooks/useClickOutside';
 import { useUser } from '@hooks/useUser';
 import { AppInfo } from '@types_/app';
+import { useDebounce } from 'use-debounce';
 import { v4 } from 'uuid';
 import React, { useEffect, useRef } from 'react';
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
   DELETE_APP,
+  DUPLICATE_NAME,
   INVALID_APP,
   INVALID_APP_DELETE,
   INVALID_NAME,
@@ -100,14 +102,25 @@ export const ApplicationPage = () => {
 
   const [app, setApp] = useState<AppInfo>();
 
-  const [updateName, setUpdateName] = useState('');
+  const [_updateName, setUpdateName] = useState('');
+  const [updateName] = useDebounce(_updateName, 500);
 
+  const [applicationNameErrors, setApplicationNameErrors] = useState<string[]>(
+    []
+  );
+  const [deleteErrors, setDeleteErrors] = useState<string[]>([]);
+
+  const [isValidatingInput, setIsValidatingInput] = useState(true);
   const [isUpdateLoading, setIsUpdateLoading] = useState(false);
   const [isDeleteLoading, setIsDeleteLoading] = useState(false);
   const [isFetching, setIsFetching] = useState(false);
 
   const [isAppIdCopied, setIsAppIdCopied] = useState(false);
   const appIdCopyTimer = useRef<NodeJS.Timeout>();
+
+  const hasEmptyRequiredInputs = !updateName;
+  const hasErrors = applicationNameErrors.length > 0;
+  const hasChanges = updateName !== app?.name;
 
   useEffect(() => {
     let ignore = false;
@@ -124,6 +137,40 @@ export const ApplicationPage = () => {
       ignore = true;
     };
   }, [appId]);
+
+  useEffect(() => {
+    setUpdateName(app?.name ?? '');
+
+    setApplicationNameErrors([]);
+    setDeleteErrors([]);
+  }, [app, showUpdateModal]);
+
+  useEffect(() => {
+    setIsValidatingInput(true);
+  }, [_updateName]);
+
+  useEffect(() => {
+    setIsValidatingInput(true);
+
+    const errors: string[] = [];
+
+    if (!updateName) {
+      errors.push('Name is required');
+    }
+
+    if (updateName.length > 100) {
+      errors.push('Name must be at most 100 characters');
+    }
+
+    if (/[^\w_-]/.test(updateName)) {
+      errors.push(
+        "Only characters 'A-Z', 'a-z', '0-9', '-', and '_' are allowed"
+      );
+    }
+
+    setApplicationNameErrors(errors);
+    setIsValidatingInput(false);
+  }, [updateName]);
 
   const handleUpdate = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
@@ -151,19 +198,23 @@ export const ApplicationPage = () => {
             setShowUpdateModal(false);
             break;
           }
-          case INVALID_APP: {
-            // TODO
-            console.log(INVALID_APP);
+          case INVALID_APP:
+          case INVALID_UUID: {
+            navigate(-1);
             break;
           }
           case INVALID_NAME: {
-            // TODO
-            console.log(INVALID_NAME);
+            setApplicationNameErrors((prevState) => [
+              ...prevState,
+              "Name should have a max length of 100 and should have characters 'A-Z', 'a-z', '0-9', '-', and '_' only",
+            ]);
             break;
           }
-          case INVALID_UUID: {
-            // TODO
-            console.log(INVALID_UUID);
+          case DUPLICATE_NAME: {
+            setApplicationNameErrors((prevState) => [
+              ...prevState,
+              'Application name already exists',
+            ]);
             break;
           }
           case UNAUTHORIZED_ACCESS:
@@ -197,23 +248,17 @@ export const ApplicationPage = () => {
     try {
       for await (const response of requestGenerator) {
         switch (response.command) {
-          case DELETE_APP: {
+          case DELETE_APP:
+          case INVALID_APP:
+          case INVALID_UUID: {
             navigate(-1);
             break;
           }
-          case INVALID_APP: {
-            // TODO
-            console.log(INVALID_APP);
-            break;
-          }
           case INVALID_APP_DELETE: {
-            // TODO
-            console.log(INVALID_APP_DELETE);
-            break;
-          }
-          case INVALID_UUID: {
-            // TODO
-            console.log(INVALID_UUID);
+            setDeleteErrors((prevState) => [
+              ...prevState,
+              'Cannot delete current application',
+            ]);
             break;
           }
           case UNAUTHORIZED_ACCESS:
@@ -267,10 +312,7 @@ export const ApplicationPage = () => {
                     <button
                       className='unstyled'
                       title='Update'
-                      onClick={() => {
-                        setShowUpdateModal(true);
-                        setUpdateName(app.name);
-                      }}
+                      onClick={() => setShowUpdateModal(true)}
                     >
                       <svg
                         viewBox='0 0 16 16'
@@ -420,10 +462,11 @@ export const ApplicationPage = () => {
               </button>
             </div>
             <TextInput
-              value={updateName}
+              value={_updateName}
               handleOnChange={setUpdateName}
               label='Application Name'
               id='update-app-name'
+              errors={applicationNameErrors}
             />
             <div className='!mt-6 flex space-x-2'>
               <SecondaryButton
@@ -434,8 +477,14 @@ export const ApplicationPage = () => {
               </SecondaryButton>
               <button
                 onClick={handleUpdate}
-                className='truncate rounded disabled:bg-neutral-800 hover:disabled:cursor-default'
-                disabled={isUpdateLoading}
+                className='truncate rounded disabled:cursor-not-allowed disabled:opacity-75 disabled:hover:bg-[--vscode-button-background]'
+                disabled={
+                  isUpdateLoading ||
+                  isValidatingInput ||
+                  hasEmptyRequiredInputs ||
+                  hasErrors ||
+                  !hasChanges
+                }
               >
                 {isUpdateLoading ? 'Updating...' : 'Update Application'}
               </button>
@@ -469,7 +518,7 @@ export const ApplicationPage = () => {
                 </svg>
               </button>
             </div>
-            <p>
+            <p className='overflow-hidden'>
               Are you sure you want to delete <strong>{app?.name}</strong> from
               your account?
             </p>
@@ -485,11 +534,20 @@ export const ApplicationPage = () => {
               <button
                 onClick={handleDelete}
                 disabled={isDeleteLoading}
-                className='truncate rounded bg-red-500 hover:bg-red-500 hover:brightness-90 disabled:bg-neutral-800 hover:disabled:cursor-default hover:disabled:brightness-100'
+                className='truncate rounded bg-red-500 hover:bg-red-500 hover:brightness-90 disabled:cursor-not-allowed disabled:opacity-75 hover:disabled:brightness-100'
               >
                 {isDeleteLoading ? 'Deleting...' : 'Delete'}
               </button>
             </div>
+            {deleteErrors.length > 0 && (
+              <ul className='list-disc'>
+                {Array.from(new Set(deleteErrors)).map((error) => (
+                  <li key={error} className='font-semibold text-red-600'>
+                    {error}
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
         </Modal>
       )}

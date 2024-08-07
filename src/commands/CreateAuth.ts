@@ -47,6 +47,14 @@ export default class CreateAuth extends Command {
     }
 
     if (type !== 'SCRIPT' && headers) {
+      if (headers.some((header) => !header.name || !header.value)) {
+        webview.postMessage({
+          command: AUTH_MISSING_HEADERS,
+          requestId: requestId,
+        });
+        stop = true;
+      }
+
       for (const header of headers) {
         flags.push({ flag: '-H', value: `${header.name}:${header.value}` });
       }

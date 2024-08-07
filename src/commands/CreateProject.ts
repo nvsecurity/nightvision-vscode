@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import Command from '@commands/Command';
+import Command, { Flag } from '@commands/Command';
 import {
   CREATE_PROJECT,
   DUPLICATE_NAME,
@@ -18,7 +18,9 @@ export default class CreateProject extends Command {
     requestId: string,
     { projectName }: CreateProjectParams
   ) {
-    super(`nightvision project create -n ${projectName}`, webview, requestId);
+    const flags: Flag[] = [{ flag: '-n', value: projectName }];
+
+    super(`nightvision project create`, webview, requestId, flags);
     this.projectName = projectName;
   }
 

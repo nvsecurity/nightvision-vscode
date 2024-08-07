@@ -9,6 +9,7 @@ import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
   DELETE_PROJECT,
+  DUPLICATE_NAME,
   INVALID_NAME,
   INVALID_PROJECT,
   INVALID_PROJECT_DELETE,
@@ -68,6 +69,7 @@ export const getProject = async (
           lastName: user.last_name,
           avatarUrl: user.avatar_url,
         })),
+      isDefault: project.is_default,
     });
   } catch (err: any) {
     if (
@@ -255,13 +257,18 @@ export const ProjectPage = () => {
 
   const [project, setProject] = useState<ProjectInfo>();
 
-  const [updateName, setUpdateName] = useState('');
+  const [_updateName, setUpdateName] = useState('');
+  const [updateName] = useDebounce(_updateName, 500);
   const [_userName, setUserName] = useState<string>('');
   const [userName] = useDebounce(_userName, 500);
   const [searchedUsers, setSearchedUsers] = useState<User[]>([]);
   const [addUsers, setAddUsers] = useState<User[]>([]);
   const [removeUser, setRemoveUser] = useState<User>();
 
+  const [projectNameErrors, setProjectNameErrors] = useState<string[]>([]);
+  const [deleteErrors, setDeleteErrors] = useState<string[]>([]);
+
+  const [isValidatingInput, setIsValidatingInput] = useState(true);
   const [isUpdateLoading, setIsUpdateLoading] = useState(false);
   const [isDeleteLoading, setIsDeleteLoading] = useState(false);
   const [isLeaveLoading, setIsLeaveLoading] = useState(false);
@@ -273,6 +280,10 @@ export const ProjectPage = () => {
 
   const [isProjectIdCopied, setIsProjectIdCopied] = useState(false);
   const projectIdCopyTimer = useRef<NodeJS.Timeout>();
+
+  const hasEmptyRequiredInputs = !updateName;
+  const hasErrors = projectNameErrors.length > 0;
+  const hasChanges = updateName !== project?.name;
 
   useEffect(() => {
     let ignore = false;
@@ -325,10 +336,41 @@ export const ProjectPage = () => {
   }, [userName]);
 
   useEffect(() => {
+    setUpdateName(project?.name ?? '');
     setUserName('');
     setSearchedUsers([]);
     setAddUsers([]);
-  }, [showShareModal]);
+
+    setProjectNameErrors([]);
+    setDeleteErrors([]);
+  }, [project, showUpdateModal]);
+
+  useEffect(() => {
+    setIsValidatingInput(true);
+  }, [_updateName]);
+
+  useEffect(() => {
+    setIsValidatingInput(true);
+
+    const errors: string[] = [];
+
+    if (!updateName) {
+      errors.push('Name is required');
+    }
+
+    if (updateName.length > 100) {
+      errors.push('Name must be at most 100 characters');
+    }
+
+    if (/[^\w_-]/.test(updateName)) {
+      errors.push(
+        "Only characters 'A-Z', 'a-z', '0-9', '-', and '_' are allowed"
+      );
+    }
+
+    setProjectNameErrors(errors);
+    setIsValidatingInput(false);
+  }, [updateName]);
 
   const handleUpdate = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
@@ -354,19 +396,23 @@ export const ProjectPage = () => {
             setShowUpdateModal(false);
             break;
           }
-          case INVALID_PROJECT: {
-            // TODO
-            console.log(INVALID_PROJECT);
+          case INVALID_PROJECT:
+          case INVALID_UUID: {
+            navigate(-1);
             break;
           }
           case INVALID_NAME: {
-            // TODO
-            console.log(INVALID_NAME);
+            setProjectNameErrors((prevState) => [
+              ...prevState,
+              "Name should have a max length of 100 and should have characters 'A-Z', 'a-z', '0-9', '-', and '_' only",
+            ]);
             break;
           }
-          case INVALID_UUID: {
-            // TODO
-            console.log(INVALID_UUID);
+          case DUPLICATE_NAME: {
+            setProjectNameErrors((prevState) => [
+              ...prevState,
+              'Project name already exists',
+            ]);
             break;
           }
           case UNAUTHORIZED_ACCESS:
@@ -399,18 +445,17 @@ export const ProjectPage = () => {
     try {
       for await (const response of requestGenerator) {
         switch (response.command) {
-          case DELETE_PROJECT: {
+          case DELETE_PROJECT:
+          case INVALID_PROJECT:
+          case INVALID_UUID: {
             navigate(-1);
             break;
           }
-          case INVALID_PROJECT: {
-            // TODO
-            console.log(INVALID_PROJECT);
-            break;
-          }
           case INVALID_PROJECT_DELETE: {
-            // TODO
-            console.log(INVALID_PROJECT_DELETE);
+            setDeleteErrors((prevState) => [
+              ...prevState,
+              'Cannot delete because this is the currently selected project. Change the current project and try again.',
+            ]);
             break;
           }
           case UNAUTHORIZED_ACCESS:
@@ -534,10 +579,7 @@ export const ProjectPage = () => {
                     <button
                       className='unstyled'
                       title='Update'
-                      onClick={() => {
-                        setShowUpdateModal(true);
-                        setUpdateName(project.name);
-                      }}
+                      onClick={() => setShowUpdateModal(true)}
                     >
                       <svg
                         viewBox='0 0 16 16'
@@ -568,48 +610,49 @@ export const ProjectPage = () => {
                         </svg>
                       </button>
                     )}
-                    {currentUser?.id === project?.owner.id && (
-                      <>
-                        <button
-                          className='unstyled'
-                          title='Share'
-                          onClick={() => setShowShareModal(true)}
-                        >
-                          <svg
-                            xmlns='http://www.w3.org/2000/svg'
-                            viewBox='0 0 24 24'
-                            strokeWidth={1.5}
-                            stroke='currentColor'
-                            className='size-6 fill-[--vscode-sideBar-background] stroke-[--vscode-foreground]'
+                    {currentUser?.id === project.owner.id &&
+                      !project.isDefault && (
+                        <>
+                          <button
+                            className='unstyled'
+                            title='Share'
+                            onClick={() => setShowShareModal(true)}
                           >
-                            <path
-                              strokeLinecap='round'
-                              strokeLinejoin='round'
-                              d='M7.217 10.907a2.25 2.25 0 1 0 0 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186 9.566-5.314m-9.566 7.5 9.566 5.314m0 0a2.25 2.25 0 1 0 3.935 2.186 2.25 2.25 0 0 0-3.935-2.186Zm0-12.814a2.25 2.25 0 1 0 3.933-2.185 2.25 2.25 0 0 0-3.933 2.185Z'
-                            />
-                          </svg>
-                        </button>
+                            <svg
+                              xmlns='http://www.w3.org/2000/svg'
+                              viewBox='0 0 24 24'
+                              strokeWidth={1.5}
+                              stroke='currentColor'
+                              className='size-6 fill-[--vscode-sideBar-background] stroke-[--vscode-foreground]'
+                            >
+                              <path
+                                strokeLinecap='round'
+                                strokeLinejoin='round'
+                                d='M7.217 10.907a2.25 2.25 0 1 0 0 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186 9.566-5.314m-9.566 7.5 9.566 5.314m0 0a2.25 2.25 0 1 0 3.935 2.186 2.25 2.25 0 0 0-3.935-2.186Zm0-12.814a2.25 2.25 0 1 0 3.933-2.185 2.25 2.25 0 0 0-3.933 2.185Z'
+                              />
+                            </svg>
+                          </button>
 
-                        <button
-                          className='unstyled'
-                          title='Delete'
-                          onClick={() => setShowDeleteModal(true)}
-                        >
-                          <svg
-                            viewBox='0 0 16 16'
-                            xmlns='http://www.w3.org/2000/svg'
-                            fill='currentColor'
-                            className='mt-0 h-6 w-6 fill-[--vscode-foreground]'
+                          <button
+                            className='unstyled'
+                            title='Delete'
+                            onClick={() => setShowDeleteModal(true)}
                           >
-                            <path
-                              fillRule='evenodd'
-                              clipRule='evenodd'
-                              d='M10 3h3v1h-1v9l-1 1H4l-1-1V4H2V3h3V2a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1v1zM9 2H6v1h3V2zM4 13h7V4H4v9zm2-8H5v7h1V5zm1 0h1v7H7V5zm2 0h1v7H9V5z'
-                            />
-                          </svg>
-                        </button>
-                      </>
-                    )}
+                            <svg
+                              viewBox='0 0 16 16'
+                              xmlns='http://www.w3.org/2000/svg'
+                              fill='currentColor'
+                              className='mt-0 h-6 w-6 fill-[--vscode-foreground]'
+                            >
+                              <path
+                                fillRule='evenodd'
+                                clipRule='evenodd'
+                                d='M10 3h3v1h-1v9l-1 1H4l-1-1V4H2V3h3V2a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1v1zM9 2H6v1h3V2zM4 13h7V4H4v9zm2-8H5v7h1V5zm1 0h1v7H7V5zm2 0h1v7H9V5z'
+                              />
+                            </svg>
+                          </button>
+                        </>
+                      )}
                   </div>
                 </div>
                 <div className='mt-5 flex flex-col [&>*:nth-child(even)]:mb-4 [&>*:nth-child(even)]:ml-4 [&>*:nth-child(odd)]:font-bold'>
@@ -765,10 +808,11 @@ export const ProjectPage = () => {
               </button>
             </div>
             <TextInput
-              value={updateName}
+              value={_updateName}
               handleOnChange={setUpdateName}
               label='Project Name'
               id='update-project-name'
+              errors={projectNameErrors}
             />
             <div className='!mt-6 flex space-x-2'>
               <SecondaryButton
@@ -779,8 +823,14 @@ export const ProjectPage = () => {
               </SecondaryButton>
               <button
                 onClick={handleUpdate}
-                className='truncate rounded disabled:bg-neutral-800 hover:disabled:cursor-default'
-                disabled={isUpdateLoading}
+                className='truncate rounded disabled:cursor-not-allowed disabled:opacity-75 disabled:hover:bg-[--vscode-button-background]'
+                disabled={
+                  isUpdateLoading ||
+                  isValidatingInput ||
+                  hasEmptyRequiredInputs ||
+                  hasErrors ||
+                  !hasChanges
+                }
               >
                 {isUpdateLoading ? 'Updating...' : 'Update Project'}
               </button>
@@ -814,7 +864,7 @@ export const ProjectPage = () => {
                 </svg>
               </button>
             </div>
-            <p>
+            <p className='overflow-hidden'>
               Are you sure you want to delete <strong>{project?.name}</strong>?
             </p>
             <p>
@@ -835,11 +885,20 @@ export const ProjectPage = () => {
               <button
                 onClick={handleDelete}
                 disabled={isDeleteLoading}
-                className='truncate rounded bg-red-500 hover:bg-red-500 hover:brightness-90 disabled:bg-neutral-800 hover:disabled:cursor-default hover:disabled:brightness-100'
+                className='truncate rounded bg-red-500 hover:bg-red-500 hover:brightness-90 disabled:cursor-not-allowed disabled:opacity-75 hover:disabled:brightness-100'
               >
                 {isDeleteLoading ? 'Deleting...' : 'Delete'}
               </button>
             </div>
+            {deleteErrors.length > 0 && (
+              <ul className='list-disc'>
+                {Array.from(new Set(deleteErrors)).map((error) => (
+                  <li key={error} className='font-semibold text-red-600'>
+                    {error}
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
         </Modal>
       )}
@@ -869,7 +928,7 @@ export const ProjectPage = () => {
                 </svg>
               </button>
             </div>
-            <p>
+            <p className='overflow-hidden'>
               Are you sure you want to leave <strong>{project?.name}</strong>{' '}
               project?
             </p>
@@ -887,7 +946,7 @@ export const ProjectPage = () => {
               <button
                 onClick={handleLeave}
                 disabled={isLeaveLoading}
-                className='truncate rounded bg-red-500 hover:bg-red-500 hover:brightness-90 disabled:bg-neutral-800 hover:disabled:cursor-default hover:disabled:brightness-100'
+                className='truncate rounded bg-red-500 hover:bg-red-500 hover:brightness-90 disabled:cursor-not-allowed disabled:opacity-75 hover:disabled:brightness-100'
               >
                 {isLeaveLoading ? 'Leaving...' : 'Leave'}
               </button>
@@ -1028,8 +1087,8 @@ export const ProjectPage = () => {
               </SecondaryButton>
               <button
                 onClick={handleShare}
-                className='truncate rounded disabled:bg-neutral-800 hover:disabled:cursor-default'
-                disabled={isShareLoading}
+                className='truncate rounded disabled:cursor-not-allowed disabled:opacity-75 disabled:hover:bg-[--vscode-button-background]'
+                disabled={isShareLoading || addUsers.length === 0}
               >
                 {isShareLoading ? 'Sharing...' : 'Share Project'}
               </button>
@@ -1063,7 +1122,7 @@ export const ProjectPage = () => {
                 </svg>
               </button>
             </div>
-            <p>
+            <p className='overflow-hidden'>
               Are you sure you want to remove{' '}
               <strong>
                 {removeUser?.firstName} {removeUser?.lastName} (
@@ -1084,7 +1143,7 @@ export const ProjectPage = () => {
               <button
                 onClick={handleUnshare}
                 disabled={isUnshareLoading}
-                className='truncate rounded bg-red-500 hover:bg-red-500 hover:brightness-90 disabled:bg-neutral-800 hover:disabled:cursor-default hover:disabled:brightness-100'
+                className='truncate rounded bg-red-500 hover:bg-red-500 hover:brightness-90 disabled:cursor-not-allowed disabled:opacity-75 hover:disabled:brightness-100'
               >
                 {isUnshareLoading ? 'Removing...' : 'Remove'}
               </button>

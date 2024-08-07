@@ -303,12 +303,10 @@ class SidebarProvider implements vscode.WebviewViewProvider {
             break;
           }
           case DELETE_TARGET: {
-            const { id } = payload;
-
             const command = new DeleteTarget(
               webviewView.webview,
               requestId,
-              id
+              payload
             );
 
             this._children[requestId] = command.execute();
