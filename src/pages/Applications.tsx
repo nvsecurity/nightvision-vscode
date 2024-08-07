@@ -9,6 +9,7 @@ import React, { useEffect } from 'react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
+  CLI_MISSING,
   CREATE_APP,
   DUPLICATE_NAME,
   INVALID_NAME,
@@ -75,7 +76,7 @@ export const getApps = async (
 export const Applications = () => {
   const navigate = useNavigate();
   const { currentProject, setCurrentProject } = useProject();
-  const { setIsLoggedIn } = useUser();
+  const { setIsLoggedIn, setIsCliInstalled } = useUser();
 
   const {
     componentRef: createRef,
@@ -191,9 +192,14 @@ export const Applications = () => {
             ]);
             break;
           }
-          case UNAUTHORIZED_ACCESS:
+          case UNAUTHORIZED_ACCESS: {
             setIsLoggedIn(false);
             break;
+          }
+          case CLI_MISSING: {
+            setIsCliInstalled(false);
+            break;
+          }
         }
       }
     } catch (err) {

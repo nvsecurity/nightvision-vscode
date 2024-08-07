@@ -3,6 +3,7 @@
 'use strict';
 
 const path = require('path');
+const webpack = require('webpack');
 const dotenv = require('dotenv');
 
 dotenv.config();
@@ -50,7 +51,14 @@ const config = [
     performance: {
       hints: false,
     },
-    plugins: [],
+    plugins: [
+      new webpack.ProvidePlugin({
+        process: 'process/browser',
+      }),
+      new webpack.DefinePlugin({
+        'process.env': { CLI_VERSION: JSON.stringify('0.4.15') },
+      }),
+    ],
     devServer: {
       compress: true,
       port: process.env.PORT,

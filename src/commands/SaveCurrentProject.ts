@@ -6,6 +6,11 @@ import {
   SAVE_CURRENT_PROJECT,
 } from '@commands/CommandConstants';
 
+export interface SaveCurrentProjectParams {
+  id: string;
+  name: string;
+}
+
 export default class SaveCurrentProject extends Command {
   protected id: string;
   protected name: string;
@@ -13,8 +18,7 @@ export default class SaveCurrentProject extends Command {
   constructor(
     webview: vscode.Webview,
     requestId: string,
-    id: string,
-    name: string
+    { id, name }: SaveCurrentProjectParams
   ) {
     super(`nightvision project set -P ${id}`, webview, requestId);
 

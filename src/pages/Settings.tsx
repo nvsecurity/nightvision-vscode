@@ -19,10 +19,11 @@ export const Settings = () => {
     try {
       for await (const response of requestGenerator) {
         switch (response.command) {
-          case LOGOUT:
+          case LOGOUT: {
             navigate('/');
             setIsLoggedIn(false);
             break;
+          }
         }
       }
     } catch (err) {

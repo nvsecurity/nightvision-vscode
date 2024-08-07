@@ -1,6 +1,10 @@
 import * as cp from 'child_process';
 import * as vscode from 'vscode';
-import { EXIT, UNAUTHORIZED_ACCESS } from '@commands/CommandConstants';
+import {
+  CLI_MISSING,
+  EXIT,
+  UNAUTHORIZED_ACCESS,
+} from '@commands/CommandConstants';
 
 export interface Flag {
   flag: string;
@@ -77,7 +81,14 @@ export default class Command {
     });
   }
 
-  handleError(err: Error) {
+  handleError(err: NodeJS.ErrnoException) {
+    if (err.code === 'ENOENT') {
+      this.webview.postMessage({
+        command: CLI_MISSING,
+        requestId: this.requestId,
+        isFinal: true,
+      });
+    }
     console.error(err);
   }
 

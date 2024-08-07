@@ -16,6 +16,8 @@ import {
   useRouteError,
 } from 'react-router-dom';
 import {
+  CLI_MISSING,
+  CLI_VERSION,
   CREATE_TOKEN,
   DELETE_TOKENS,
   GET_CURRENT_APP,
@@ -27,6 +29,9 @@ import {
   SAVE_CURRENT_TARGET,
   UNAUTHORIZED_ACCESS,
 } from '@commands/CommandConstants';
+import { SaveCurrentAppParams } from '@commands/SaveCurrentApp';
+import { SaveCurrentProjectParams } from '@commands/SaveCurrentProject';
+import { InstallButton } from '@components/InstallButton';
 import { Layout } from '@components/Layout';
 import { Loading } from '@components/Loading';
 import { ApplicationPage } from '@pages/Application';
@@ -126,9 +131,11 @@ export const App = () => {
   const [currentProject, setCurrentProject] = useState<Project>();
   const [currentTarget, setCurrentTarget] = useState<Target>();
   const [currentUser, setCurrentUser] = useState<User>();
+  const [cliVersion, setCliVersion] = useState<string | null>();
 
   const [isLoading, setIsLoading] = useState(true);
   const [isLoggedIn, setIsLoggedIn] = useState(true);
+  const [isCliInstalled, setIsCliInstalled] = useState(true);
 
   const handleLogin = async () => {
     const reqId = v4();
@@ -137,11 +144,12 @@ export const App = () => {
     try {
       for await (const response of requestGenerator) {
         switch (response.command) {
-          case LOGIN:
+          case LOGIN: {
             await createToken();
             setIsLoggedIn(true);
             setIsLoading(true);
             break;
+          }
         }
       }
     } catch (err) {
@@ -151,7 +159,24 @@ export const App = () => {
 
   const handleAppChange = async (application: Application | undefined) => {
     setCurrentApp(application);
-    await messageHandler.request(SAVE_CURRENT_APP, { ...application });
+
+    const generator = messageHandler.requestGenerator<SaveCurrentAppParams>(
+      SAVE_CURRENT_APP,
+      v4(),
+      { id: application?.id ?? '', name: application?.name ?? '' }
+    );
+    for await (const response of generator) {
+      switch (response.command) {
+        case UNAUTHORIZED_ACCESS: {
+          setIsLoggedIn(false);
+          break;
+        }
+        case CLI_MISSING: {
+          setIsCliInstalled(false);
+          break;
+        }
+      }
+    }
   };
 
   const handleTargetChange = async (target: Target | undefined) => {
@@ -161,7 +186,24 @@ export const App = () => {
 
   const handleProjectChange = async (project: Project) => {
     setCurrentProject(project);
-    await messageHandler.request(SAVE_CURRENT_PROJECT, { ...project });
+
+    const generator = messageHandler.requestGenerator<SaveCurrentProjectParams>(
+      SAVE_CURRENT_PROJECT,
+      v4(),
+      { id: project.id, name: project.name }
+    );
+    for await (const response of generator) {
+      switch (response.command) {
+        case UNAUTHORIZED_ACCESS: {
+          setIsLoggedIn(false);
+          break;
+        }
+        case CLI_MISSING: {
+          setIsCliInstalled(false);
+          break;
+        }
+      }
+    }
   };
 
   const getCurrentApp = async (ignore: boolean) => {
@@ -169,14 +211,20 @@ export const App = () => {
       messageHandler.requestGenerator(GET_CURRENT_APP);
     for await (const response of currentAppGenerator) {
       switch (response.command) {
-        case GET_CURRENT_APP:
+        case GET_CURRENT_APP: {
           if (!ignore) {
             setCurrentApp(response.payload);
           }
           break;
-        case UNAUTHORIZED_ACCESS:
+        }
+        case UNAUTHORIZED_ACCESS: {
           setIsLoggedIn(false);
           break;
+        }
+        case CLI_MISSING: {
+          setIsCliInstalled(false);
+          break;
+        }
       }
     }
   };
@@ -186,14 +234,20 @@ export const App = () => {
       messageHandler.requestGenerator(GET_CURRENT_PROJECT);
     for await (const response of currentProjectGenerator) {
       switch (response.command) {
-        case GET_CURRENT_PROJECT:
+        case GET_CURRENT_PROJECT: {
           if (!ignore) {
             setCurrentProject(response.payload);
           }
           break;
-        case UNAUTHORIZED_ACCESS:
+        }
+        case UNAUTHORIZED_ACCESS: {
           setIsLoggedIn(false);
           break;
+        }
+        case CLI_MISSING: {
+          setIsCliInstalled(false);
+          break;
+        }
       }
     }
   };
@@ -203,14 +257,20 @@ export const App = () => {
       messageHandler.requestGenerator(GET_CURRENT_TARGET);
     for await (const response of currentProjectGenerator) {
       switch (response.command) {
-        case GET_CURRENT_TARGET:
+        case GET_CURRENT_TARGET: {
           if (!ignore) {
             setCurrentTarget(response.payload);
           }
           break;
-        case UNAUTHORIZED_ACCESS:
+        }
+        case UNAUTHORIZED_ACCESS: {
           setIsLoggedIn(false);
           break;
+        }
+        case CLI_MISSING: {
+          setIsCliInstalled(false);
+          break;
+        }
       }
     }
   };
@@ -225,9 +285,34 @@ export const App = () => {
             currentToken: response.payload.currentToken,
           };
         }
-        case UNAUTHORIZED_ACCESS:
+        case UNAUTHORIZED_ACCESS: {
           setIsLoggedIn(false);
           break;
+        }
+        case CLI_MISSING: {
+          setIsCliInstalled(false);
+          break;
+        }
+      }
+    }
+  };
+
+  const getCliVersion = async () => {
+    const requestGenerator = messageHandler.requestGenerator(CLI_VERSION);
+    for await (const response of requestGenerator) {
+      switch (response.command) {
+        case CLI_VERSION: {
+          setCliVersion(response.payload.version);
+          break;
+        }
+        case UNAUTHORIZED_ACCESS: {
+          setIsLoggedIn(false);
+          break;
+        }
+        case CLI_MISSING: {
+          setIsCliInstalled(false);
+          break;
+        }
       }
     }
   };
@@ -317,6 +402,7 @@ export const App = () => {
           getCurrentProject(ignore),
           getCurrentTarget(ignore),
           createToken(),
+          getCliVersion(),
         ]);
 
         if (promises[3]) {
@@ -332,9 +418,19 @@ export const App = () => {
     return () => {
       ignore = true;
     };
-  }, [isLoggedIn]);
+  }, [isLoggedIn, isCliInstalled]);
 
-  if (!isLoggedIn) {
+  if (!isCliInstalled) {
+    return (
+      <Layout>
+        <InstallButton
+          installText='Install NightVison CLI'
+          installingText='Installing...'
+          setIsCliInstalled={setIsCliInstalled}
+        />
+      </Layout>
+    );
+  } else if (!isLoggedIn) {
     return (
       <Layout>
         <button onClick={handleLogin} className='mt-4 truncate rounded'>
@@ -349,7 +445,15 @@ export const App = () => {
   return (
     <React.StrictMode>
       <Layout>
-        <UserContext.Provider value={{ currentUser, setIsLoggedIn }}>
+        <UserContext.Provider
+          value={{
+            currentUser,
+            setIsLoggedIn,
+            cliVersion,
+            setCliVersion,
+            setIsCliInstalled,
+          }}
+        >
           <AppContext.Provider
             value={{
               currentApp,

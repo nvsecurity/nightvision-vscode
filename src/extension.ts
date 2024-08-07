@@ -1,8 +1,15 @@
 import { ChildProcessWithoutNullStreams } from 'child_process';
+import os from 'os';
 import { join } from 'path';
+import path from 'path';
+import sudo from 'sudo-prompt';
 import * as vscode from 'vscode';
 import { ExtensionContext, ExtensionMode, Uri } from 'vscode';
+import CliVersion from '@commands/CliVersion';
 import {
+  CLI_INSTALL,
+  CLI_INSTALL_FAILED,
+  CLI_VERSION,
   CREATE_APP,
   CREATE_AUTH,
   CREATE_PROJECT,
@@ -48,6 +55,7 @@ import UpdateApp from '@commands/UpdateApp';
 import UpdateAuth from '@commands/UpdateAuth';
 import UpdateProject from '@commands/UpdateProject';
 import UpdateTarget from '@commands/UpdateTarget';
+import fs from 'fs/promises';
 
 export async function activate(context: vscode.ExtensionContext) {
   const sidebarProvider = new SidebarProvider(context);
@@ -146,6 +154,114 @@ class SidebarProvider implements vscode.WebviewViewProvider {
 
       try {
         switch (command) {
+          case CLI_INSTALL: {
+            const platform = os.platform();
+            const arch = os.arch();
+
+            let command: string | undefined;
+            let filePath = '/usr/local/bin/nightvision';
+            let stop = false;
+
+            if (platform === 'win32') {
+              command = `${path.join(this._extensionContext.extensionPath, 'install_nightvision.bat')}`;
+              filePath = 'C:/Program Files/Nightvision/bin/nightvision.exe';
+            } else if (platform === 'darwin') {
+              if (arch === 'x64') {
+                command =
+                  'curl -L https://downloads.nightvision.net/binaries/latest/nightvision_latest_darwin_amd64.tar.gz | tar -xz; mv nightvision /usr/local/bin/';
+              } else if (arch === 'arm64') {
+                command =
+                  'curl -L https://downloads.nightvision.net/binaries/latest/nightvision_latest_darwin_arm64.tar.gz -q | tar -xz; mv nightvision /usr/local/bin/';
+              }
+            } else if (platform === 'linux') {
+              if (arch === 'x64') {
+                command =
+                  'curl -L https://downloads.nightvision.net/binaries/latest/nightvision_latest_linux_amd64.tar.gz -q | tar -xz; sudo mv nightvision /usr/local/bin/';
+              } else if (arch === 'arm64') {
+                command =
+                  'curl -L https://downloads.nightvision.net/binaries/latest/nightvision_latest_linux_arm64.tar.gz -q | tar -xz; sudo mv nightvision /usr/local/bin/';
+              }
+            }
+
+            if (!command) {
+              webviewView.webview.postMessage({
+                command: CLI_INSTALL_FAILED,
+                requestId,
+                error: CLI_INSTALL_FAILED,
+                isFinal: true,
+              });
+              return;
+            }
+
+            let lastModifiedTime: Date;
+            try {
+              const stats = await fs.stat(filePath);
+              lastModifiedTime = stats.mtime;
+            } catch (err) {
+              console.error(err);
+            }
+
+            sudo.exec(
+              command,
+              { name: 'NightVision' },
+              (error, stdout, stderr) => {
+                if (error) {
+                  console.error(error?.name, error?.message);
+                  webviewView.webview.postMessage({
+                    command: CLI_INSTALL_FAILED,
+                    requestId,
+                    error: CLI_INSTALL_FAILED,
+                    isFinal: true,
+                  });
+                  stop = true;
+                  return;
+                }
+                webviewView.webview.postMessage({
+                  command: CLI_INSTALL,
+                  requestId,
+                  isFinal: true,
+                });
+              }
+            );
+
+            let tries = 0;
+            const interval = setInterval(async () => {
+              if (tries > 11 || stop) {
+                clearInterval(interval);
+                webviewView.webview.postMessage({
+                  command: CLI_INSTALL_FAILED,
+                  requestId,
+                  error: CLI_INSTALL_FAILED,
+                  isFinal: true,
+                });
+                return;
+              }
+
+              try {
+                const stats = await fs.stat(filePath);
+                if (
+                  !lastModifiedTime ||
+                  stats.mtime.getTime() !== lastModifiedTime.getTime()
+                ) {
+                  webviewView.webview.postMessage({
+                    command: CLI_INSTALL,
+                    requestId,
+                    isFinal: true,
+                  });
+                  stop = true;
+                }
+              } catch (err) {
+                console.error(err);
+              }
+            }, 2500);
+            break;
+          }
+          case CLI_VERSION: {
+            const command = new CliVersion(webviewView.webview, requestId);
+
+            this._children[requestId] = command.execute();
+            break;
+          }
           case KILL: {
             this._children[requestId]?.kill('SIGINT');
             this._children[requestId]?.kill('SIGTERM');
@@ -188,13 +304,10 @@ class SidebarProvider implements vscode.WebviewViewProvider {
             break;
           }
           case SAVE_CURRENT_APP: {
-            const { id, name } = payload;
-
             const command = new SaveCurrentApp(
               webviewView.webview,
               requestId,
-              id,
-              name
+              payload
             );
 
             this._children[requestId] = command.execute();
@@ -280,13 +393,10 @@ class SidebarProvider implements vscode.WebviewViewProvider {
             break;
           }
           case SAVE_CURRENT_PROJECT: {
-            const { id, name } = payload;
-
             const command = new SaveCurrentProject(
               webviewView.webview,
               requestId,
-              id,
-              name
+              payload
             );
 
             this._children[requestId] = command.execute();
