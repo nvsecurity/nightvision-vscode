@@ -11,6 +11,7 @@ import { useNavigate } from 'react-router-dom';
 import {
   AUTH_DESCRIPTION_LENGTH,
   AUTH_MISSING_HEADERS,
+  CLI_MISSING,
   CREATE_AUTH,
   DUPLICATE_NAME,
   INVALID_AUTH_FORM,
@@ -90,7 +91,7 @@ const types: { type: AuthType; name: string }[] = [
 export const Authentications = () => {
   const navigate = useNavigate();
   const { currentProject, setCurrentProject } = useProject();
-  const { setIsLoggedIn } = useUser();
+  const { setIsLoggedIn, setIsCliInstalled } = useUser();
 
   const {
     componentRef: createRef,
@@ -348,9 +349,14 @@ export const Authentications = () => {
             ]);
             break;
           }
-          case UNAUTHORIZED_ACCESS:
+          case UNAUTHORIZED_ACCESS: {
             setIsLoggedIn(false);
             break;
+          }
+          case CLI_MISSING: {
+            setIsCliInstalled(false);
+            break;
+          }
         }
       }
     } catch (err) {

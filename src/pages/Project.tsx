@@ -8,6 +8,7 @@ import React, { useEffect, useRef } from 'react';
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
+  CLI_MISSING,
   DELETE_PROJECT,
   DUPLICATE_NAME,
   INVALID_NAME,
@@ -227,7 +228,7 @@ export const ProjectPage = () => {
   const { projectId } = useParams();
 
   const navigate = useNavigate();
-  const { currentUser, setIsLoggedIn } = useUser();
+  const { currentUser, setIsLoggedIn, setIsCliInstalled } = useUser();
 
   const {
     componentRef: updateRef,
@@ -415,9 +416,14 @@ export const ProjectPage = () => {
             ]);
             break;
           }
-          case UNAUTHORIZED_ACCESS:
+          case UNAUTHORIZED_ACCESS: {
             setIsLoggedIn(false);
             break;
+          }
+          case CLI_MISSING: {
+            setIsCliInstalled(false);
+            break;
+          }
         }
       }
     } catch (err) {
@@ -458,9 +464,14 @@ export const ProjectPage = () => {
             ]);
             break;
           }
-          case UNAUTHORIZED_ACCESS:
+          case UNAUTHORIZED_ACCESS: {
             setIsLoggedIn(false);
             break;
+          }
+          case CLI_MISSING: {
+            setIsCliInstalled(false);
+            break;
+          }
         }
       }
     } catch (err) {

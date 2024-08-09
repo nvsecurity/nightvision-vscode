@@ -8,6 +8,7 @@ import React, { useEffect } from 'react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
+  CLI_MISSING,
   CREATE_PROJECT,
   DUPLICATE_NAME,
   INVALID_NAME,
@@ -95,7 +96,7 @@ export const getProjects = async (
 export const Projects = () => {
   const navigate = useNavigate();
   const { currentProject, setCurrentProject } = useProject();
-  const { setIsLoggedIn } = useUser();
+  const { setIsLoggedIn, setIsCliInstalled } = useUser();
 
   const {
     componentRef: createRef,
@@ -185,10 +186,11 @@ export const Projects = () => {
     try {
       for await (const response of requestGenerator) {
         switch (response.command) {
-          case CREATE_PROJECT:
+          case CREATE_PROJECT: {
             await getProjects(setProjects, setIsLoggedIn);
             setShowCreateModal(false);
             break;
+          }
           case DUPLICATE_NAME: {
             setProjectNameErrors((prevState) => [
               ...prevState,
@@ -203,9 +205,14 @@ export const Projects = () => {
             ]);
             break;
           }
-          case UNAUTHORIZED_ACCESS:
+          case UNAUTHORIZED_ACCESS: {
             setIsLoggedIn(false);
             break;
+          }
+          case CLI_MISSING: {
+            setIsCliInstalled(false);
+            break;
+          }
         }
       }
     } catch (err) {

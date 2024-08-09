@@ -1,18 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import { useUser } from '@hooks/useUser';
+import React from 'react';
 import { Link } from 'react-router-dom';
+import { InstallButton } from '@components/InstallButton';
+import { isCliOutdated } from '@utils/isCliOutdated';
 
 export const Overview = () => {
-  const [currentTime, setCurrentTime] = useState(new Date());
-
-  useEffect(() => {
-    let interval: NodeJS.Timeout | undefined;
-    clearInterval(interval);
-    interval = setInterval(() => {
-      setCurrentTime(new Date());
-    }, 500);
-
-    return () => clearInterval(interval);
-  }, [currentTime]);
+  const { cliVersion, setCliVersion, setIsCliInstalled } = useUser();
 
   return (
     <div className='flex flex-col space-y-4'>
@@ -46,6 +39,17 @@ export const Overview = () => {
           </Link>
         ))}
       </div>
+      {cliVersion && isCliOutdated(cliVersion) && (
+        <InstallButton
+          installText='Update NightVison CLI'
+          installingText='Updating...'
+          cliVersion={cliVersion}
+          setIsCliInstalled={(val) => {
+            setIsCliInstalled(val);
+            setCliVersion(process.env.CLI_VERSION);
+          }}
+        />
+      )}
     </div>
   );
 };

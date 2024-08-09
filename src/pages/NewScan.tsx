@@ -11,6 +11,7 @@ import { v4 } from 'uuid';
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import {
+  CLI_MISSING,
   INVALID_APP,
   INVALID_TARGET,
   SCAN,
@@ -36,7 +37,7 @@ export const NewScan = () => {
   const { currentApp, setCurrentApp } = useApp();
   const { currentProject, setCurrentProject } = useProject();
   const { currentTarget, setCurrentTarget } = useTarget();
-  const { setIsLoggedIn } = useUser();
+  const { setIsLoggedIn, setIsCliInstalled } = useUser();
 
   const [apps, setApps] = useState<Application[]>();
   const [auths, setAuths] = useState<Auth[]>();
@@ -123,8 +124,14 @@ export const NewScan = () => {
           break;
         }
         case UNAUTHORIZED_ACCESS:
+        case UNAUTHORIZED_ACCESS: {
           setIsLoggedIn(false);
           break;
+        }
+        case CLI_MISSING: {
+          setIsCliInstalled(false);
+          break;
+        }
       }
     }
 

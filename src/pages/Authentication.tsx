@@ -12,6 +12,7 @@ import a11yDark from 'react-syntax-highlighter/dist/esm/styles/hljs/a11y-dark';
 import {
   AUTH_DESCRIPTION_LENGTH,
   AUTH_MISSING_HEADERS,
+  CLI_MISSING,
   DELETE_AUTH,
   DUPLICATE_NAME,
   INVALID_AUTH,
@@ -99,7 +100,7 @@ export const AuthenticationPage = () => {
   const { authId } = useParams();
 
   const navigate = useNavigate();
-  const { setIsLoggedIn } = useUser();
+  const { setIsLoggedIn, setIsCliInstalled } = useUser();
 
   const {
     componentRef: updateRef,
@@ -347,9 +348,14 @@ export const AuthenticationPage = () => {
             ]);
             break;
           }
-          case UNAUTHORIZED_ACCESS:
+          case UNAUTHORIZED_ACCESS: {
             setIsLoggedIn(false);
             break;
+          }
+          case CLI_MISSING: {
+            setIsCliInstalled(false);
+            break;
+          }
         }
       }
     } catch (err: any) {
@@ -416,9 +422,14 @@ export const AuthenticationPage = () => {
             navigate(-1);
             break;
           }
-          case UNAUTHORIZED_ACCESS:
+          case UNAUTHORIZED_ACCESS: {
             setIsLoggedIn(false);
             break;
+          }
+          case CLI_MISSING: {
+            setIsCliInstalled(false);
+            break;
+          }
         }
       }
     } catch (err) {

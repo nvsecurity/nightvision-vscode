@@ -6,6 +6,11 @@ import {
   SAVE_CURRENT_APP,
 } from '@commands/CommandConstants';
 
+export interface SaveCurrentAppParams {
+  id: string;
+  name: string;
+}
+
 export default class SaveCurrentApp extends Command {
   protected id: string;
   protected name: string;
@@ -13,8 +18,7 @@ export default class SaveCurrentApp extends Command {
   constructor(
     webview: vscode.Webview,
     requestId: string,
-    id: string,
-    name: string
+    { id, name }: SaveCurrentAppParams
   ) {
     super(`nightvision app set -A ${id}`, webview, requestId);
 

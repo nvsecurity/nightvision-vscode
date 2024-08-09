@@ -7,6 +7,7 @@ import React, { useEffect, useRef } from 'react';
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
+  CLI_MISSING,
   DELETE_TARGET,
   DUPLICATE_NAME,
   INVALID_NAME,
@@ -117,7 +118,7 @@ export const TargetPage = () => {
   const { targetType, targetId } = useParams();
 
   const navigate = useNavigate();
-  const { setIsLoggedIn } = useUser();
+  const { setIsLoggedIn, setIsCliInstalled } = useUser();
 
   const {
     componentRef: updateRef,
@@ -397,9 +398,14 @@ export const TargetPage = () => {
             ]);
             break;
           }
-          case UNAUTHORIZED_ACCESS:
+          case UNAUTHORIZED_ACCESS: {
             setIsLoggedIn(false);
             break;
+          }
+          case CLI_MISSING: {
+            setIsCliInstalled(false);
+            break;
+          }
         }
       }
     } catch (err) {
@@ -431,9 +437,14 @@ export const TargetPage = () => {
             navigate(-1);
             break;
           }
-          case UNAUTHORIZED_ACCESS:
+          case UNAUTHORIZED_ACCESS: {
             setIsLoggedIn(false);
             break;
+          }
+          case CLI_MISSING: {
+            setIsCliInstalled(false);
+            break;
+          }
         }
       }
     } catch (err) {
