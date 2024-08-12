@@ -283,7 +283,7 @@ export const Applications = () => {
           <div className='flex flex-col space-y-4'>
             <div className='flex items-center justify-between'>
               <span className='truncate font-bold uppercase'>
-                Create Project
+                Create Application
               </span>
               <button
                 className='unstyled'
