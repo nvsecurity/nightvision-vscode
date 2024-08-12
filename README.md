@@ -18,8 +18,36 @@ Open the NightVision Extension for Visual Studio Code in the [Visual Studio Mark
 * [NightVision CLI](https://docs.nightvision.net/docs/installing-the-cli)
 
 ### Usage
+For this example, we'll be using the `HTML5 Vulnweb` website from the [public vulnerable websites](https://docs.nightvision.net/docs/public-vulnerable-websites).
 
-TODO
+#### Projects
+Create a new project called `HTML5-Vulnweb`.
+
+![project](https://github.com/user-attachments/assets/a037151c-800e-49ab-b6d1-07c5cd32b056)
+
+#### Applications
+Switch to the new project we just created and create a new application called `HTML5-Vulnweb-App`.
+
+![application](https://github.com/user-attachments/assets/2383d65e-66a7-448d-9287-a53fa2e8d948)
+
+#### Targets
+Create a new target called `HTML5-Vulnweb-Target` and set the URL to `http://testhtml5.vulnweb.com`.
+
+![target](https://github.com/user-attachments/assets/76ae45e5-a8cc-434b-8abc-ab3472ea6afc)
+
+#### Authentications
+Create a new Playwright authentication named `HTML5-Vulnweb-Auth` and set the URL to `http://testhtml5.vulnweb.com`. This will open a Chrome window at the specified URL. Log in using the username `admin` and password `admin`. This authentication enables comprehensive testing of the website, revealing issues behind login screens and other authentication barriers.
+
+![authentication](https://github.com/user-attachments/assets/3877294a-ce30-4289-b29b-88fa4abe87e6)
+
+#### Scans
+Initiate a new scan using the application, target, and authentication we just set up. NightVision will begin analyzing the website for any vulnerabilities.
+
+![scan](https://github.com/user-attachments/assets/e1561b80-a9e7-4bb1-afa2-7d6a86c5124b)
+
+You can monitor the scan in progress or review it after completion to see the vulnerabilities the program has identified on the website.
+
+![scan2](https://github.com/user-attachments/assets/5d05e87f-8759-42b0-9432-878a982222eb)
 
 ## Contributing
 
