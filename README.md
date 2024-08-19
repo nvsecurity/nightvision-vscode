@@ -24,35 +24,35 @@ For this example, we'll be using the `HTML5 Vulnweb` website from the [public vu
 
 Create a new project called `HTML5-Vulnweb`.
 
-![project.gif](docs/project.gif)
+![project.gif](https://raw.githubusercontent.com/spatiag/nv-images/main/project.gif)
 
 #### Applications
 
 Switch to the new project we just created and create a new application called `HTML5-Vulnweb-App`.
 
-![application.gif](docs/application.gif)
+![application.gif](https://raw.githubusercontent.com/spatiag/nv-images/main/application.gif)
 
 #### Targets
 
 Create a new target called `HTML5-Vulnweb-Target` and set the URL to `http://testhtml5.vulnweb.com`.
 
-![target.gif](docs/target.gif)
+![target.gif](https://raw.githubusercontent.com/spatiag/nv-images/main/target.gif)
 
 #### Authentications
 
 Create a new Playwright authentication named `HTML5-Vulnweb-Auth` and set the URL to `http://testhtml5.vulnweb.com`. This will open a Chrome window at the specified URL. Log in using the username `admin` and password `admin`. This authentication enables comprehensive testing of the website, revealing issues behind login screens and other authentication barriers.
 
-![authentication.gif](docs/authentication.gif)
+![authentication.gif](https://raw.githubusercontent.com/spatiag/nv-images/main/authentication.gif)
 
 #### Scans
 
 Initiate a new scan using the application, target, and authentication we just set up. NightVision will begin analyzing the website for any vulnerabilities.
 
-![scan.gif](docs/scan.gif)
+![scan.gif](https://raw.githubusercontent.com/spatiag/nv-images/main/scan.gif)
 
 You can monitor the scan in progress or review it after completion to see the vulnerabilities the program has identified on the website.
 
-![scan2.gif](docs/scan2.gif)
+![scan2.gif](https://raw.githubusercontent.com/spatiag/nv-images/main/scan2.gif)
 
 ## Contributing
 
