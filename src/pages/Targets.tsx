@@ -581,7 +581,7 @@ export const Targets = () => {
                   hasErrors
                 }
               >
-                {isLoading ? 'Creating...' : 'Create Target'}
+                {isLoading ? 'Creating...' : 'Create'}
               </button>
             </div>
           </div>

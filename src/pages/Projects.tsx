@@ -351,7 +351,7 @@ export const Projects = () => {
                   hasErrors
                 }
               >
-                {isLoading ? 'Creating...' : 'Create Project'}
+                {isLoading ? 'Creating...' : 'Create'}
               </button>
             </div>
           </div>

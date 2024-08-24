@@ -682,7 +682,7 @@ export const AuthenticationPage = () => {
                 <TextInput
                   value={_updateName}
                   handleOnChange={setUpdateName}
-                  label='Authetication Name'
+                  label='Authentication Name'
                   id='auth-name-update'
                   errors={authNameErrors}
                 />
