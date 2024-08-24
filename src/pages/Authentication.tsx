@@ -399,7 +399,7 @@ export const AuthenticationPage = () => {
   const handleDelete = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
 
-    if (!authId) {
+    if (!authId || !auth) {
       return;
     }
 
@@ -410,6 +410,7 @@ export const AuthenticationPage = () => {
       v4(),
       {
         authId: authId,
+        auth: auth,
       }
     );
 

@@ -338,6 +338,7 @@ export const TargetPage = () => {
         targetId: targetId,
         newTargetName: updateName,
         newTargetUrl: updateLocation,
+        target: target,
         type: target.type,
         apiSpecType: selectedApiSpec.type,
         openApiUrl:
@@ -417,7 +418,7 @@ export const TargetPage = () => {
   const handleDelete = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
 
-    if (!targetId) {
+    if (!targetId || !target) {
       return;
     }
 
@@ -426,6 +427,7 @@ export const TargetPage = () => {
     const requestGenerator =
       messageHandler.requestGenerator<DeleteTargetParams>(DELETE_TARGET, v4(), {
         id: targetId,
+        target: target
       });
 
     try {

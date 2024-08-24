@@ -40,8 +40,6 @@ export default class CreateTarget extends Command {
   ) {
     const flags: Flag[] = [
       { flag: '-P', value: project.id },
-      { flag: '-n', value: targetName },
-      { flag: '-u', value: targetUrl },
       { flag: '-t', value: type === 'URL' ? 'WEB' : 'API' },
     ];
 
@@ -52,7 +50,7 @@ export default class CreateTarget extends Command {
       });
     }
 
-    super('nightvision target create', webview, requestId, flags);
+    super(`nightvision target create ${targetName} ${targetUrl}`, webview, requestId, flags);
 
     this.targetName = targetName;
     this.targetUrl = targetUrl;

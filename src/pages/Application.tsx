@@ -176,7 +176,7 @@ export const ApplicationPage = () => {
   const handleUpdate = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
 
-    if (!appId) {
+    if (!appId || !updateName || !app) {
       return;
     }
 
@@ -188,6 +188,7 @@ export const ApplicationPage = () => {
       {
         appId: appId,
         newAppName: updateName,
+        app: app,
       }
     );
 
@@ -237,7 +238,7 @@ export const ApplicationPage = () => {
   const handleDelete = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
 
-    if (!appId) {
+    if (!appId || !app) {
       return;
     }
 
@@ -248,6 +249,7 @@ export const ApplicationPage = () => {
       v4(),
       {
         id: appId,
+        app: app,
       }
     );
 

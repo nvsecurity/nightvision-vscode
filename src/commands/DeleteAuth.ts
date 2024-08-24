@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import { AuthInfo } from '@types_/auth';
 import Command from '@commands/Command';
 import {
   DELETE_AUTH,
@@ -8,18 +9,21 @@ import {
 
 export interface DeleteAuthParams {
   authId: string;
+  auth: AuthInfo;
 }
 
 export default class DeleteAuth extends Command {
   protected id: string;
+  protected auth: AuthInfo;
 
   constructor(
     webview: vscode.Webview,
     requestId: string,
-    { authId }: DeleteAuthParams
+    { authId, auth }: DeleteAuthParams
   ) {
-    super(`nightvision auth delete -C ${authId}`, webview, requestId);
+    super(`nightvision auth delete ${auth.name}`, webview, requestId);
     this.id = authId;
+    this.auth = auth;
   }
 
   handleOutput(data: any) {

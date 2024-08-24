@@ -18,7 +18,7 @@ export default class CreateApp extends Command {
     requestId: string,
     { applicationName }: CreateAppParams
   ) {
-    super(`nightvision app create -n ${applicationName}`, webview, requestId);
+    super(`nightvision app create ${applicationName}`, webview, requestId);
     this.applicationName = applicationName;
   }
 

@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import { AppInfo } from '@types_/app';
 import Command from '@commands/Command';
 import {
   DUPLICATE_NAME,
@@ -11,25 +12,28 @@ import {
 export interface UpdateAppParams {
   appId: string;
   newAppName: string;
+  app: AppInfo;
 }
 
 export default class UpdateApp extends Command {
   protected appId: string;
   protected newAppName: string;
+  protected app: AppInfo;
 
   constructor(
     webview: vscode.Webview,
     requestId: string,
-    { appId, newAppName }: UpdateAppParams
+    { appId, newAppName, app }: UpdateAppParams
   ) {
     super(
-      `nightvision app update -A ${appId} -n ${newAppName}`,
+      `nightvision app update ${app.name} ${newAppName}`,
       webview,
       requestId
     );
 
     this.appId = appId;
     this.newAppName = newAppName;
+    this.app = app;
   }
 
   handleOutput(data: any) {

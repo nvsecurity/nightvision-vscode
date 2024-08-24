@@ -376,7 +376,7 @@ export const ProjectPage = () => {
   const handleUpdate = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
 
-    if (!projectId) {
+    if (!projectId || !updateName || !project) {
       return;
     }
 
@@ -386,7 +386,11 @@ export const ProjectPage = () => {
       messageHandler.requestGenerator<UpdateProjectParams>(
         UPDATE_PROJECT,
         v4(),
-        { projectId: projectId, newProjectName: updateName }
+        { 
+          projectId: projectId, 
+          newProjectName: updateName,
+          project: project,
+        }
       );
 
     try {
@@ -435,7 +439,7 @@ export const ProjectPage = () => {
   const handleDelete = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
 
-    if (!projectId) {
+    if (!projectId || !project) {
       return;
     }
 
@@ -445,7 +449,10 @@ export const ProjectPage = () => {
       messageHandler.requestGenerator<DeleteProjectParams>(
         DELETE_PROJECT,
         v4(),
-        { id: projectId }
+        { 
+          id: projectId,
+          project: project,
+        }
       );
 
     try {

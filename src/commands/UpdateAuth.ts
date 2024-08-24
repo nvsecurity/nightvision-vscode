@@ -55,7 +55,6 @@ export default class UpdateAuth extends Command {
 
     const flags: Flag[] = [
       { flag: '-P', value: project.id },
-      { flag: '-C', value: authentication.id },
     ];
 
     // nightvision auth playwright update returns a duplicate
@@ -85,7 +84,7 @@ export default class UpdateAuth extends Command {
     }
 
     super(
-      `nightvision auth ${authentication.type === 'COOKIE' ? 'cookies' : authentication.type === 'HEADER' ? 'headers' : 'playwright'} update`,
+      `nightvision auth ${authentication.type === 'COOKIE' ? 'cookies' : authentication.type === 'HEADER' ? 'headers' : 'playwright'} update ${authentication.name}`,
       webview,
       requestId,
       flags,

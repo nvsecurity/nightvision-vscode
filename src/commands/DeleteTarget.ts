@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import { TargetInfo } from '@types_/target';
 import Command from '@commands/Command';
 import {
   DELETE_TARGET,
@@ -8,18 +9,21 @@ import {
 
 export interface DeleteTargetParams {
   id: string;
+  target: TargetInfo;
 }
 
 export default class DeleteTarget extends Command {
   protected id: string;
+  protected target: TargetInfo;
 
   constructor(
     webview: vscode.Webview,
     requestId: string,
-    { id }: DeleteTargetParams
+    { id, target }: DeleteTargetParams
   ) {
-    super(`nightvision target delete -T ${id}`, webview, requestId);
+    super(`nightvision target delete ${target.name}`, webview, requestId);
     this.id = id;
+    this.target = target;
   }
 
   handleOutput(data: any) {
