@@ -244,8 +244,7 @@ export const Scan = () => {
               <IssueCard
                 severity='Critical'
                 amount={
-                  scan.issues.filter((issue) => issue.severity === 'Critical')
-                    .length ?? 0
+                  scan?.vulnPathsStatistics?.Critical ?? 0
                 }
                 toggled={toggled}
                 setToggled={setToggled}
@@ -253,8 +252,7 @@ export const Scan = () => {
               <IssueCard
                 severity='High'
                 amount={
-                  scan.issues.filter((issue) => issue.severity === 'High')
-                    .length ?? 0
+                  scan?.vulnPathsStatistics?.High ?? 0
                 }
                 toggled={toggled}
                 setToggled={setToggled}
@@ -262,8 +260,7 @@ export const Scan = () => {
               <IssueCard
                 severity='Medium'
                 amount={
-                  scan.issues.filter((issue) => issue.severity === 'Medium')
-                    .length ?? 0
+                  scan?.vulnPathsStatistics?.Medium ?? 0
                 }
                 toggled={toggled}
                 setToggled={setToggled}
@@ -271,8 +268,7 @@ export const Scan = () => {
               <IssueCard
                 severity='Low'
                 amount={
-                  scan.issues.filter((issue) => issue.severity === 'Low')
-                    .length ?? 0
+                  scan?.vulnPathsStatistics?.Low ?? 0
                 }
                 toggled={toggled}
                 setToggled={setToggled}
