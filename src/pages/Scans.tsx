@@ -301,10 +301,14 @@ export const Scans = () => {
             <span className='!mt-10 w-full text-center'>No scans found</span>
           )}
           <div className='!mt-1'>
-            <div className='grid grid-cols-2 gap-3'>
+            <div className='grid grid-cols-3 gap-3'>
               {/* Table Headers */}
               <div className='font-bold uppercase flex justify-center items-center'>Target</div>
-              <div className='font-bold uppercase flex justify-center items-center'>Vulnerabilities</div>
+              <div className='flex font-bold uppercase flex justify-center items-center'>Project</div>
+              <div className='font-bold uppercase flex justify-center items-center'>
+                <span className='block s-400px:hidden'>Vuln.</span>
+                <span className='hidden s-400px:block'>Vulnerabilities</span>
+              </div>
             </div>
 
             {filteredScans.map((scan) => (
@@ -313,7 +317,7 @@ export const Scans = () => {
                 key={scan.id}
                 className='!mt-2 relative flex h-24 flex-col justify-center items-center overflow-hidden px-4 py-2 text-[--vscode-foreground] before:absolute before:inset-0 before:-z-10 before:rounded before:bg-[--vscode-input-background] hover:cursor-pointer hover:text-[--vscode-foreground] before:hover:brightness-75'
               >
-                <div className='grid grid-cols-2 gap-3 w-full h-full'>
+                <div className='grid grid-cols-3 gap-3 w-full h-full'>
                   {/* Target Column */}
                   <div className='truncate flex flex-col justify-center'>
                     <span className='truncate font-bold'>
@@ -324,7 +328,7 @@ export const Scans = () => {
                         <svg
                           xmlns='http://www.w3.org/2000/svg'
                           viewBox='0 0 100 100'
-                          className='h-5 w-5 animate-spin stroke-[--vscode-foreground]'
+                          className='mr-2 h-5 w-5 animate-spin stroke-[--vscode-foreground]'
                         >
                           <circle
                             cx='50'
@@ -343,7 +347,7 @@ export const Scans = () => {
                           viewBox='0 0 16 16'
                           xmlns='http://www.w3.org/2000/svg'
                           fill='currentColor'
-                          className='h-5 w-5 stroke-red-600'
+                          className='mr-2 h-5 w-5 stroke-red-600'
                         >
                           <path
                             fillRule='evenodd'
@@ -352,12 +356,19 @@ export const Scans = () => {
                           />
                         </svg>
                       )}
-                      <span className='text-sm ml-2 font-bold'>
+                      <span className='text-sm font-bold'>
                         {formatDuration(
                           (scan.endedAt ? scan.endedAt.getTime() : currentTime.getTime()) - scan.createdAt.getTime()
                         )}
                       </span>
                     </div>
+                  </div>
+
+                  {/* Project Column - hidden on small screens, visible on medium and up */}
+                  <div className='flex truncate flex flex-col justify-center items-center'>
+                    <span className='truncate font-bold'>
+                    {scan.project?.name ?? '-'}
+                    </span>
                   </div>
 
                   {/* Vulnerabilities Column */}
