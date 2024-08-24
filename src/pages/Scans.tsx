@@ -301,10 +301,9 @@ export const Scans = () => {
             <span className='!mt-10 w-full text-center'>No scans found</span>
           )}
           <div className='!mt-1'>
-            <div className='grid grid-cols-2 gap-3 sm:grid-cols-3'>
+            <div className='grid grid-cols-2 gap-3'>
               {/* Table Headers */}
               <div className='font-bold uppercase flex justify-center items-center'>Target</div>
-              <div className='hidden sm:flex font-bold uppercase flex justify-center items-center'>Application</div>
               <div className='font-bold uppercase flex justify-center items-center'>Vulnerabilities</div>
             </div>
 
@@ -314,7 +313,7 @@ export const Scans = () => {
                 key={scan.id}
                 className='!mt-2 relative flex h-24 flex-col justify-center items-center overflow-hidden px-4 py-2 text-[--vscode-foreground] before:absolute before:inset-0 before:-z-10 before:rounded before:bg-[--vscode-input-background] hover:cursor-pointer hover:text-[--vscode-foreground] before:hover:brightness-75'
               >
-                <div className='grid grid-cols-2 gap-3 sm:grid-cols-3 w-full h-full'>
+                <div className='grid grid-cols-2 gap-3 w-full h-full'>
                   {/* Target Column */}
                   <div className='truncate flex flex-col justify-center'>
                     <span className='truncate font-bold'>
@@ -358,16 +357,6 @@ export const Scans = () => {
                           (scan.endedAt ? scan.endedAt.getTime() : currentTime.getTime()) - scan.createdAt.getTime()
                         )}
                       </span>
-                    </div>
-                  </div>
-
-                  {/* Application Column - hidden on small screens, visible on medium and up */}
-                  <div className='hidden sm:flex truncate flex flex-col justify-center'>
-                    <span className='truncate font-bold'>
-                      {scan.application?.name ?? '-'}
-                    </span>
-                    <div className='text-sm'>
-                      {scan.project?.name ?? '-'}
                     </div>
                   </div>
 
