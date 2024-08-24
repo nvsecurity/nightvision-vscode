@@ -76,6 +76,7 @@ export const Scan = () => {
               response.status_value !== 'SUCCEEDED',
             vulnPathsStatistics: response.vulnerable_paths_statistics,
             issues: issues.map((issue: any) => ({
+              kind_id: issue.kind_id,
               name: issue.kind_name,
               severity: normalizedSeverity(issue.severity),
             })),
@@ -280,9 +281,14 @@ export const Scan = () => {
                 emptyText='No issues found!'
                 handleClick={() => {}}
                 renderItem={(listItem) => (
-                  <span className='block max-w-full truncate'>
-                    {listItem.name}
-                  </span>
+                  <a
+                    href={`https://app.nightvision.net/scans/${scanId}/findings/${listItem.kind_id}`}
+                    title='View in Browser'
+                  >
+                    <span className='block max-w-full truncate'>
+                      {listItem.name}
+                    </span>
+                  </a>
                 )}
               />
             )}

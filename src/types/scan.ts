@@ -48,5 +48,5 @@ export interface ScanType {
   isScanning: boolean;
   isError: boolean;
   vulnPathsStatistics?: Partial<Record<Severity, number>>;
-  issues: { name: string; severity: Severity }[];
+  issues: { kind_id: string; name: string; severity: Severity }[];
 }
