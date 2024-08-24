@@ -172,6 +172,19 @@ export const Scan = () => {
               </select>
             </div>
             <div>
+              <Label htmlFor='target-name'>
+                Project
+              </Label>
+              <select
+                className='w-full bg-[--vscode-settings-dropdownBackground] px-0.5 py-1.5'
+                disabled
+              >
+                <option>
+                  {scan.project.name}
+                </option>
+              </select>
+            </div>
+            <div>
               <Label htmlFor='target-name'>Authentication</Label>
               <select
                 className='w-full bg-[--vscode-settings-dropdownBackground] px-0.5 py-1.5'
