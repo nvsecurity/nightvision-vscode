@@ -39,7 +39,6 @@ export default class CreateAuth extends Command {
 
     const flags: Flag[] = [
       { flag: '-P', value: project.id },
-      { flag: '-n', value: name },
     ];
 
     if (description) {
@@ -60,12 +59,13 @@ export default class CreateAuth extends Command {
       }
     }
 
+    var cmd = `nightvision auth ${type === 'COOKIE' ? 'cookies' : type === 'HEADER' ? 'headers' : 'playwright'} create ${name}`;
     if (type === 'SCRIPT' && url) {
-      flags.push({ flag: '-u', value: url });
+      cmd += ` ${url}`;
     }
 
     super(
-      `nightvision auth ${type === 'COOKIE' ? 'cookies' : type === 'HEADER' ? 'headers' : 'playwright'} create`,
+      cmd,
       webview,
       requestId,
       flags,

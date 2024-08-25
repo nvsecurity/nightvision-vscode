@@ -1,4 +1,4 @@
-import { ApiSpec, TargetType } from '@types_/target';
+import { ApiSpec, TargetInfo, TargetType } from '@types_/target';
 import * as vscode from 'vscode';
 import Command, { Flag } from '@commands/Command';
 import {
@@ -16,6 +16,7 @@ export interface UpdateTargetParams {
   targetId: string;
   newTargetName: string;
   newTargetUrl: string;
+  target: TargetInfo;
   type: TargetType;
   apiSpecType: ApiSpec;
   openApiUrl?: string;
@@ -34,6 +35,7 @@ export default class UpdateTarget extends Command {
       targetId,
       newTargetName,
       newTargetUrl,
+      target,
       type,
       apiSpecType,
       openApiUrl,
@@ -41,7 +43,6 @@ export default class UpdateTarget extends Command {
     }: UpdateTargetParams
   ) {
     const flags: Flag[] = [
-      { flag: '-T', value: targetId },
       { flag: '-n', value: newTargetName },
       { flag: '-u', value: newTargetUrl },
     ];
@@ -53,7 +54,7 @@ export default class UpdateTarget extends Command {
       });
     }
 
-    super('nightvision target update', webview, requestId, flags);
+    super(`nightvision target update ${target.name}`, webview, requestId, flags);
 
     this.targetId = targetId;
     this.newTargetName = newTargetName;

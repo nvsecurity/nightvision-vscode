@@ -326,7 +326,7 @@ export const Applications = () => {
                   hasErrors
                 }
               >
-                {isLoading ? 'Creating...' : 'Create Application'}
+                {isLoading ? 'Creating...' : 'Create'}
               </button>
             </div>
           </div>

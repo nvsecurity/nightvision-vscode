@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import { ProjectInfo } from '@types_/project';
 import Command from '@commands/Command';
 import {
   DUPLICATE_NAME,
@@ -11,16 +12,17 @@ import {
 export interface UpdateProjectParams {
   projectId: string;
   newProjectName: string;
+  project: ProjectInfo;
 }
 
 export default class UpdateProject extends Command {
   constructor(
     webview: vscode.Webview,
     requestId: string,
-    { projectId, newProjectName }: UpdateProjectParams
+    { projectId, newProjectName, project }: UpdateProjectParams
   ) {
     super(
-      `nightvision project update -P ${projectId} -n ${newProjectName}`,
+      `nightvision project update ${project.name} ${newProjectName}`,
       webview,
       requestId
     );

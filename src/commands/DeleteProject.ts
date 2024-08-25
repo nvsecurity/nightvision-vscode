@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import { ProjectInfo } from '@types_/project';
 import Command from '@commands/Command';
 import {
   DELETE_PROJECT,
@@ -9,18 +10,21 @@ import {
 
 export interface DeleteProjectParams {
   id: string;
+  project: ProjectInfo
 }
 
 export default class DeleteProject extends Command {
   protected id: string;
+  protected project: ProjectInfo;
 
   constructor(
     webview: vscode.Webview,
     requestId: string,
-    { id }: DeleteProjectParams
+    { id, project }: DeleteProjectParams
   ) {
-    super(`nightvision project delete -P ${id}`, webview, requestId);
+    super(`nightvision project delete ${project.name}`, webview, requestId);
     this.id = id;
+    this.project = project;
   }
 
   handleOutput(data: any) {

@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import { AppInfo } from '@types_/app';
 import Command from '@commands/Command';
 import {
   DELETE_APP,
@@ -9,18 +10,21 @@ import {
 
 export interface DeleteAppParams {
   id: string;
+  app: AppInfo;
 }
 
 export default class DeleteApp extends Command {
   protected id: string;
+  protected app: AppInfo;
 
   constructor(
     webview: vscode.Webview,
     requestId: string,
-    { id }: DeleteAppParams
+    { id, app }: DeleteAppParams
   ) {
-    super(`nightvision app delete -A ${id}`, webview, requestId);
+    super(`nightvision app delete ${app.name}`, webview, requestId);
     this.id = id;
+    this.app = app;
   }
 
   handleOutput(data: any) {
@@ -36,6 +40,7 @@ export default class DeleteApp extends Command {
         requestId: this.requestId,
         payload: {
           id: this.id,
+          app: this.app,
         },
       });
     } else if (

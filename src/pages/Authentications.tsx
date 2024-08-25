@@ -473,7 +473,7 @@ export const Authentications = () => {
               <TextInput
                 value={_authName}
                 handleOnChange={setAuthName}
-                label='Authetication Name'
+                label='Authentication Name'
                 id='auth-name'
                 errors={authNameErrors}
               />
@@ -621,7 +621,7 @@ export const Authentications = () => {
                   hasErrors
                 }
               >
-                {isLoading ? 'Creating...' : 'Create Authentication'}
+                {isLoading ? 'Creating...' : 'Create'}
               </button>
             </div>
           </div>

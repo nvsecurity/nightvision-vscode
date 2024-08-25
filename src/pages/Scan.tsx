@@ -76,6 +76,7 @@ export const Scan = () => {
               response.status_value !== 'SUCCEEDED',
             vulnPathsStatistics: response.vulnerable_paths_statistics,
             issues: issues.map((issue: any) => ({
+              kind_id: issue.kind_id,
               name: issue.kind_name,
               severity: normalizedSeverity(issue.severity),
             })),
@@ -171,6 +172,19 @@ export const Scan = () => {
               </select>
             </div>
             <div>
+              <Label htmlFor='target-name'>
+                Project
+              </Label>
+              <select
+                className='w-full bg-[--vscode-settings-dropdownBackground] px-0.5 py-1.5'
+                disabled
+              >
+                <option>
+                  {scan.project.name}
+                </option>
+              </select>
+            </div>
+            <div>
               <Label htmlFor='target-name'>Authentication</Label>
               <select
                 className='w-full bg-[--vscode-settings-dropdownBackground] px-0.5 py-1.5'
@@ -244,8 +258,7 @@ export const Scan = () => {
               <IssueCard
                 severity='Critical'
                 amount={
-                  scan.issues.filter((issue) => issue.severity === 'Critical')
-                    .length ?? 0
+                  scan?.vulnPathsStatistics?.Critical ?? 0
                 }
                 toggled={toggled}
                 setToggled={setToggled}
@@ -253,8 +266,7 @@ export const Scan = () => {
               <IssueCard
                 severity='High'
                 amount={
-                  scan.issues.filter((issue) => issue.severity === 'High')
-                    .length ?? 0
+                  scan?.vulnPathsStatistics?.High ?? 0
                 }
                 toggled={toggled}
                 setToggled={setToggled}
@@ -262,8 +274,7 @@ export const Scan = () => {
               <IssueCard
                 severity='Medium'
                 amount={
-                  scan.issues.filter((issue) => issue.severity === 'Medium')
-                    .length ?? 0
+                  scan?.vulnPathsStatistics?.Medium ?? 0
                 }
                 toggled={toggled}
                 setToggled={setToggled}
@@ -271,8 +282,7 @@ export const Scan = () => {
               <IssueCard
                 severity='Low'
                 amount={
-                  scan.issues.filter((issue) => issue.severity === 'Low')
-                    .length ?? 0
+                  scan?.vulnPathsStatistics?.Low ?? 0
                 }
                 toggled={toggled}
                 setToggled={setToggled}
@@ -284,9 +294,14 @@ export const Scan = () => {
                 emptyText='No issues found!'
                 handleClick={() => {}}
                 renderItem={(listItem) => (
-                  <span className='block max-w-full truncate'>
-                    {listItem.name}
-                  </span>
+                  <a
+                    href={`https://app.nightvision.net/scans/${scanId}/findings/${listItem.kind_id}`}
+                    title='View in Browser'
+                  >
+                    <span className='block max-w-full truncate'>
+                      {listItem.name}
+                    </span>
+                  </a>
                 )}
               />
             )}
