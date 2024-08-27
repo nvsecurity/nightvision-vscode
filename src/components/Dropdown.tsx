@@ -2,7 +2,7 @@ import { IdAndName } from '@types_/idAndName';
 import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 
-export const Dropdown = ({
+export const Dropdown = <T extends IdAndName,>({
   selectedItem,
   items,
   name,
@@ -11,15 +11,17 @@ export const Dropdown = ({
   id,
   disabled = false,
   optional = false,
+  labelBy = (item: T) => item.name,
 }: {
   selectedItem?: IdAndName | null;
-  items: IdAndName[];
+  items: T[];
   name?: string;
   route?: string;
   handleChange: (value: IdAndName) => void;
   id?: string;
   disabled?: boolean;
   optional?: boolean;
+  labelBy?: (item: T) => string;
 }) => {
   useEffect(() => {
     if (optional) {
@@ -51,7 +53,7 @@ export const Dropdown = ({
         {(optional || items.length === 0) && <option value=''>-</option>}
         {items.map((item) => (
           <option key={item.id} value={item.id} className=''>
-            {item.name}
+            {labelBy(item)}
           </option>
         ))}
       </select>

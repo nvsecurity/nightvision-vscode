@@ -264,11 +264,9 @@ export const NewScan = () => {
                   </Label>
                   <Dropdown
                     selectedItem={currentTarget}
-                    items={targets.map((target) => ({
-                      ...target,
-                      name: `${target.name} (${target.location})`,
-                    }))}
+                    items={targets}
                     name='Target'
+                    labelBy={target => `${target.name} (${target.location})`}
                     route={isLoading ? '.' : `/targets`}
                     handleChange={
                       setCurrentTarget as (value: IdAndName) => void
