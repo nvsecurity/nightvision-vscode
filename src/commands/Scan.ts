@@ -34,7 +34,11 @@ export default class Scan extends Command {
       flags.push({ flag: '-C', value: authentication.id });
     }
 
-    super(`nightvision scan ${target.name}`, webview, requestId, flags);
+    // TODO: This is a workaround - improve it.
+    const originalTargetName = target.name.replace(/\s*\(.*?\)$/, '');
+
+    const cmd = `nightvision scan ${originalTargetName}`
+    super(cmd, webview, requestId, flags);
   }
 
   handleOutput(data: any) {
