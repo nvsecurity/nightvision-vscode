@@ -821,7 +821,7 @@ export const TargetPage = () => {
                   !hasChanges
                 }
               >
-                {isUpdateLoading ? 'Updating...' : 'Update Target'}
+                {isUpdateLoading ? 'Updating...' : 'Update'}
               </button>
             </div>
           </div>
