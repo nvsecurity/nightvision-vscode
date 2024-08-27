@@ -499,7 +499,7 @@ export const ApplicationPage = () => {
                   !hasChanges
                 }
               >
-                {isUpdateLoading ? 'Updating...' : 'Update Application'}
+                {isUpdateLoading ? 'Updating...' : 'Update'}
               </button>
             </div>
           </div>

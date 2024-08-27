@@ -850,7 +850,7 @@ export const ProjectPage = () => {
                   !hasChanges
                 }
               >
-                {isUpdateLoading ? 'Updating...' : 'Update Project'}
+                {isUpdateLoading ? 'Updating...' : 'Update'}
               </button>
             </div>
           </div>
@@ -1108,7 +1108,7 @@ export const ProjectPage = () => {
                 className='truncate rounded disabled:cursor-not-allowed disabled:opacity-75 disabled:hover:bg-[--vscode-button-background]'
                 disabled={isShareLoading || addUsers.length === 0}
               >
-                {isShareLoading ? 'Sharing...' : 'Share Project'}
+                {isShareLoading ? 'Sharing...' : 'Share'}
               </button>
             </div>
           </div>
