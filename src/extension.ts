@@ -250,6 +250,7 @@ class SidebarProvider implements vscode.WebviewViewProvider {
               } catch (err) {
                 console.error(err);
               }
+              tries += 1;
             }, 2500);
             break;
           }
