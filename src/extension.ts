@@ -168,18 +168,18 @@ class SidebarProvider implements vscode.WebviewViewProvider {
             } else if (platform === 'darwin') {
               if (arch === 'x64') {
                 command =
-                  'curl -L https://downloads.nightvision.net/binaries/latest/nightvision_latest_darwin_amd64.tar.gz | tar -xz; mv nightvision /usr/local/bin/';
+                  'cd ~; curl -L https://downloads.nightvision.net/binaries/latest/nightvision_latest_darwin_amd64.tar.gz | tar -xz; sudo mkdir -p /usr/local/bin/; sudo mv nightvision /usr/local/bin/';
               } else if (arch === 'arm64') {
                 command =
-                  'curl -L https://downloads.nightvision.net/binaries/latest/nightvision_latest_darwin_arm64.tar.gz -q | tar -xz; mv nightvision /usr/local/bin/';
+                  'cd ~; curl -L https://downloads.nightvision.net/binaries/latest/nightvision_latest_darwin_arm64.tar.gz -q | tar -xz; sudo mkdir -p /usr/local/bin/; sudo mv nightvision /usr/local/bin/';
               }
             } else if (platform === 'linux') {
               if (arch === 'x64') {
                 command =
-                  'curl -L https://downloads.nightvision.net/binaries/latest/nightvision_latest_linux_amd64.tar.gz -q | tar -xz; sudo mv nightvision /usr/local/bin/';
+                  'cd ~; curl -L https://downloads.nightvision.net/binaries/latest/nightvision_latest_linux_amd64.tar.gz -q | tar -xz; sudo mkdir -p /usr/local/bin/; sudo mv nightvision /usr/local/bin/';
               } else if (arch === 'arm64') {
                 command =
-                  'curl -L https://downloads.nightvision.net/binaries/latest/nightvision_latest_linux_arm64.tar.gz -q | tar -xz; sudo mv nightvision /usr/local/bin/';
+                  'cd ~; curl -L https://downloads.nightvision.net/binaries/latest/nightvision_latest_linux_arm64.tar.gz -q | tar -xz; sudo mkdir -p /usr/local/bin/; sudo mv nightvision /usr/local/bin/';
               }
             }
 
