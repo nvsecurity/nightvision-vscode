@@ -16,13 +16,13 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 20
       - name: Publish to Marketplace
         run: |
           npm ci
-          npm install -g --unsafe-perm vsce
-          vsce package
-          vsce publish -p ${{ secrets.VSCODE_MARKETPLACE_TOKEN }}
+          npm i @vscode/vsce
+          npx @vscode/vsce package
+          npx @vscode/vsce publish -p ${{ secrets.VSCODE_MARKETPLACE_TOKEN }}
 
   bump-version:
     if: "!contains(github.event.head_commit.message, '[skip-ci]')"
