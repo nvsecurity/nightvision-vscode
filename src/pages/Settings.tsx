@@ -2,8 +2,8 @@ import { useUser } from '@hooks/useUser';
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { LOGOUT } from '@commands/CommandConstants';
-import { ReloadButton } from '@components/ReloadButton';
 import { messageHandler } from '@utils/MessageHandler';
+import { PageHeader } from '@components/PageHeader';
 
 export const Settings = () => {
   const navigate = useNavigate();
@@ -35,30 +35,7 @@ export const Settings = () => {
 
   return (
     <div className='flex flex-col space-y-4'>
-      <div className='flex items-center space-x-2'>
-        <a
-          onClick={() => navigate(-1)}
-          className='hover:cursor-pointer'
-          href='#'
-        >
-          <svg
-            width='16'
-            height='16'
-            viewBox='0 0 16 16'
-            xmlns='http://www.w3.org/2000/svg'
-            fill='currentColor'
-            className='h-5 w-5'
-          >
-            <path
-              fillRule='evenodd'
-              clipRule='evenodd'
-              d='M7 3.093l-5 5V8.8l5 5 .707-.707-4.146-4.147H14v-1H3.56L7.708 3.8 7 3.093z'
-            />
-          </svg>
-        </a>
-        <h1 className='truncate font-bold uppercase'>Settings</h1>
-        <ReloadButton />
-      </div>
+      <PageHeader title='Settings'/>
 
       <button
         onClick={handleLogOut}

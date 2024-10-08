@@ -24,13 +24,13 @@ import { EditList } from '@components/EditList';
 import { Label } from '@components/Label';
 import { Loading } from '@components/Loading';
 import { Modal } from '@components/Modal';
-import { ReloadButton } from '@components/ReloadButton';
 import { SecondaryButton } from '@components/SecondaryButton';
 import { TabSelector } from '@components/TabSelector';
 import { TargetTypeLabel } from '@components/TargetTypeLabel';
 import { TextInput } from '@components/TextInput';
 import { getProjects } from '@pages/Projects';
 import { messageHandler } from '@utils/MessageHandler';
+import { PageHeader } from '@components/PageHeader';
 
 export const getTargets = async (
   setTargets: React.Dispatch<React.SetStateAction<Target[] | undefined>>,
@@ -365,30 +365,7 @@ export const Targets = () => {
   return (
     <>
       <div className='flex flex-col space-y-4'>
-        <div className='flex items-center space-x-2'>
-          <a
-            onClick={() => navigate(-1)}
-            className='hover:cursor-pointer'
-            href='#'
-          >
-            <svg
-              width='16'
-              height='16'
-              viewBox='0 0 16 16'
-              xmlns='http://www.w3.org/2000/svg'
-              fill='currentColor'
-              className='h-5 w-5'
-            >
-              <path
-                fillRule='evenodd'
-                clipRule='evenodd'
-                d='M7 3.093l-5 5V8.8l5 5 .707-.707-4.146-4.147H14v-1H3.56L7.708 3.8 7 3.093z'
-              />
-            </svg>
-          </a>
-          <h1 className='truncate font-bold uppercase'>Targets</h1>
-          <ReloadButton />
-        </div>
+        <PageHeader title='Targets'/>
 
         {targets && projects && (
           <>
