@@ -49,6 +49,7 @@ import { Settings } from '@pages/Settings';
 import { TargetPage } from '@pages/Target';
 import { Targets } from '@pages/Targets';
 import { messageHandler } from '@utils/MessageHandler';
+import { ApiDiscoveryPage } from '@pages/ApiDiscovery';
 
 const Error = () => {
   const error = useRouteError();
@@ -111,6 +112,10 @@ const router = createMemoryRouter(
         {
           path: '/targets/:targetType/:targetId',
           element: <TargetPage />,
+        },
+        {
+          path: '/api-discovery',
+          element: <ApiDiscoveryPage />,
         },
         {
           path: '/settings',

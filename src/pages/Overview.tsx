@@ -26,15 +26,15 @@ export const Overview = () => {
         </Link>
       </div>
       <div className='grid auto-cols-min grid-cols-1 gap-3 min-[360px]:grid-cols-2 md:grid-cols-3'>
-        {Object.entries(routesAndSvg).map(([route, svg]) => (
+        {MAIN_ROUTES.map(({path, title, icon}) => (
           <Link
-            to={'/' + route}
-            key={route}
+            to={path}
+            key={path}
             className='relative flex flex-col justify-between p-2 text-[--vscode-foreground] before:absolute before:inset-0 before:-z-10 before:rounded before:bg-[--vscode-input-background] hover:cursor-pointer hover:text-[--vscode-foreground] before:hover:brightness-75'
           >
             <div className='flex flex-col items-center justify-center space-y-1'>
-              {svg}
-              <span className='capitalize'>{route}</span>
+              {icon}
+              <span>{title}</span>
             </div>
           </Link>
         ))}
@@ -162,10 +162,34 @@ const ProjectsSvg = () => {
   );
 };
 
-const routesAndSvg = {
-  scans: <ScansSvg />,
-  targets: <TargetsSvg />,
-  applications: <ApplicationsSvg />,
-  authentications: <AuthenticationsSvg />,
-  projects: <ProjectsSvg />,
-};
+const ApiDiscoverySvg = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="32"
+    height="32"
+    className='h-12 w-12 stroke-[--vscode-foreground] fill-[--vscode-foreground]'
+    viewBox="0 0 256 256"
+  >
+    <path
+      d="M213.66,82.34l-56-56A8,8,0,0,0,152,24H56A16,16,0,0,0,40,40V216a16,16,0,0,0,16,16H200a16,16,0,0,0,16-16V88A8,8,0,0,0,213.66,82.34ZM160,51.31,188.69,80H160ZM200,216H56V40h88V88a8,8,0,0,0,8,8h48V216Zm-45.54-48.85a36.05,36.05,0,1,0-11.31,11.31l11.19,11.2a8,8,0,0,0,11.32-11.32ZM104,148a20,20,0,1,1,20,20A20,20,0,0,1,104,148Z"
+      strokeWidth='1.5'
+      strokeLinecap='round'
+      strokeLinejoin='round'
+    ></path>
+  </svg>
+)
+
+interface GeneralRouteParams {
+  path: string;
+  title: string;
+  icon: React.JSX.Element;
+}
+
+const MAIN_ROUTES: GeneralRouteParams[] = [
+  { path: '/scans', title: 'Scans', icon: <ScansSvg /> },
+  { path: '/targets', title: 'Targets', icon: <TargetsSvg /> },
+  { path: '/applications', title: 'Applications', icon: <ApplicationsSvg /> },
+  { path: '/authentications', title: 'Authentications', icon: <AuthenticationsSvg /> },
+  { path: '/projects', title: 'Projects', icon: <ProjectsSvg /> },
+  { path: '/api-discovery', title: 'API Discovery', icon: <ApiDiscoverySvg /> },
+];
