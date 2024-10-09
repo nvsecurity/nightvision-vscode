@@ -5,11 +5,13 @@ import { ReloadButton } from './ReloadButton';
 interface PageHeaderProps {
   title: string;
   backTo?: string;
+  reloadButton?: boolean;
 }
 
 export const PageHeader: React.FC<PageHeaderProps> = ({
   title,
   backTo = '',
+  reloadButton = true,
 }) => {
   const navigate = useNavigate();
 
@@ -35,7 +37,7 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
         </svg>
       </Link>
       <h1 className='truncate font-bold uppercase'>{title}</h1>
-      <ReloadButton />
+      {reloadButton && <ReloadButton />}
     </div>
   );
 };

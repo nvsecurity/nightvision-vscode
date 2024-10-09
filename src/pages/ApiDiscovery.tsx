@@ -110,7 +110,7 @@ export const ApiDiscoveryPage: React.FC = () => {
 
   return (
     <div className='flex flex-col space-y-4'>
-      <PageHeader title='API Discovery'/>
+      <PageHeader title='API Discovery' reloadButton={false}/>
 
       <div>
         <Label htmlFor='path-to-folder'>
