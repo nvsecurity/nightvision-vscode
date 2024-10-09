@@ -84,7 +84,6 @@ export const ApiDiscoveryPage: React.FC = () => {
 
     try {
       for await (const response of result) {
-        debugger;
         switch (response.command) {
           case SWAGGER_EXTRACT: {
             setSubmitResults({
