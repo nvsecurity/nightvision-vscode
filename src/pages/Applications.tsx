@@ -214,7 +214,6 @@ export const Applications = () => {
       <div className='flex flex-col space-y-4'>
         <PageHeader title='Applications'/>
 
-
         {apps && projects && (
           <>
             <div>

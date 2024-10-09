@@ -26,10 +26,12 @@ import {
   KILL,
   LOGIN,
   LOGOUT,
+  OPEN_FILE_DIALOG,
   SAVE_CURRENT_APP,
   SAVE_CURRENT_PROJECT,
   SAVE_CURRENT_TARGET,
   SCAN,
+  SWAGGER_EXTRACT,
   UPDATE_APP,
   UPDATE_AUTH,
   UPDATE_PROJECT,
@@ -56,6 +58,8 @@ import UpdateAuth from '@commands/UpdateAuth';
 import UpdateProject from '@commands/UpdateProject';
 import UpdateTarget from '@commands/UpdateTarget';
 import fs from 'fs/promises';
+import { openFileDialog } from '@commands/OpenFileDialog';
+import SwaggerExtract from '@commands/SwaggerExtract';
 
 export async function activate(context: vscode.ExtensionContext) {
   const sidebarProvider = new SidebarProvider(context);
@@ -69,7 +73,7 @@ export async function activate(context: vscode.ExtensionContext) {
   );
 }
 
-export function deactivate() {}
+export function deactivate() { }
 class SidebarProvider implements vscode.WebviewViewProvider {
   _view?: vscode.WebviewView;
   _children: { [key: string]: ChildProcessWithoutNullStreams | undefined };
@@ -501,6 +505,27 @@ class SidebarProvider implements vscode.WebviewViewProvider {
               requestId,
               isFinal: true,
             });
+            break;
+          }
+          case OPEN_FILE_DIALOG: {
+            const selectedPaths = await openFileDialog(payload);
+
+            webviewView.webview.postMessage({
+              command: OPEN_FILE_DIALOG,
+              requestId,
+              payload: { selectedPaths: selectedPaths },
+              isFinal: true,
+            });
+            break;
+          }
+          case SWAGGER_EXTRACT: {
+            const command = new SwaggerExtract(
+              webviewView.webview,
+              requestId,
+              payload
+            );
+
+            this._children[requestId] = command.execute();
             break;
           }
         }

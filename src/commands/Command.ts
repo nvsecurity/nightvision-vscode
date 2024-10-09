@@ -17,19 +17,22 @@ export default class Command {
   protected requestId: string;
   protected flags?: Flag[];
   protected stop: boolean;
+  protected cwd?: string;
 
   constructor(
     command: string,
     webview: vscode.Webview,
     requestId: string,
     flags?: Flag[],
-    stop?: boolean
+    stop?: boolean,
+    cwd?: string,
   ) {
     this.command = command;
     this.webview = webview;
     this.requestId = requestId;
     this.flags = flags;
     this.stop = stop ?? false;
+    this.cwd = cwd;
   }
 
   execute() {
@@ -53,7 +56,7 @@ export default class Command {
     const child = cp.spawn(cmd, [
       ...args.map((arg) => (arg === '' ? ' ' : arg)),
       ...(flags ?? []),
-    ]);
+    ], { cwd: this.cwd });
 
     child.stdout.on('data', (data) => this.handleOutput(data));
     child.stderr.on('data', (data) => this.handleOutput(data));
@@ -92,7 +95,7 @@ export default class Command {
     console.error(err);
   }
 
-  cleanup() {}
+  cleanup() { }
 
   isLoggedIn(message: string) {
     if (

@@ -2,6 +2,19 @@ import { IdAndName } from '@types_/idAndName';
 import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 
+interface DropdownProps<T> {
+  selectedItem?: IdAndName | null;
+  items: T[];
+  name?: string;
+  route?: string;
+  handleChange: (value: IdAndName) => void;
+  id?: string;
+  disabled?: boolean;
+  optional?: boolean;
+  optionalText?: string;
+  labelBy?: (item: T) => string;
+}
+
 export const Dropdown = <T extends IdAndName,>({
   selectedItem,
   items,
@@ -11,18 +24,9 @@ export const Dropdown = <T extends IdAndName,>({
   id,
   disabled = false,
   optional = false,
+  optionalText = '-',
   labelBy = (item: T) => item.name,
-}: {
-  selectedItem?: IdAndName | null;
-  items: T[];
-  name?: string;
-  route?: string;
-  handleChange: (value: IdAndName) => void;
-  id?: string;
-  disabled?: boolean;
-  optional?: boolean;
-  labelBy?: (item: T) => string;
-}) => {
+}: DropdownProps<T>) => {
   useEffect(() => {
     if (optional) {
       return;
@@ -41,7 +45,7 @@ export const Dropdown = <T extends IdAndName,>({
   return (
     <div className='flex flex-nowrap items-center space-x-2'>
       <select
-        className='w-full bg-[--vscode-input-background] px-0.5 py-1.5'
+        className={`w-full bg-[--vscode-input-background] px-0.5 py-1.5 ${optional && 'text-neutral-400'}`}
         value={selectedItem?.id}
         onChange={(e) => {
           const item = items.filter((item) => item.id === e.target.value)[0];
@@ -50,7 +54,7 @@ export const Dropdown = <T extends IdAndName,>({
         id={id}
         disabled={disabled}
       >
-        {(optional || items.length === 0) && <option value=''>-</option>}
+        {(optional || items.length === 0) && <option value=''>{optionalText}</option>}
         {items.map((item) => (
           <option key={item.id} value={item.id} className=''>
             {labelBy(item)}
