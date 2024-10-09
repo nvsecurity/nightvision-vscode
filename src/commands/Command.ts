@@ -18,6 +18,7 @@ export default class Command {
   protected flags?: Flag[];
   protected stop: boolean;
   protected cwd?: string;
+  protected async: boolean;
 
   constructor(
     command: string,
@@ -26,6 +27,7 @@ export default class Command {
     flags?: Flag[],
     stop?: boolean,
     cwd?: string,
+    async?: boolean,
   ) {
     this.command = command;
     this.webview = webview;
@@ -33,6 +35,7 @@ export default class Command {
     this.flags = flags;
     this.stop = stop ?? false;
     this.cwd = cwd;
+    this.async = async || false;
   }
 
   execute() {
@@ -80,7 +83,9 @@ export default class Command {
       command: EXIT,
       requestId: this.requestId,
       payload: { code, signal },
-      isFinal: true,
+      // to allow async operations inside handlers without closing connection
+      // if `async` is provided, the `isFinal` state is managed within the handlers
+      isFinal: !this.async,
     });
   }
 

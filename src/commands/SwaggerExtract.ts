@@ -25,7 +25,7 @@ export default class SwaggerExtract extends Command {
     { path, language }: SwaggerExtractParams
   ) {
     const fileName = `nv-swagger-${v4()}.yml`;
-    super(`nightvision swagger extract ${path} --lang ${language} --no-upload --output ${fileName}`, webview, requestId, [], undefined, path);
+    super(`nightvision swagger extract ${path} --lang ${language} --no-upload --output ${fileName}`, webview, requestId, [], undefined, path, true);
     this.fileName = fileName;
     this.path = path;
     this.language = language;
@@ -42,6 +42,7 @@ export default class SwaggerExtract extends Command {
       this.webview.postMessage({
         command: SWAGGER_EXTRACT_ERROR,
         requestId: this.requestId,
+        isFinal: true,
       });
     } else if (/INFO Successfully validated the output/.test(message)) {
       const filePath = `${this.path}/${this.fileName}`;
@@ -56,12 +57,14 @@ export default class SwaggerExtract extends Command {
             paths: paths,
             classes: classes,
           } as SwaggerExtractSuccessResults,
+          isFinal: true,
         });
       }
       catch (e) {
         this.webview.postMessage({
           command: SWAGGER_EXTRACT_ERROR,
           requestId: this.requestId,
+          isFinal: true,
         });
       }
     }
