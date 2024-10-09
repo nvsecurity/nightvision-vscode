@@ -20,7 +20,11 @@ export default class SaveCurrentApp extends Command {
     requestId: string,
     { id, name }: SaveCurrentAppParams
   ) {
-    super(`nightvision app set ${name}`, webview, requestId);
+    super({
+      command: `nightvision app set ${name}`,
+      webview: webview,
+      requestId: requestId,
+    });
 
     this.id = id;
     this.name = name;

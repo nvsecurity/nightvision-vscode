@@ -8,7 +8,11 @@ import {
 
 export default class GetCurrentApp extends Command {
   constructor(webview: vscode.Webview, requestId: string) {
-    super('nightvision app show', webview, requestId);
+    super({
+      command: 'nightvision app show',
+      webview: webview,
+      requestId: requestId,
+    });
   }
 
   handleOutput(data: any) {

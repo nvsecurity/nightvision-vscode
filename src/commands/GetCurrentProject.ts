@@ -4,7 +4,11 @@ import { GET_CURRENT_PROJECT } from '@commands/CommandConstants';
 
 export default class GetCurrentProject extends Command {
   constructor(webview: vscode.Webview, requestId: string) {
-    super('nightvision project show', webview, requestId);
+    super({
+      command: 'nightvision project show',
+      webview: webview,
+      requestId: requestId,
+    });
   }
 
   handleOutput(data: any) {

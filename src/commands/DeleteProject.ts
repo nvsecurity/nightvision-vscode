@@ -22,7 +22,11 @@ export default class DeleteProject extends Command {
     requestId: string,
     { id, project }: DeleteProjectParams
   ) {
-    super(`nightvision project delete ${project.name}`, webview, requestId);
+    super({
+      command: `nightvision project delete ${project.name}`,
+      webview: webview,
+      requestId: requestId,
+    });
     this.id = id;
     this.project = project;
   }

@@ -50,7 +50,12 @@ export default class CreateTarget extends Command {
       });
     }
 
-    super(`nightvision target create ${targetName} ${targetUrl}`, webview, requestId, flags);
+    super({
+      command: `nightvision target create ${targetName} ${targetUrl}`,
+      webview: webview,
+      requestId: requestId,
+      flags: flags,
+    });
 
     this.targetName = targetName;
     this.targetUrl = targetUrl;

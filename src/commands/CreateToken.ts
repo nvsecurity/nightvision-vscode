@@ -12,7 +12,11 @@ export default class CreateToken extends Command {
     extensionContext: vscode.ExtensionContext,
     nightvisionToken: { value: string }
   ) {
-    super('nightvision token create', webview, requestId);
+    super({
+      command: 'nightvision token create',
+      webview: webview,
+      requestId: requestId,
+    });
 
     this.extensionContext = extensionContext;
     this.nightvisionToken = nightvisionToken;

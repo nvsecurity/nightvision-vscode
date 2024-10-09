@@ -4,7 +4,11 @@ import { LOGIN } from '@commands/CommandConstants';
 
 export default class Login extends Command {
   constructor(webview: vscode.Webview, requestId: string) {
-    super('nightvision login', webview, requestId);
+    super({
+      command: 'nightvision login',
+      webview: webview,
+      requestId: requestId,
+    });
   }
 
   handleOutput(data: any) {

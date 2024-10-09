@@ -20,7 +20,11 @@ export default class SaveCurrentProject extends Command {
     requestId: string,
     { id, name }: SaveCurrentProjectParams
   ) {
-    super(`nightvision project set ${name}`, webview, requestId);
+    super({
+      command: `nightvision project set ${name}`,
+      webview: webview,
+      requestId: requestId,
+    });
 
     this.id = id;
     this.name = name;

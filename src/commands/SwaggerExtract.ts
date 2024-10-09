@@ -25,7 +25,13 @@ export default class SwaggerExtract extends Command {
     { path, language }: SwaggerExtractParams
   ) {
     const fileName = `nv-swagger-${v4()}.yml`;
-    super(`nightvision swagger extract ${path} --lang ${language} --no-upload --output ${fileName}`, webview, requestId, [], undefined, path, true);
+    super({
+      command: `nightvision swagger extract ${path} --lang ${language} --no-upload --output ${fileName}`,
+      webview: webview,
+      requestId: requestId,
+      cwd: path,
+      async: true
+    });
     this.fileName = fileName;
     this.path = path;
     this.language = language;

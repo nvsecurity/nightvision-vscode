@@ -54,14 +54,19 @@ export default class UpdateTarget extends Command {
       });
     }
 
-    super(`nightvision target update ${target.name}`, webview, requestId, flags);
+    super({
+      command: `nightvision target update ${target.name}`,
+      webview: webview,
+      requestId: requestId,
+      flags: flags,
+    });
 
     this.targetId = targetId;
     this.newTargetName = newTargetName;
     this.newTargetUrl = newTargetUrl;
   }
 
-  handleOutput(data: any) {
+  async handleOutput(data: any): Promise<void> {
     const message = data.toString();
 
     if (!this.isLoggedIn(message)) {

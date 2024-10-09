@@ -21,11 +21,11 @@ export default class UpdateProject extends Command {
     requestId: string,
     { projectId, newProjectName, project }: UpdateProjectParams
   ) {
-    super(
-      `nightvision project update ${project.name} ${newProjectName}`,
-      webview,
-      requestId
-    );
+    super({
+      command: `nightvision project update ${project.name} ${newProjectName}`,
+      webview: webview,
+      requestId: requestId,
+    });
   }
 
   handleOutput(data: any) {

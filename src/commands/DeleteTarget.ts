@@ -21,7 +21,11 @@ export default class DeleteTarget extends Command {
     requestId: string,
     { id, target }: DeleteTargetParams
   ) {
-    super(`nightvision target delete ${target.name}`, webview, requestId);
+    super({
+      command: `nightvision target delete ${target.name}`,
+      webview: webview,
+      requestId: requestId,
+    });
     this.id = id;
     this.target = target;
   }

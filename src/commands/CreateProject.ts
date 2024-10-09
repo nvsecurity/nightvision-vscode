@@ -19,8 +19,12 @@ export default class CreateProject extends Command {
     { projectName }: CreateProjectParams
   ) {
     const flags: Flag[] = [];
-
-    super(`nightvision project create ${projectName}`, webview, requestId, flags);
+    super({
+      command: `nightvision project create ${projectName}`,
+      webview: webview,
+      requestId: requestId,
+      flags: flags,
+    });
     this.projectName = projectName;
   }
 

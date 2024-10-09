@@ -83,13 +83,13 @@ export default class UpdateAuth extends Command {
       flags.push({ flag: '-u', value: url });
     }
 
-    super(
-      `nightvision auth ${authentication.type === 'COOKIE' ? 'cookies' : authentication.type === 'HEADER' ? 'headers' : 'playwright'} update ${authentication.name}`,
-      webview,
-      requestId,
-      flags,
-      stop
-    );
+    super({
+      command: `nightvision auth ${authentication.type === 'COOKIE' ? 'cookies' : authentication.type === 'HEADER' ? 'headers' : 'playwright'} update ${authentication.name}`,
+      webview: webview,
+      requestId: requestId,
+      flags: flags,
+      stop: stop,
+    });
 
     this.authentication = authentication;
     this.headers = headers ?? [];

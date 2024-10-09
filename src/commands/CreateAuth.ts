@@ -64,13 +64,13 @@ export default class CreateAuth extends Command {
       cmd += ` ${url}`;
     }
 
-    super(
-      cmd,
-      webview,
-      requestId,
-      flags,
-      stop
-    );
+    super({
+      command: cmd,
+      webview: webview,
+      requestId: requestId,
+      flags: flags,
+      stop: stop,
+    });
   }
 
   handleOutput(data: any) {

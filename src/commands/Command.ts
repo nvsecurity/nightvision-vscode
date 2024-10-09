@@ -11,6 +11,16 @@ export interface Flag {
   value?: string;
 }
 
+interface CommandParams {
+  command: string;
+  webview: vscode.Webview;
+  requestId: string;
+  flags?: Flag[];
+  stop?: boolean;
+  cwd?: string;
+  async?: boolean;
+}
+
 export default class Command {
   protected command: string;
   protected webview: vscode.Webview;
@@ -20,15 +30,11 @@ export default class Command {
   protected cwd?: string;
   protected async: boolean;
 
-  constructor(
-    command: string,
-    webview: vscode.Webview,
-    requestId: string,
-    flags?: Flag[],
-    stop?: boolean,
-    cwd?: string,
-    async?: boolean,
-  ) {
+  constructor({
+    command, webview, requestId,
+    flags, stop, cwd,
+    async,
+  }: CommandParams) {
     this.command = command;
     this.webview = webview;
     this.requestId = requestId;

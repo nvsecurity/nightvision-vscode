@@ -21,7 +21,11 @@ export default class DeleteAuth extends Command {
     requestId: string,
     { authId, auth }: DeleteAuthParams
   ) {
-    super(`nightvision auth delete ${auth.name}`, webview, requestId);
+    super({
+      command: `nightvision auth delete ${auth.name}`,
+      webview: webview,
+      requestId: requestId,
+    });
     this.id = authId;
     this.auth = auth;
   }

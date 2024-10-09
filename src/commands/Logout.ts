@@ -4,7 +4,11 @@ import { LOGOUT } from '@commands/CommandConstants';
 
 export default class Logout extends Command {
   constructor(webview: vscode.Webview, requestId: string) {
-    super('nightvision logout', webview, requestId);
+    super({
+      command: 'nightvision logout',
+      webview: webview,
+      requestId: requestId,
+    });
   }
 
   handleOutput(data: any) {
