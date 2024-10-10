@@ -21,7 +21,7 @@ const SUPPORTED_LANGUAGES: IdAndName[] = [
 ];
 
 export const ApiDiscoveryPage: React.FC = () => {
-  const [pathToFolder, setPathToFolder] = React.useState('');
+  const [dirPath, setDirPath] = React.useState('');
   const [pathError, setPathError] = React.useState('');
   const [pathTouched, setPathTouched] = React.useState(false);
 
@@ -39,17 +39,17 @@ export const ApiDiscoveryPage: React.FC = () => {
   };
 
   React.useEffect(() => {
-    if (pathTouched && !pathToFolder) {
+    if (pathTouched && !dirPath) {
       setPathError(PATH_REQUIRED_ERROR);
     }
     else {
       setPathError('');
     }
-  }, [pathToFolder, pathTouched]);
+  }, [dirPath, pathTouched]);
 
   React.useEffect(() => {
     clearResults();
-  }, [pathToFolder, language]);
+  }, [dirPath, language]);
 
   const onSelectDirectory = async () => {
     const result = messageHandler.requestGenerator<OpenFileDialogParams>(
@@ -66,7 +66,7 @@ export const ApiDiscoveryPage: React.FC = () => {
     try {
       for await (const response of result) {
         if (response.command === OPEN_FILE_DIALOG) {
-          setPathToFolder(response.payload.selectedPaths[0] || '');
+          setDirPath(response.payload.selectedPaths[0] || '');
         }
       }
     } catch (err) {
@@ -83,7 +83,7 @@ export const ApiDiscoveryPage: React.FC = () => {
       SWAGGER_EXTRACT,
       v4(),
       {
-        path: pathToFolder,
+        dirPath: dirPath,
         language: language?.id || '',
       }
     );
@@ -121,7 +121,7 @@ export const ApiDiscoveryPage: React.FC = () => {
     setIsSubmitting(false);
   };
 
-  const submitDisabled = !pathToFolder || !language || !!pathError || isSubmitting;
+  const submitDisabled = !dirPath || !language || !!pathError || isSubmitting;
 
   return (
     <div className='flex flex-col space-y-4'>
@@ -134,18 +134,18 @@ export const ApiDiscoveryPage: React.FC = () => {
 
         <div className='flex flex-row gap-2'>
           <input
-            value={pathToFolder}
+            value={dirPath}
             onClick={() => onSelectDirectory()}
             id='path-to-folder'
             placeholder='Select'
-            disabled={!!pathToFolder}
+            disabled={!!dirPath}
             readOnly
           />
-          {pathToFolder && (
+          {dirPath && (
             <button
               className='unstyled'
               title='Delete'
-              onClick={() => setPathToFolder('')}
+              onClick={() => setDirPath('')}
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"

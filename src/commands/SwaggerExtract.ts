@@ -5,7 +5,7 @@ import { v4 } from 'uuid';
 import { SWAGGER_EXTRACT, SWAGGER_EXTRACT_ERROR } from './CommandConstants';
 
 export interface SwaggerExtractParams {
-  path: string;
+  dirPath: string;
   language: string;
 }
 
@@ -15,7 +15,7 @@ export interface SwaggerExtractSuccessResults {
 }
 
 export default class SwaggerExtract extends Command {
-  protected path: string;
+  protected dirPath: string;
   protected language: string;
   private fileName: string;
   private extractedPaths: number;
@@ -24,18 +24,18 @@ export default class SwaggerExtract extends Command {
   constructor(
     webview: vscode.Webview,
     requestId: string,
-    { path, language }: SwaggerExtractParams
+    { dirPath, language }: SwaggerExtractParams
   ) {
     const fileName = `nv-swagger-${v4()}.yml`;
     super({
-      command: `nightvision swagger extract ${path} --lang ${language} --no-upload --output ${fileName}`,
+      command: `nightvision swagger extract ${dirPath} --lang ${language} --no-upload --output ${fileName}`,
       webview: webview,
       requestId: requestId,
-      cwd: path,
+      cwd: dirPath,
       async: true
     });
     this.fileName = fileName;
-    this.path = path;
+    this.dirPath = dirPath;
     this.language = language;
     this.extractedPaths = 0;
     this.extractedClasses = 0;
@@ -55,7 +55,7 @@ export default class SwaggerExtract extends Command {
         isFinal: true,
       });
     } else if (/INFO Generated the OpenAPI document/.test(message)) {
-      const filePath = `${this.path}/${this.fileName}`;
+      const filePath = `${this.dirPath}/${this.fileName}`;
       try {
         this.parseResults(message);
         await this.processFile(filePath);
