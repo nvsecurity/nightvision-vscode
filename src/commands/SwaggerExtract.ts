@@ -54,7 +54,7 @@ export default class SwaggerExtract extends Command {
         requestId: this.requestId,
         isFinal: true,
       });
-    } else if (/INFO Successfully validated the output/.test(message)) {
+    } else if (/INFO Generated the OpenAPI document/.test(message)) {
       const filePath = `${this.path}/${this.fileName}`;
       try {
         this.parseResults(message);
