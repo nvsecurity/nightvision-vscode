@@ -31,6 +31,7 @@ import { TextInput } from '@components/TextInput';
 import { getProjects } from '@pages/Projects';
 import { messageHandler } from '@utils/MessageHandler';
 import { PageHeader } from '@components/PageHeader';
+import { API_URL } from '@constants/GlobalConstants';
 
 export const getTargets = async (
   setTargets: React.Dispatch<React.SetStateAction<Target[] | undefined>>,
@@ -44,7 +45,7 @@ export const getTargets = async (
     const targets = (
       await messageHandler.api(
         'get',
-        `https://api.nightvision.net/api/v1/targets/${_type}?order=name&project=${projectId}`
+        `${API_URL}/api/v1/targets/${_type}?order=name&project=${projectId}`
       )
     ).results;
 

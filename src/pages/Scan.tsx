@@ -8,6 +8,7 @@ import { Loading } from '@components/Loading';
 import { messageHandler } from '@utils/MessageHandler';
 import formatDuration from '@utils/formatDuration';
 import { PageHeader } from '@components/PageHeader';
+import { API_URL } from '@constants/GlobalConstants';
 
 export const Scan = () => {
   const { scanId } = useParams();
@@ -48,13 +49,13 @@ export const Scan = () => {
       try {
         const response = await messageHandler.api(
           'get',
-          `https://api.nightvision.net/api/v1/scans/${scanId}`
+          `${API_URL}/api/v1/scans/${scanId}`
         );
 
         const issues = (
           await messageHandler.api(
             'get',
-            `https://api.nightvision.net/api/v1/issues/kind/?scan=${scanId}`
+            `${API_URL}/api/v1/issues/kind/?scan=${scanId}`
           )
         ).results;
 

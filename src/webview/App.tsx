@@ -43,6 +43,7 @@ import { TargetPage } from '@pages/Target';
 import { Targets } from '@pages/Targets';
 import { messageHandler } from '@utils/MessageHandler';
 import { ApiDiscoveryPage } from '@pages/ApiDiscovery';
+import { API_URL } from '@constants/GlobalConstants';
 
 const Error = () => {
   const error = useRouteError();
@@ -270,7 +271,7 @@ export const App = () => {
   }) => {
     try {
       let apiTokens: { digest: string; token_key: string }[] = [];
-      let url = 'https://api.nightvision.net/api/v1/auth/cli/token/';
+      let url = `${API_URL}/api/v1/auth/cli/token/`;
 
       while (true) {
         const response = await messageHandler.api('GET', url);
@@ -298,7 +299,7 @@ export const App = () => {
         }
         await messageHandler.api(
           'DELETE',
-          `https://api.nightvision.net/api/v1/auth/cli/token/${token.digest}/`
+          `${API_URL}/api/v1/auth/cli/token/${token.digest}/`
         );
         await messageHandler.request(DELETE_TOKENS, [token.token_key]);
       }
@@ -312,7 +313,7 @@ export const App = () => {
       const user = (
         await messageHandler.api(
           'get',
-          'https://api.nightvision.net/api/v1/user/me/'
+          `${API_URL}/api/v1/user/me/`
         )
       ).user;
 

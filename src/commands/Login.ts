@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import Command from '@commands/Command';
 import { LOGIN } from '@commands/CommandConstants';
+import { API_URL } from '@constants/GlobalConstants';
 
 export default class Login extends Command {
   constructor(webview: vscode.Webview, requestId: string) {
@@ -21,7 +22,7 @@ export default class Login extends Command {
       });
     } else if (/Only one usage of each socket address/.test(message)) {
       const url = vscode.Uri.parse(
-        'https://api.nightvision.net/api/v1/auth/cli/social'
+        `${API_URL}/api/v1/auth/cli/social`
       );
 
       try {

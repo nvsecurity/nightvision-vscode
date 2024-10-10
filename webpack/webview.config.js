@@ -27,6 +27,7 @@ const config = [
         '@hooks': path.resolve(__dirname, '../src/hooks/'),
         '@pages': path.resolve(__dirname, '../src/pages/'),
         '@types_': path.resolve(__dirname, '../src/types/'),
+        '@constants': path.resolve(__dirname, '../src/constants/'),
         '@utils': path.resolve(__dirname, '../src/utils/'),
         '@styles': path.resolve(__dirname, '../src/styles/'),
       },

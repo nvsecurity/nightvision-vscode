@@ -32,6 +32,7 @@ import { SecondaryButton } from '@components/SecondaryButton';
 import { TextInput } from '@components/TextInput';
 import { messageHandler } from '@utils/MessageHandler';
 import { PageHeader } from '@components/PageHeader';
+import { API_URL } from '@constants/GlobalConstants';
 
 SyntaxHighlighter.registerLanguage('python', python);
 
@@ -48,7 +49,7 @@ export const getAuth = async (
   try {
     const auth = await messageHandler.api(
       'get',
-      `https://api.nightvision.net/api/v1/credentials/${authId}/`
+      `${API_URL}/api/v1/credentials/${authId}/`
     );
 
     if (ignore) {
@@ -296,7 +297,7 @@ export const AuthenticationPage = () => {
             if (!rerecord) {
               await messageHandler.api(
                 'PUT',
-                `https://api.nightvision.net/api/v1/credentials/${auth.id}/`,
+                `${API_URL}/api/v1/credentials/${auth.id}/`,
 
                 { description: updateDescription }
               );

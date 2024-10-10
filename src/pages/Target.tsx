@@ -29,6 +29,7 @@ import { TargetTypeLabel } from '@components/TargetTypeLabel';
 import { TextInput } from '@components/TextInput';
 import { messageHandler } from '@utils/MessageHandler';
 import { PageHeader } from '@components/PageHeader';
+import { API_URL } from '@constants/GlobalConstants';
 
 export const getTarget = async (
   setTarget: React.Dispatch<React.SetStateAction<TargetInfo | undefined>>,
@@ -44,7 +45,7 @@ export const getTarget = async (
   try {
     const target = await messageHandler.api(
       'get',
-      `https://api.nightvision.net/api/v1/targets/${targetType.toLocaleLowerCase()}/${targetId}/`
+      `${API_URL}/api/v1/targets/${targetType.toLocaleLowerCase()}/${targetId}/`
     );
 
     let specUrl: string | undefined;
@@ -52,7 +53,7 @@ export const getTarget = async (
       specUrl = (
         await messageHandler.api(
           'get',
-          `https://api.nightvision.net/api/v1/targets/openapi/${targetId}/get-spec-url/`
+          `${API_URL}/api/v1/targets/openapi/${targetId}/get-spec-url/`
         )
       ).url;
     }

@@ -26,6 +26,7 @@ import { SecondaryButton } from '@components/SecondaryButton';
 import { TextInput } from '@components/TextInput';
 import { messageHandler } from '@utils/MessageHandler';
 import { PageHeader } from '@components/PageHeader';
+import { API_URL } from '@constants/GlobalConstants';
 
 export const getProject = async (
   setProject: React.Dispatch<React.SetStateAction<ProjectInfo | undefined>>,
@@ -40,7 +41,7 @@ export const getProject = async (
   try {
     const project = await messageHandler.api(
       'get',
-      `https://api.nightvision.net/api/v1/projects/${projectId}/`
+      `${API_URL}/api/v1/projects/${projectId}/`
     );
 
     if (ignore) {
@@ -105,7 +106,7 @@ export const getUsers = async (
     const users = (
       await messageHandler.api(
         'GET',
-        `https://api.nightvision.net/api/v1/user/?filter=${user}&is_active=true`
+        `${API_URL}/api/v1/user/?filter=${user}&is_active=true`
       )
     ).results;
 
@@ -163,7 +164,7 @@ export const shareProject = async (
   try {
     await messageHandler.api(
       'POST',
-      `https://api.nightvision.net/api/v1/projects/${projectId}/share/`,
+      `${API_URL}/api/v1/projects/${projectId}/share/`,
       { usernames }
     );
     return {};
@@ -197,7 +198,7 @@ export const unshareProject = async (
   try {
     await messageHandler.api(
       'POST',
-      `https://api.nightvision.net/api/v1/projects/${projectId}/unshare/`,
+      `${API_URL}/api/v1/projects/${projectId}/unshare/`,
       { users: [userId] }
     );
 
