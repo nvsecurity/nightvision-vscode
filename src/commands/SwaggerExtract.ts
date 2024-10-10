@@ -48,39 +48,38 @@ export default class SwaggerExtract extends Command {
       return;
     }
 
-    if (/ERROR error extracting API/.test(message)) {
+    if (/ERROR error/.test(message)) {
       this.webview.postMessage({
         command: SWAGGER_EXTRACT_ERROR,
         requestId: this.requestId,
         isFinal: true,
       });
-    } else if (/INFO Generated the OpenAPI document/.test(message)) {
-      const filePath = `${this.dirPath}/${this.fileName}`;
-      try {
-        this.parseResults(message);
-        await this.processFile(filePath);
+    } else {
+      this.parseResults(message);
+    }
+  }
 
-        this.webview.postMessage({
-          command: SWAGGER_EXTRACT,
-          requestId: this.requestId,
-          payload: {
-            paths: this.extractedPaths,
-            classes: this.extractedClasses,
-          } as SwaggerExtractSuccessResults,
-          isFinal: true,
-        });
-      }
-      catch (e) {
-        this.webview.postMessage({
-          command: SWAGGER_EXTRACT_ERROR,
-          requestId: this.requestId,
-          isFinal: true,
-        });
-      }
-    } else if (/Number of discovered paths:/.test(message)) {
-      this.parseResults(message);
-    } else if (/Number of discovered classes:/.test(message)) {
-      this.parseResults(message);
+  async handleClose(): Promise<void> {
+    try {
+      const filePath = `${this.dirPath}/${this.fileName}`;
+      await fs.access(filePath);
+      await this.processFile(filePath);
+
+      this.webview.postMessage({
+        command: SWAGGER_EXTRACT,
+        requestId: this.requestId,
+        payload: {
+          paths: this.extractedPaths,
+          classes: this.extractedClasses,
+        } as SwaggerExtractSuccessResults,
+        isFinal: true,
+      });
+    } catch (error) {
+      this.webview.postMessage({
+        command: SWAGGER_EXTRACT_ERROR,
+        requestId: this.requestId,
+        isFinal: true,
+      });
     }
   }
 
