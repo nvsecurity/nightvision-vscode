@@ -867,7 +867,7 @@ export const ProjectPage = () => {
               this project.
             </p>
             <p>
-              This will also delete all the targets, applications and
+              This will also delete all the targets and
               credentials associated with this project.
             </p>
             <div className='flex space-x-2'>

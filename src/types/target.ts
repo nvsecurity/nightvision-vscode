@@ -1,4 +1,3 @@
-import { Application } from '@types_/app';
 import { IdAndName } from '@types_/idAndName';
 
 export interface Target extends IdAndName {
@@ -9,7 +8,6 @@ export interface Target extends IdAndName {
 export interface TargetInfo extends Target {
   projectId: string;
   projectName: string;
-  applications: Application[];
   createdAt: Date;
   lastScannedAt?: Date | null;
   internetAccessible: boolean;

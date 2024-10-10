@@ -26,12 +26,6 @@ Create a new project called `HTML5-Vulnweb`.
 
 ![project.gif](https://raw.githubusercontent.com/spatiag/nv-images/main/project.gif)
 
-#### Applications
-
-Switch to the new project we just created and create a new application called `HTML5-Vulnweb-App`.
-
-![application.gif](https://raw.githubusercontent.com/spatiag/nv-images/main/application.gif)
-
 #### Targets
 
 Create a new target called `HTML5-Vulnweb-Target` and set the URL to `http://testhtml5.vulnweb.com`.
@@ -46,7 +40,7 @@ Create a new Playwright authentication named `HTML5-Vulnweb-Auth` and set the UR
 
 #### Scans
 
-Initiate a new scan using the application, target, and authentication we just set up. NightVision will begin analyzing the website for any vulnerabilities.
+Initiate a new scan using the target and authentication we just set up. NightVision will begin analyzing the website for any vulnerabilities.
 
 ![scan.gif](https://raw.githubusercontent.com/spatiag/nv-images/main/scan.gif)
 

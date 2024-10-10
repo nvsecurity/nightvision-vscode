@@ -78,7 +78,6 @@ const getScans = async (
 
         return {
           id: scan.id,
-          application: scan.application,
           authentication: scan.credentials,
           target: scan.target,
           project: scan.project,
