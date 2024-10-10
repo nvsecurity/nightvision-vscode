@@ -18,6 +18,8 @@ export default class SwaggerExtract extends Command {
   protected path: string;
   protected language: string;
   private fileName: string;
+  private extractedPaths: number;
+  private extractedClasses: number;
 
   constructor(
     webview: vscode.Webview,
@@ -35,6 +37,8 @@ export default class SwaggerExtract extends Command {
     this.fileName = fileName;
     this.path = path;
     this.language = language;
+    this.extractedPaths = 0;
+    this.extractedClasses = 0;
   }
 
   async handleOutput(data: any) {
@@ -53,15 +57,15 @@ export default class SwaggerExtract extends Command {
     } else if (/INFO Successfully validated the output/.test(message)) {
       const filePath = `${this.path}/${this.fileName}`;
       try {
-        const { paths, classes } = this.getParsedResults(message);
+        this.parseResults(message);
         await this.processFile(filePath);
 
         this.webview.postMessage({
           command: SWAGGER_EXTRACT,
           requestId: this.requestId,
           payload: {
-            paths: paths,
-            classes: classes,
+            paths: this.extractedPaths,
+            classes: this.extractedClasses,
           } as SwaggerExtractSuccessResults,
           isFinal: true,
         });
@@ -73,6 +77,10 @@ export default class SwaggerExtract extends Command {
           isFinal: true,
         });
       }
+    } else if (/Number of discovered paths:/.test(message)) {
+      this.parseResults(message);
+    } else if (/Number of discovered classes:/.test(message)) {
+      this.parseResults(message);
     }
   }
 
@@ -85,19 +93,16 @@ export default class SwaggerExtract extends Command {
     });
     await vscode.window.showTextDocument(document, { preview: false, });
 
-    await fs.unlink(filePath);
+    await fs.rm(filePath, { force: true });
   }
 
-  private getParsedResults(message: string): { paths: number, classes: number } {
+  private parseResults(message: string) {
     const matchedPaths = message.match(/Number of discovered paths:\s*(.*)/);
-    const paths = matchedPaths !== null ? Number(matchedPaths[1]) : 0;
+    const paths = matchedPaths !== null ? Number(matchedPaths[1]) : this.extractedPaths;
+    this.extractedPaths = paths;
 
     const matchedClasses = message.match(/Number of discovered classes:\s*(.*)/);
-    const classes = matchedClasses !== null ? Number(matchedClasses[1]) : 0;
-
-    return {
-      paths: paths,
-      classes: classes,
-    };
+    const classes = matchedClasses !== null ? Number(matchedClasses[1]) : this.extractedClasses;
+    this.extractedClasses = classes;
   }
 }

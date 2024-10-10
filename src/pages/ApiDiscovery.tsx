@@ -31,6 +31,11 @@ export const ApiDiscoveryPage: React.FC = () => {
   const [submitError, setSubmitError] = React.useState('');
   const [submitResults, setSubmitResults] = React.useState<SwaggerExtractSuccessResults | undefined>();
 
+  const clearResults = () => {
+    setSubmitError('');
+    setSubmitResults(undefined);
+  };
+
   React.useEffect(() => {
     if (pathTouched && !pathToFolder) {
       setPathError(PATH_REQUIRED_ERROR);
@@ -41,8 +46,7 @@ export const ApiDiscoveryPage: React.FC = () => {
   }, [pathToFolder, pathTouched]);
 
   React.useEffect(() => {
-    setSubmitError('');
-    setSubmitResults(undefined);
+    clearResults();
   }, [pathToFolder, language]);
 
   const onSelectDirectory = async () => {
@@ -71,6 +75,8 @@ export const ApiDiscoveryPage: React.FC = () => {
   };
 
   const onSubmit = async () => {
+    clearResults();
+
     const result = messageHandler.requestGenerator<SwaggerExtractParams>(
       SWAGGER_EXTRACT,
       v4(),
