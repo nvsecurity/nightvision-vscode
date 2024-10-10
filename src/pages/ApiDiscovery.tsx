@@ -1,14 +1,14 @@
 import React from 'react';
 import { PageHeader } from '@components/PageHeader';
 import { messageHandler } from '@utils/MessageHandler';
-import { OPEN_FILE_DIALOG, SWAGGER_EXTRACT, SWAGGER_EXTRACT_ERROR } from '@commands/CommandConstants';
+import { OPEN_FILE_DIALOG, SWAGGER_EXTRACT, SWAGGER_EXTRACT_ERROR, UNAUTHORIZED_ACCESS, CLI_MISSING } from '@commands/CommandConstants';
 import { v4 } from 'uuid';
 import { OpenFileDialogParams } from '@commands/OpenFileDialog';
-import { useDebounce } from 'use-debounce';
 import { Label } from '@components/Label';
 import { Dropdown } from '@components/Dropdown';
 import { IdAndName } from '@types_/idAndName';
 import { SwaggerExtractParams, SwaggerExtractSuccessResults } from '@commands/SwaggerExtract';
+import { useUser } from '@hooks/useUser';
 
 const PATH_REQUIRED_ERROR = 'Path is required';
 
@@ -30,6 +30,8 @@ export const ApiDiscoveryPage: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [submitError, setSubmitError] = React.useState('');
   const [submitResults, setSubmitResults] = React.useState<SwaggerExtractSuccessResults | undefined>();
+
+  const { setIsLoggedIn, setIsCliInstalled } = useUser();
 
   const clearResults = () => {
     setSubmitError('');
@@ -100,6 +102,14 @@ export const ApiDiscoveryPage: React.FC = () => {
           }
           case SWAGGER_EXTRACT_ERROR: {
             setSubmitError('Error extracting API info');
+            break;
+          }
+          case UNAUTHORIZED_ACCESS: {
+            setIsLoggedIn(false);
+            break;
+          }
+          case CLI_MISSING: {
+            setIsCliInstalled(false);
             break;
           }
         }
