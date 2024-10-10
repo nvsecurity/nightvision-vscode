@@ -22,7 +22,11 @@ export default class DeleteApp extends Command {
     requestId: string,
     { id, app }: DeleteAppParams
   ) {
-    super(`nightvision app delete ${app.name}`, webview, requestId);
+    super({
+      command: `nightvision app delete ${app.name}`,
+      webview: webview,
+      requestId: requestId,
+    });
     this.id = id;
     this.app = app;
   }

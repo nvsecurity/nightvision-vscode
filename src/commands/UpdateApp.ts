@@ -25,11 +25,11 @@ export default class UpdateApp extends Command {
     requestId: string,
     { appId, newAppName, app }: UpdateAppParams
   ) {
-    super(
-      `nightvision app update ${app.name} ${newAppName}`,
-      webview,
-      requestId
-    );
+    super({
+      command: `nightvision app update ${app.name} ${newAppName}`,
+      webview: webview,
+      requestId: requestId,
+    });
 
     this.appId = appId;
     this.newAppName = newAppName;

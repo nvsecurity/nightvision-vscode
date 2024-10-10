@@ -49,3 +49,6 @@ export const SCAN = 'scan';
 export const SCAN_ID = 'scan-id';
 export const SCAN_FINISHED = 'scan-finished';
 export const UNAUTHORIZED_ACCESS = 'unauthorized-access';
+export const OPEN_FILE_DIALOG = 'open-file-dialog';
+export const SWAGGER_EXTRACT = 'swagger-extract';
+export const SWAGGER_EXTRACT_ERROR = 'swagger-extract-error';

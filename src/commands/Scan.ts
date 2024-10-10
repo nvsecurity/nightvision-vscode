@@ -35,7 +35,13 @@ export default class Scan extends Command {
     }
 
     const cmd = `nightvision scan ${target.name}`;
-    super(cmd, webview, requestId, flags);
+
+    super({
+      command: cmd,
+      webview: webview,
+      requestId: requestId,
+      flags: flags,
+    });
   }
 
   handleOutput(data: any) {

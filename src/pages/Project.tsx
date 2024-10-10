@@ -22,10 +22,10 @@ import { DeleteProjectParams } from '@commands/DeleteProject';
 import { UpdateProjectParams } from '@commands/UpdateProject';
 import { Loading } from '@components/Loading';
 import { Modal } from '@components/Modal';
-import { ReloadButton } from '@components/ReloadButton';
 import { SecondaryButton } from '@components/SecondaryButton';
 import { TextInput } from '@components/TextInput';
 import { messageHandler } from '@utils/MessageHandler';
+import { PageHeader } from '@components/PageHeader';
 
 export const getProject = async (
   setProject: React.Dispatch<React.SetStateAction<ProjectInfo | undefined>>,
@@ -386,8 +386,8 @@ export const ProjectPage = () => {
       messageHandler.requestGenerator<UpdateProjectParams>(
         UPDATE_PROJECT,
         v4(),
-        { 
-          projectId: projectId, 
+        {
+          projectId: projectId,
           newProjectName: updateName,
           project: project,
         }
@@ -449,7 +449,7 @@ export const ProjectPage = () => {
       messageHandler.requestGenerator<DeleteProjectParams>(
         DELETE_PROJECT,
         v4(),
-        { 
+        {
           id: projectId,
           project: project,
         }
@@ -558,30 +558,7 @@ export const ProjectPage = () => {
   return (
     <>
       <div className='flex flex-col space-y-4'>
-        <div className='flex items-center space-x-2'>
-          <a
-            onClick={() => navigate(-1)}
-            className='hover:cursor-pointer'
-            href='#'
-          >
-            <svg
-              width='16'
-              height='16'
-              viewBox='0 0 16 16'
-              xmlns='http://www.w3.org/2000/svg'
-              fill='currentColor'
-              className='h-5 w-5'
-            >
-              <path
-                fillRule='evenodd'
-                clipRule='evenodd'
-                d='M7 3.093l-5 5V8.8l5 5 .707-.707-4.146-4.147H14v-1H3.56L7.708 3.8 7 3.093z'
-              />
-            </svg>
-          </a>
-          <h1 className='truncate font-bold uppercase'>Project</h1>
-          <ReloadButton />
-        </div>
+        <PageHeader title='Project'/>
 
         {!project && <Loading />}
         {project && (

@@ -4,7 +4,11 @@ import { CLI_VERSION } from '@commands/CommandConstants';
 
 export default class CliVersion extends Command {
   constructor(webview: vscode.Webview, requestId: string) {
-    super('nightvision version', webview, requestId);
+    super({
+      command: 'nightvision version',
+      webview: webview,
+      requestId: requestId,
+    });
   }
 
   handleOutput(data: any) {
