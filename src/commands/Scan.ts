@@ -9,6 +9,7 @@ import {
   SCAN_FINISHED,
   SCAN_ID,
 } from '@commands/CommandConstants';
+import { NIGHTVISION } from '@constants/GlobalConstants';
 
 export interface ScanParams {
   project: Project;
@@ -30,7 +31,7 @@ export default class Scan extends Command {
       flags.push({ flag: '-C', value: authentication.id });
     }
 
-    const cmd = `nightvision scan ${target.name}`;
+    const cmd = `${NIGHTVISION} scan ${target.name}`;
 
     super({
       command: cmd,

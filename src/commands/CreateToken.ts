@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import Command from '@commands/Command';
 import { CREATE_TOKEN } from '@commands/CommandConstants';
+import { NIGHTVISION } from '@constants/GlobalConstants';
 
 export default class CreateToken extends Command {
   protected extensionContext: vscode.ExtensionContext;
@@ -13,7 +14,7 @@ export default class CreateToken extends Command {
     nightvisionToken: { value: string }
   ) {
     super({
-      command: 'nightvision token create',
+      command: `${NIGHTVISION} token create`,
       webview: webview,
       requestId: requestId,
     });

@@ -6,6 +6,7 @@ import {
   INVALID_AUTH,
   INVALID_UUID,
 } from '@commands/CommandConstants';
+import { NIGHTVISION } from '@constants/GlobalConstants';
 
 export interface DeleteAuthParams {
   authId: string;
@@ -22,7 +23,7 @@ export default class DeleteAuth extends Command {
     { authId, auth }: DeleteAuthParams
   ) {
     super({
-      command: `nightvision auth delete ${auth.name}`,
+      command: `${NIGHTVISION} auth delete ${auth.name}`,
       webview: webview,
       requestId: requestId,
     });

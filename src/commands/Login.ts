@@ -1,12 +1,12 @@
 import * as vscode from 'vscode';
 import Command from '@commands/Command';
 import { LOGIN } from '@commands/CommandConstants';
-import { API_URL } from '@constants/GlobalConstants';
+import { API_URL, NIGHTVISION } from '@constants/GlobalConstants';
 
 export default class Login extends Command {
   constructor(webview: vscode.Webview, requestId: string) {
     super({
-      command: 'nightvision login',
+      command: `${NIGHTVISION} login`,
       webview: webview,
       requestId: requestId,
     });

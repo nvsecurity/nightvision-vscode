@@ -5,6 +5,7 @@ import {
   DUPLICATE_NAME,
   INVALID_NAME,
 } from '@commands/CommandConstants';
+import { NIGHTVISION } from '@constants/GlobalConstants';
 
 export interface CreateProjectParams {
   projectName: string;
@@ -20,7 +21,7 @@ export default class CreateProject extends Command {
   ) {
     const flags: Flag[] = [];
     super({
-      command: `nightvision project create ${projectName}`,
+      command: `${NIGHTVISION} project create ${projectName}`,
       webview: webview,
       requestId: requestId,
       flags: flags,

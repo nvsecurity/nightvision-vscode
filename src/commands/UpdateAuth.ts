@@ -14,6 +14,7 @@ import {
   NO_UPDATED_FIELD,
   UPDATE_AUTH,
 } from '@commands/CommandConstants';
+import { NIGHTVISION } from '@constants/GlobalConstants';
 
 export interface UpdateAuthParams {
   project: Project;
@@ -84,7 +85,7 @@ export default class UpdateAuth extends Command {
     }
 
     super({
-      command: `nightvision auth ${authentication.type === 'COOKIE' ? 'cookies' : authentication.type === 'HEADER' ? 'headers' : 'playwright'} update ${authentication.name}`,
+      command: `${NIGHTVISION} auth ${authentication.type === 'COOKIE' ? 'cookies' : authentication.type === 'HEADER' ? 'headers' : 'playwright'} update ${authentication.name}`,
       webview: webview,
       requestId: requestId,
       flags: flags,

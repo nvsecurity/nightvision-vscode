@@ -7,6 +7,7 @@ import {
   INVALID_PROJECT_DELETE,
   INVALID_UUID,
 } from '@commands/CommandConstants';
+import { NIGHTVISION } from '@constants/GlobalConstants';
 
 export interface DeleteProjectParams {
   id: string;
@@ -23,7 +24,7 @@ export default class DeleteProject extends Command {
     { id, project }: DeleteProjectParams
   ) {
     super({
-      command: `nightvision project delete ${project.name}`,
+      command: `${NIGHTVISION} project delete ${project.name}`,
       webview: webview,
       requestId: requestId,
     });

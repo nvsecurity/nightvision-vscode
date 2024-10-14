@@ -5,6 +5,7 @@ import {
   INVALID_UUID,
   SAVE_CURRENT_PROJECT,
 } from '@commands/CommandConstants';
+import { NIGHTVISION } from '@constants/GlobalConstants';
 
 export interface SaveCurrentProjectParams {
   id: string;
@@ -21,7 +22,7 @@ export default class SaveCurrentProject extends Command {
     { id, name }: SaveCurrentProjectParams
   ) {
     super({
-      command: `nightvision project set ${name}`,
+      command: `${NIGHTVISION} project set ${name}`,
       webview: webview,
       requestId: requestId,
     });
