@@ -4,6 +4,7 @@ import fs from 'fs/promises';
 import { v4 } from 'uuid';
 import { SWAGGER_EXTRACT, SWAGGER_EXTRACT_ERROR } from './CommandConstants';
 import { NIGHTVISION } from '@constants/GlobalConstants';
+import * as path from 'path';
 
 export interface SwaggerExtractParams {
   dirPath: string;
@@ -60,9 +61,30 @@ export default class SwaggerExtract extends Command {
     }
   }
 
+  handleError(err: NodeJS.ErrnoException) {
+    // Let's do nothing here
+    // the parent class will always emit CLI_MISSING for ENOENT errors
+    // and we don't want that here, as we can face missing files
+    // and we are handling them already, so we don't want any collateral weird effects, leave this empty.
+  }
+
   async handleClose(): Promise<void> {
     try {
-      const filePath = `${this.dirPath}/${this.fileName}`;
+      let filePath = path.join(this.dirPath, this.fileName);
+
+      if (!path.isAbsolute(filePath)) {
+        // Resolve the path relative to the workspace root
+        const workspaceFolders = vscode.workspace.workspaceFolders;
+
+        if (workspaceFolders && workspaceFolders.length > 0) {
+          // Use the first workspace folder
+          const workspaceRoot = workspaceFolders[0].uri.fsPath;
+          filePath = path.join(workspaceRoot, filePath);
+        } else {
+          // If no workspace is open, resolve relative to the current working directory (unlikely to happen?)
+          filePath = path.resolve(filePath);
+        }
+      }
       await fs.access(filePath);
       await this.processFile(filePath);
 
