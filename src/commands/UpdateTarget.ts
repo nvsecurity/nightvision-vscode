@@ -103,7 +103,8 @@ export default class UpdateTarget extends Command {
       });
     } else if (
       /Enter a valid URL/.test(message) ||
-      /location: This field may not be blank/.test(message)
+      /location: This field may not be blank/.test(message) ||
+      /ERROR Invalid URL/.test(message)
     ) {
       this.webview.postMessage({
         command: INVALID_URL,
