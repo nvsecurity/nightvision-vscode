@@ -4,7 +4,7 @@ import fs from 'fs/promises';
 import { v4 } from 'uuid';
 import { SWAGGER_EXTRACT, SWAGGER_EXTRACT_ERROR } from './CommandConstants';
 import { NIGHTVISION } from '@constants/GlobalConstants';
-const path = require('path');
+import * as path from 'path';
 
 export interface SwaggerExtractParams {
   dirPath: string;
