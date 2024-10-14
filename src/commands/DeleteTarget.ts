@@ -6,6 +6,7 @@ import {
   INVALID_TARGET,
   INVALID_UUID,
 } from '@commands/CommandConstants';
+import { NIGHTVISION } from '@constants/GlobalConstants';
 
 export interface DeleteTargetParams {
   id: string;
@@ -22,7 +23,7 @@ export default class DeleteTarget extends Command {
     { id, target }: DeleteTargetParams
   ) {
     super({
-      command: `nightvision target delete ${target.name}`,
+      command: `${NIGHTVISION} target delete ${target.name}`,
       webview: webview,
       requestId: requestId,
     });

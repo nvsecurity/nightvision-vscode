@@ -1,18 +1,15 @@
-import { useApp } from '@hooks/useApp';
 import { useProject } from '@hooks/useProject';
 import { useTarget } from '@hooks/useTarget';
 import { useUser } from '@hooks/useUser';
-import { Application } from '@types_/app';
 import { Auth } from '@types_/auth';
 import { IdAndName } from '@types_/idAndName';
 import { Project } from '@types_/project';
 import { Target } from '@types_/target';
 import { v4 } from 'uuid';
 import React, { useEffect, useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import {  useNavigate, useParams } from 'react-router-dom';
 import {
   CLI_MISSING,
-  INVALID_APP,
   INVALID_TARGET,
   SCAN,
   SCAN_ID,
@@ -22,7 +19,6 @@ import { ScanParams } from '@commands/Scan';
 import { Dropdown } from '@components/Dropdown';
 import { Label } from '@components/Label';
 import { Loading } from '@components/Loading';
-import { getApps } from '@pages/Applications';
 import { getAuths } from '@pages/Authentications';
 import { getProjects } from '@pages/Projects';
 import { getTargets } from '@pages/Targets';
@@ -34,18 +30,15 @@ export const NewScan = () => {
 
   const navigate = useNavigate();
 
-  const { currentApp, setCurrentApp } = useApp();
   const { currentProject, setCurrentProject } = useProject();
   const { currentTarget, setCurrentTarget } = useTarget();
   const { setIsLoggedIn, setIsCliInstalled } = useUser();
 
-  const [apps, setApps] = useState<Application[]>();
   const [auths, setAuths] = useState<Auth[]>();
   const [currentAuth, setCurrentAuth] = useState<Auth | null>();
   const [projects, setProjects] = useState<Project[]>();
   const [targets, setTargets] = useState<Target[]>();
 
-  const [appErrors, setAppErrors] = useState<string[]>([]);
   const [targetErrors, setTargetErrors] = useState<string[]>([]);
 
   const [isLoading, setIsLoading] = useState(false);
@@ -57,7 +50,6 @@ export const NewScan = () => {
 
     const fetchApi = async () => {
       setIsFetching(true);
-      await getApps(setApps, setIsLoggedIn, currentProject.id, ignore);
       await getAuths(setAuths, setIsLoggedIn, currentProject.id, ignore);
       await getProjects(setProjects, setIsLoggedIn, ignore);
       await getTargets(
@@ -71,7 +63,6 @@ export const NewScan = () => {
     };
 
     fetchApi();
-    setAppErrors([]);
     setTargetErrors([]);
 
     return () => {
@@ -82,15 +73,11 @@ export const NewScan = () => {
   const handleScanClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
 
-    if (!currentApp) {
-      setAppErrors(['Application is required']);
-    }
-
     if (!currentTarget) {
       setTargetErrors(['Target is required']);
     }
 
-    if (!currentApp || !currentTarget) {
+    if (!currentTarget) {
       return;
     }
 
@@ -99,7 +86,6 @@ export const NewScan = () => {
       v4(),
       {
         project: currentProject,
-        application: currentApp,
         target: currentTarget,
         authentication: currentAuth,
       }
@@ -115,15 +101,10 @@ export const NewScan = () => {
           setIsLoading(false);
           break;
         }
-        case INVALID_APP: {
-          setAppErrors(['Application is required']);
-          break;
-        }
         case INVALID_TARGET: {
           setTargetErrors(['Invalid target: ' + response.payload]);
           break;
         }
-        case UNAUTHORIZED_ACCESS:
         case UNAUTHORIZED_ACCESS: {
           setIsLoggedIn(false);
           break;
@@ -137,31 +118,6 @@ export const NewScan = () => {
 
     setIsLoading(false);
   };
-
-  useEffect(() => {
-    let ignore = false;
-
-    if (!apps) {
-      return;
-    }
-
-    if (apps.some((app) => app.id === currentApp?.id)) {
-      return;
-    }
-
-    if (apps.length === 0 && !ignore) {
-      setCurrentApp(undefined);
-      return;
-    }
-
-    if (apps.length > 0 && !ignore) {
-      setCurrentApp(apps[0]);
-    }
-
-    return () => {
-      ignore = true;
-    };
-  }, [apps, currentApp]);
 
   useEffect(() => {
     let ignore = false;
@@ -202,7 +158,7 @@ export const NewScan = () => {
     <div className='flex flex-col space-y-4'>
       <PageHeader title='Scan' backTo={isLoading ? '.' : '/scans'}/>
 
-      {apps && auths && projects && targets && (
+      {auths && projects && targets && (
         <>
           <div>
             <Label htmlFor='current-project'>Current Project</Label>
@@ -218,27 +174,6 @@ export const NewScan = () => {
           {!isFetching && (
             <>
               <div className='flex flex-col space-y-1'>
-                <div>
-                  <Label htmlFor='application'>Application</Label>
-                  <Dropdown
-                    selectedItem={currentApp}
-                    items={apps}
-                    name='Application'
-                    route={isLoading ? '.' : `/applications`}
-                    handleChange={setCurrentApp}
-                    id='application'
-                    disabled={isLoading}
-                  />
-                  {appErrors.length > 0 && (
-                    <ul className='list-disc'>
-                      {Array.from(new Set(appErrors)).map((error) => (
-                        <li key={error} className='font-semibold text-red-600'>
-                          {error}
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
                 <div>
                   <Label htmlFor='target'>
                     Target ({targetType === 'url' ? 'WEB' : 'API'})
@@ -290,7 +225,7 @@ export const NewScan = () => {
           )}
         </>
       )}
-      {(!apps || !auths || !projects || !targets) && <Loading />}
+      {(!auths || !projects || !targets) && <Loading />}
     </div>
   );
 };

@@ -90,42 +90,6 @@ const TargetsSvg = () => {
   );
 };
 
-const ApplicationsSvg = () => {
-  return (
-    <svg
-      xmlns='http://www.w3.org/2000/svg'
-      viewBox='0 0 18 18'
-      fill='none'
-      className='h-12 w-12 stroke-[--vscode-foreground]'
-    >
-      <path
-        d='M7.5 2.25H2.25V7.5H7.5V2.25Z'
-        strokeWidth='1.5'
-        strokeLinecap='round'
-        strokeLinejoin='round'
-      ></path>
-      <path
-        d='M15.75 2.25H10.5V7.5H15.75V2.25Z'
-        strokeWidth='1.5'
-        strokeLinecap='round'
-        strokeLinejoin='round'
-      ></path>
-      <path
-        d='M15.75 10.5H10.5V15.75H15.75V10.5Z'
-        strokeWidth='1.5'
-        strokeLinecap='round'
-        strokeLinejoin='round'
-      ></path>
-      <path
-        d='M7.5 10.5H2.25V15.75H7.5V10.5Z'
-        strokeWidth='1.5'
-        strokeLinecap='round'
-        strokeLinejoin='round'
-      ></path>
-    </svg>
-  );
-};
-
 const AuthenticationsSvg = () => {
   return (
     <svg
@@ -188,7 +152,6 @@ interface GeneralRouteParams {
 const MAIN_ROUTES: GeneralRouteParams[] = [
   { path: '/scans', title: 'Scans', icon: <ScansSvg /> },
   { path: '/targets', title: 'Targets', icon: <TargetsSvg /> },
-  { path: '/applications', title: 'Applications', icon: <ApplicationsSvg /> },
   { path: '/authentications', title: 'Authentications', icon: <AuthenticationsSvg /> },
   { path: '/projects', title: 'Projects', icon: <ProjectsSvg /> },
   { path: '/api-discovery', title: 'API Discovery', icon: <ApiDiscoverySvg /> },

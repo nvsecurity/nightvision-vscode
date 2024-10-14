@@ -1,4 +1,3 @@
-import { Application } from '@types_/app';
 import { Auth } from '@types_/auth';
 import { Project } from '@types_/project';
 import { Target } from '@types_/target';
@@ -38,7 +37,6 @@ export type ScanStatus =
 
 export interface ScanType {
   id: string;
-  application?: Application;
   authentication?: Auth;
   target: Target;
   project: Project;

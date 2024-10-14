@@ -24,6 +24,7 @@ import { SecondaryButton } from '@components/SecondaryButton';
 import { TextInput } from '@components/TextInput';
 import { messageHandler } from '@utils/MessageHandler';
 import { PageHeader } from '@components/PageHeader';
+import { API_URL } from '@constants/GlobalConstants';
 
 export const getProjects = async (
   setProjects:
@@ -36,7 +37,7 @@ export const getProjects = async (
     const projects = (
       await messageHandler.api(
         'get',
-        'https://api.nightvision.net/api/v1/projects/?order=name'
+        `${API_URL}/api/v1/projects/?order=name`
       )
     ).results;
 

@@ -10,6 +10,7 @@ import {
   INVALID_OPENAPI_FILE,
   INVALID_URL,
 } from '@commands/CommandConstants';
+import { NIGHTVISION } from '@constants/GlobalConstants';
 
 export interface CreateTargetParams {
   project: Project;
@@ -51,7 +52,7 @@ export default class CreateTarget extends Command {
     }
 
     super({
-      command: `nightvision target create ${targetName} ${targetUrl}`,
+      command: `${NIGHTVISION} target create ${targetName} ${targetUrl}`,
       webview: webview,
       requestId: requestId,
       flags: flags,
@@ -102,7 +103,8 @@ export default class CreateTarget extends Command {
       });
     } else if (
       /Enter a valid URL/.test(message) ||
-      /location: This field may not be blank/.test(message)
+      /location: This field may not be blank/.test(message) ||
+      /ERROR Invalid URL/.test(message)
     ) {
       this.webview.postMessage({
         command: INVALID_URL,

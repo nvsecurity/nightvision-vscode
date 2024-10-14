@@ -10,50 +10,40 @@ import {
   CLI_INSTALL,
   CLI_INSTALL_FAILED,
   CLI_VERSION,
-  CREATE_APP,
   CREATE_AUTH,
   CREATE_PROJECT,
   CREATE_TARGET,
   CREATE_TOKEN,
-  DELETE_APP,
   DELETE_AUTH,
   DELETE_PROJECT,
   DELETE_TARGET,
   DELETE_TOKENS,
-  GET_CURRENT_APP,
   GET_CURRENT_PROJECT,
   GET_CURRENT_TARGET,
   KILL,
   LOGIN,
   LOGOUT,
   OPEN_FILE_DIALOG,
-  SAVE_CURRENT_APP,
   SAVE_CURRENT_PROJECT,
   SAVE_CURRENT_TARGET,
   SCAN,
   SWAGGER_EXTRACT,
-  UPDATE_APP,
   UPDATE_AUTH,
   UPDATE_PROJECT,
   UPDATE_TARGET,
 } from '@commands/CommandConstants';
-import CreateApp from '@commands/CreateApp';
 import CreateAuth from '@commands/CreateAuth';
 import CreateProject from '@commands/CreateProject';
 import CreateTarget from '@commands/CreateTarget';
 import CreateToken from '@commands/CreateToken';
-import DeleteApp from '@commands/DeleteApp';
 import DeleteAuth from '@commands/DeleteAuth';
 import DeleteProject from '@commands/DeleteProject';
 import DeleteTarget from '@commands/DeleteTarget';
-import GetCurrentApp from '@commands/GetCurrentApp';
 import GetCurrentProject from '@commands/GetCurrentProject';
 import Login from '@commands/Login';
 import Logout from '@commands/Logout';
-import SaveCurrentApp from '@commands/SaveCurrentApp';
 import SaveCurrentProject from '@commands/SaveCurrentProject';
 import Scan from '@commands/Scan';
-import UpdateApp from '@commands/UpdateApp';
 import UpdateAuth from '@commands/UpdateAuth';
 import UpdateProject from '@commands/UpdateProject';
 import UpdateTarget from '@commands/UpdateTarget';
@@ -275,52 +265,6 @@ class SidebarProvider implements vscode.WebviewViewProvider {
           }
           case SCAN: {
             const command = new Scan(webviewView.webview, requestId, payload);
-
-            this._children[requestId] = command.execute();
-            break;
-          }
-          case CREATE_APP: {
-            const command = new CreateApp(
-              webviewView.webview,
-              requestId,
-              payload
-            );
-
-            this._children[requestId] = command.execute();
-            break;
-          }
-          case DELETE_APP: {
-            const command = new DeleteApp(
-              webviewView.webview,
-              requestId,
-              payload
-            );
-
-            this._children[requestId] = command.execute();
-            break;
-          }
-          case GET_CURRENT_APP: {
-            const command = new GetCurrentApp(webviewView.webview, requestId);
-
-            this._children[requestId] = command.execute();
-            break;
-          }
-          case SAVE_CURRENT_APP: {
-            const command = new SaveCurrentApp(
-              webviewView.webview,
-              requestId,
-              payload
-            );
-
-            this._children[requestId] = command.execute();
-            break;
-          }
-          case UPDATE_APP: {
-            const command = new UpdateApp(
-              webviewView.webview,
-              requestId,
-              payload
-            );
 
             this._children[requestId] = command.execute();
             break;

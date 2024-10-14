@@ -3,6 +3,7 @@ import Command from '@commands/Command';
 import fs from 'fs/promises';
 import { v4 } from 'uuid';
 import { SWAGGER_EXTRACT, SWAGGER_EXTRACT_ERROR } from './CommandConstants';
+import { NIGHTVISION } from '@constants/GlobalConstants';
 
 export interface SwaggerExtractParams {
   dirPath: string;
@@ -28,7 +29,7 @@ export default class SwaggerExtract extends Command {
   ) {
     const fileName = `nv-swagger-${v4()}.yml`;
     super({
-      command: `nightvision swagger extract ${dirPath} --lang ${language} --no-upload --output ${fileName}`,
+      command: `${NIGHTVISION} swagger extract ${dirPath} --lang ${language} --no-upload --output ${fileName}`,
       webview: webview,
       requestId: requestId,
       cwd: dirPath,

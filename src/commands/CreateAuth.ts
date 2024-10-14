@@ -11,6 +11,7 @@ import {
   INVALID_NAME,
   INVALID_URL,
 } from '@commands/CommandConstants';
+import { NIGHTVISION } from '@constants/GlobalConstants';
 
 export interface CreateAuthParams {
   project: Project;
@@ -59,7 +60,7 @@ export default class CreateAuth extends Command {
       }
     }
 
-    var cmd = `nightvision auth ${type === 'COOKIE' ? 'cookies' : type === 'HEADER' ? 'headers' : 'playwright'} create ${name}`;
+    var cmd = `${NIGHTVISION} auth ${type === 'COOKIE' ? 'cookies' : type === 'HEADER' ? 'headers' : 'playwright'} create ${name}`;
     if (type === 'SCRIPT' && url) {
       cmd += ` ${url}`;
     }

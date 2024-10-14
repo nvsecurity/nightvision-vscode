@@ -8,6 +8,7 @@ import {
   INVALID_UUID,
   UPDATE_PROJECT,
 } from '@commands/CommandConstants';
+import { NIGHTVISION } from '@constants/GlobalConstants';
 
 export interface UpdateProjectParams {
   projectId: string;
@@ -22,7 +23,7 @@ export default class UpdateProject extends Command {
     { projectId, newProjectName, project }: UpdateProjectParams
   ) {
     super({
-      command: `nightvision project update ${project.name} ${newProjectName}`,
+      command: `${NIGHTVISION} project update ${project.name} ${newProjectName}`,
       webview: webview,
       requestId: requestId,
     });

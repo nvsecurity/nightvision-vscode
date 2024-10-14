@@ -1,8 +1,6 @@
-import { AppContext } from '@contexts/AppContext';
 import { ProjectContext } from '@contexts/ProjectContext';
 import { TargetContext } from '@contexts/TargetContext';
 import { UserContext } from '@contexts/UserContext';
-import { Application } from '@types_/app';
 import { Project } from '@types_/project';
 import { Target } from '@types_/target';
 import { User } from '@types_/user';
@@ -20,22 +18,17 @@ import {
   CLI_VERSION,
   CREATE_TOKEN,
   DELETE_TOKENS,
-  GET_CURRENT_APP,
   GET_CURRENT_PROJECT,
   GET_CURRENT_TARGET,
   LOGIN,
-  SAVE_CURRENT_APP,
   SAVE_CURRENT_PROJECT,
   SAVE_CURRENT_TARGET,
   UNAUTHORIZED_ACCESS,
 } from '@commands/CommandConstants';
-import { SaveCurrentAppParams } from '@commands/SaveCurrentApp';
 import { SaveCurrentProjectParams } from '@commands/SaveCurrentProject';
 import { InstallButton } from '@components/InstallButton';
 import { Layout } from '@components/Layout';
 import { Loading } from '@components/Loading';
-import { ApplicationPage } from '@pages/Application';
-import { Applications } from '@pages/Applications';
 import { AuthenticationPage } from '@pages/Authentication';
 import { Authentications } from '@pages/Authentications';
 import { NewScan } from '@pages/NewScan';
@@ -50,6 +43,7 @@ import { TargetPage } from '@pages/Target';
 import { Targets } from '@pages/Targets';
 import { messageHandler } from '@utils/MessageHandler';
 import { ApiDiscoveryPage } from '@pages/ApiDiscovery';
+import { API_URL } from '@constants/GlobalConstants';
 
 const Error = () => {
   const error = useRouteError();
@@ -80,14 +74,6 @@ const router = createMemoryRouter(
         {
           path: '/scans/:scanId',
           element: <Scan />,
-        },
-        {
-          path: '/applications',
-          element: <Applications />,
-        },
-        {
-          path: '/applications/:appId',
-          element: <ApplicationPage />,
         },
         {
           path: '/authentications',
@@ -132,7 +118,6 @@ const router = createMemoryRouter(
 );
 
 export const App = () => {
-  const [currentApp, setCurrentApp] = useState<Application>();
   const [currentProject, setCurrentProject] = useState<Project>();
   const [currentTarget, setCurrentTarget] = useState<Target>();
   const [currentUser, setCurrentUser] = useState<User>();
@@ -162,28 +147,6 @@ export const App = () => {
     }
   };
 
-  const handleAppChange = async (application: Application | undefined) => {
-    setCurrentApp(application);
-
-    const generator = messageHandler.requestGenerator<SaveCurrentAppParams>(
-      SAVE_CURRENT_APP,
-      v4(),
-      { id: application?.id ?? '', name: application?.name ?? '' }
-    );
-    for await (const response of generator) {
-      switch (response.command) {
-        case UNAUTHORIZED_ACCESS: {
-          setIsLoggedIn(false);
-          break;
-        }
-        case CLI_MISSING: {
-          setIsCliInstalled(false);
-          break;
-        }
-      }
-    }
-  };
-
   const handleTargetChange = async (target: Target | undefined) => {
     setCurrentTarget(target);
     await messageHandler.request(SAVE_CURRENT_TARGET, { ...target });
@@ -199,29 +162,6 @@ export const App = () => {
     );
     for await (const response of generator) {
       switch (response.command) {
-        case UNAUTHORIZED_ACCESS: {
-          setIsLoggedIn(false);
-          break;
-        }
-        case CLI_MISSING: {
-          setIsCliInstalled(false);
-          break;
-        }
-      }
-    }
-  };
-
-  const getCurrentApp = async (ignore: boolean) => {
-    const currentAppGenerator =
-      messageHandler.requestGenerator(GET_CURRENT_APP);
-    for await (const response of currentAppGenerator) {
-      switch (response.command) {
-        case GET_CURRENT_APP: {
-          if (!ignore) {
-            setCurrentApp(response.payload);
-          }
-          break;
-        }
         case UNAUTHORIZED_ACCESS: {
           setIsLoggedIn(false);
           break;
@@ -331,7 +271,7 @@ export const App = () => {
   }) => {
     try {
       let apiTokens: { digest: string; token_key: string }[] = [];
-      let url = 'https://api.nightvision.net/api/v1/auth/cli/token/';
+      let url = `${API_URL}/api/v1/auth/cli/token/`;
 
       while (true) {
         const response = await messageHandler.api('GET', url);
@@ -359,7 +299,7 @@ export const App = () => {
         }
         await messageHandler.api(
           'DELETE',
-          `https://api.nightvision.net/api/v1/auth/cli/token/${token.digest}/`
+          `${API_URL}/api/v1/auth/cli/token/${token.digest}/`
         );
         await messageHandler.request(DELETE_TOKENS, [token.token_key]);
       }
@@ -373,7 +313,7 @@ export const App = () => {
       const user = (
         await messageHandler.api(
           'get',
-          'https://api.nightvision.net/api/v1/user/me/'
+          `${API_URL}/api/v1/user/me/`
         )
       ).user;
 
@@ -396,22 +336,20 @@ export const App = () => {
 
     let ignore = false;
 
-    setCurrentApp(undefined);
     setCurrentProject(undefined);
     setCurrentTarget(undefined);
 
     (async () => {
       try {
         const promises = await Promise.all([
-          getCurrentApp(ignore),
           getCurrentProject(ignore),
           getCurrentTarget(ignore),
           createToken(),
           getCliVersion(),
         ]);
 
-        if (promises[3]) {
-          await deleteTokens(promises[3]);
+        if (promises[2]) {
+          await deleteTokens(promises[2]);
           await getUser();
         }
       } catch (err) {
@@ -459,28 +397,21 @@ export const App = () => {
             setIsCliInstalled,
           }}
         >
-          <AppContext.Provider
+          <ProjectContext.Provider
             value={{
-              currentApp,
-              setCurrentApp: handleAppChange,
+              currentProject,
+              setCurrentProject: handleProjectChange,
             }}
           >
-            <ProjectContext.Provider
+            <TargetContext.Provider
               value={{
-                currentProject,
-                setCurrentProject: handleProjectChange,
+                currentTarget,
+                setCurrentTarget: handleTargetChange,
               }}
             >
-              <TargetContext.Provider
-                value={{
-                  currentTarget,
-                  setCurrentTarget: handleTargetChange,
-                }}
-              >
-                <RouterProvider router={router} />
-              </TargetContext.Provider>
-            </ProjectContext.Provider>
-          </AppContext.Provider>
+              <RouterProvider router={router} />
+            </TargetContext.Provider>
+          </ProjectContext.Provider>
         </UserContext.Provider>
       </Layout>
     </React.StrictMode>

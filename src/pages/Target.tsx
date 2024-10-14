@@ -29,6 +29,7 @@ import { TargetTypeLabel } from '@components/TargetTypeLabel';
 import { TextInput } from '@components/TextInput';
 import { messageHandler } from '@utils/MessageHandler';
 import { PageHeader } from '@components/PageHeader';
+import { API_URL } from '@constants/GlobalConstants';
 
 export const getTarget = async (
   setTarget: React.Dispatch<React.SetStateAction<TargetInfo | undefined>>,
@@ -44,7 +45,7 @@ export const getTarget = async (
   try {
     const target = await messageHandler.api(
       'get',
-      `https://api.nightvision.net/api/v1/targets/${targetType.toLocaleLowerCase()}/${targetId}/`
+      `${API_URL}/api/v1/targets/${targetType.toLocaleLowerCase()}/${targetId}/`
     );
 
     let specUrl: string | undefined;
@@ -52,17 +53,10 @@ export const getTarget = async (
       specUrl = (
         await messageHandler.api(
           'get',
-          `https://api.nightvision.net/api/v1/targets/openapi/${targetId}/get-spec-url/`
+          `${API_URL}/api/v1/targets/openapi/${targetId}/get-spec-url/`
         )
       ).url;
     }
-
-    const targetApplications: { id: string; application_name: string }[] = (
-      await messageHandler.api(
-        'get',
-        `https://api.nightvision.net/api/v1/targets/${targetId}/target-applications/`
-      )
-    ).results;
 
     if (ignore) {
       return;
@@ -74,9 +68,6 @@ export const getTarget = async (
       location: target.location,
       projectId: target.project,
       projectName: target.project_name,
-      applications: targetApplications
-        .map((app) => ({ id: app.id, name: app.application_name }))
-        .sort((a, b) => a.name.localeCompare(b.name)),
       createdAt: new Date(target.created_at),
       lastScannedAt: target.last_scanned_at
         ? new Date(target.last_scanned_at)
@@ -506,12 +497,6 @@ export const TargetPage = () => {
                 <div className='mt-5 flex flex-col [&>*:nth-child(even)]:mb-4 [&>*:nth-child(even)]:ml-4 [&>*:nth-child(odd)]:font-bold'>
                   <span className=''>Project:</span>
                   <span className=''>{target.projectName}</span>
-
-                  <span>Application(s):</span>
-                  <span>
-                    {target.applications.map((app) => app.name).join(', ') ||
-                      'N/A'}
-                  </span>
 
                   <span>Target Type:</span>
                   <TargetTypeLabel targetType={target.type} />

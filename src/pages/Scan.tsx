@@ -1,13 +1,14 @@
 import { useUser } from '@hooks/useUser';
 import { ScanType, Severity, normalizedSeverity } from '@types_/scan';
 import React, { useEffect, useRef, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { EditList } from '@components/EditList';
 import { Label } from '@components/Label';
 import { Loading } from '@components/Loading';
 import { messageHandler } from '@utils/MessageHandler';
 import formatDuration from '@utils/formatDuration';
 import { PageHeader } from '@components/PageHeader';
+import { API_URL } from '@constants/GlobalConstants';
 
 export const Scan = () => {
   const { scanId } = useParams();
@@ -48,20 +49,19 @@ export const Scan = () => {
       try {
         const response = await messageHandler.api(
           'get',
-          `https://api.nightvision.net/api/v1/scans/${scanId}`
+          `${API_URL}/api/v1/scans/${scanId}`
         );
 
         const issues = (
           await messageHandler.api(
             'get',
-            `https://api.nightvision.net/api/v1/issues/kind/?scan=${scanId}`
+            `${API_URL}/api/v1/issues/kind/?scan=${scanId}`
           )
         ).results;
 
         if (!ignore) {
           setScan({
             id: response.id,
-            application: response.application,
             authentication: response.credentials,
             target: response.target,
             project: response.project,
@@ -131,15 +131,6 @@ export const Scan = () => {
       ) : (
         <>
           <div className='flex flex-col space-y-1'>
-            <div>
-              <Label htmlFor='application'>Application</Label>
-              <select
-                className='w-full bg-[--vscode-settings-dropdownBackground] px-0.5 py-1.5'
-                disabled
-              >
-                <option>{scan.application?.name ?? '-'}</option>
-              </select>
-            </div>
             <div>
               <Label htmlFor='target-name'>
                 Target ({scan.target.type === 'URL' ? 'WEB' : 'API'})

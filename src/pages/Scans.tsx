@@ -9,6 +9,7 @@ import { getProjects } from '@pages/Projects';
 import { messageHandler } from '@utils/MessageHandler';
 import formatDuration from '@utils/formatDuration';
 import { PageHeader } from '@components/PageHeader';
+import { API_URL } from '@constants/GlobalConstants';
 
 const countIssues = (issues: any[]) => {
   return issues.reduce(
@@ -31,7 +32,7 @@ const getIssues = async (
   try {
     const response = await messageHandler.api(
       'get',
-      `https://api.nightvision.net/api/v1/issues/kind/?scan=${scanId}`
+      `${API_URL}/api/v1/issues/kind/?scan=${scanId}`
     );
 
     return response.results;
@@ -64,7 +65,7 @@ const getScans = async (
     const response = (
       await messageHandler.api(
         'get',
-        'https://api.nightvision.net/api/v1/scans/?order=-created_at&page_size=24'
+        `${API_URL}/api/v1/scans/?order=-created_at&page_size=24`
       )
     ).results;
 
@@ -78,7 +79,6 @@ const getScans = async (
 
         return {
           id: scan.id,
-          application: scan.application,
           authentication: scan.credentials,
           target: scan.target,
           project: scan.project,

@@ -11,6 +11,7 @@ import {
   INVALID_UUID,
   UPDATE_TARGET,
 } from '@commands/CommandConstants';
+import { NIGHTVISION } from '@constants/GlobalConstants';
 
 export interface UpdateTargetParams {
   targetId: string;
@@ -55,7 +56,7 @@ export default class UpdateTarget extends Command {
     }
 
     super({
-      command: `nightvision target update ${target.name}`,
+      command: `${NIGHTVISION} target update ${target.name}`,
       webview: webview,
       requestId: requestId,
       flags: flags,
@@ -102,7 +103,8 @@ export default class UpdateTarget extends Command {
       });
     } else if (
       /Enter a valid URL/.test(message) ||
-      /location: This field may not be blank/.test(message)
+      /location: This field may not be blank/.test(message) ||
+      /ERROR Invalid URL/.test(message)
     ) {
       this.webview.postMessage({
         command: INVALID_URL,
