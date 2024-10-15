@@ -29,6 +29,21 @@ export default class SwaggerExtract extends Command {
     { dirPath, language }: SwaggerExtractParams
   ) {
     const fileName = `nv-swagger-${v4()}.yml`;
+
+    // TODO: Move this to common function
+    if (!path.isAbsolute(dirPath)) {
+      // Resolve the path relative to the workspace root
+      const workspaceFolders = vscode.workspace.workspaceFolders;
+
+      if (workspaceFolders && workspaceFolders.length > 0) {
+        // Use the first workspace folder
+        const workspaceRoot = workspaceFolders[0].uri.fsPath;
+        dirPath = path.join(workspaceRoot, dirPath);
+      } else {
+        // If no workspace is open, resolve relative to the current working directory (unlikely to happen?)
+        dirPath = path.resolve(dirPath);
+      }
+    }
     super({
       command: `${NIGHTVISION} swagger extract ${dirPath} --lang ${language} --no-upload --output ${fileName}`,
       webview: webview,
