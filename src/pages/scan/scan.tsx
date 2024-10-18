@@ -9,6 +9,8 @@ import { messageHandler } from '@utils/MessageHandler';
 import formatDuration from '@utils/formatDuration';
 import { PageHeader } from '@components/PageHeader';
 import { API_URL } from '@constants/GlobalConstants';
+import { DeleteModal, IssueCard } from './components';
+import { ErrorIcon, ExtraLinkIcon, LoadingIcon, StopIcon, TrashIcon } from './assets';
 
 export const Scan = () => {
   const { scanId } = useParams();
@@ -19,6 +21,8 @@ export const Scan = () => {
   const [toggled, setToggled] = useState<Severity | null>(null);
   const [isFetchingApi, setIsFetchingApi] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+
   const scanRef = useRef(scan);
 
   const toggledIssues =
@@ -170,53 +174,34 @@ export const Scan = () => {
 
           <div>
             <div className='flex items-center justify-between'>
-              <a
-                href={`https://app.nightvision.net/scans/${scanId}/findings`}
-                title='View in Browser'
-              >
-                <svg
-                  width='16'
-                  height='16'
-                  viewBox='0 0 16 16'
-                  xmlns='http://www.w3.org/2000/svg'
-                  fill='currentColor'
+              <div className='flex items-center gap-2'>
+                <a
+                  href={`https://app.nightvision.net/scans/${scanId}/findings`}
+                  title='View in Browser'
                 >
-                  <path d='M1.5 1H6v1H2v12h12v-4h1v4.5l-.5.5h-13l-.5-.5v-13l.5-.5z' />
-                  <path d='M15 1.5V8h-1V2.707L7.243 9.465l-.707-.708L13.293 2H8V1h6.5l.5.5z' />
-                </svg>
-              </a>
+                  <ExtraLinkIcon />
+                </a>
+                <button
+                  className='unstyled'
+                  title='Delete Scan'
+                  onClick={() => setDeleteModalOpen(true)}
+                >
+                  <TrashIcon />
+                </button>
+                <button
+                  className='unstyled'
+                  title='Abort Scan'
+                  onClick={() => {}}
+                >
+                  <StopIcon />
+                </button>
+              </div>
               <div className='flex items-center'>
                 {scan.isScanning && (
-                  <svg
-                    xmlns='http://www.w3.org/2000/svg'
-                    viewBox='0 0 100 100'
-                    className='h-5 w-5 animate-spin stroke-[--vscode-foreground]'
-                  >
-                    <circle
-                      cx='50'
-                      cy='50'
-                      fill='none'
-                      strokeWidth='8'
-                      r='35'
-                      strokeDasharray='164.93361431346415 56.97787143782138'
-                    />
-                  </svg>
+                 <LoadingIcon />
                 )}
                 {scan.isError && (
-                  <svg
-                    width='16'
-                    height='16'
-                    viewBox='0 0 16 16'
-                    xmlns='http://www.w3.org/2000/svg'
-                    fill='currentColor'
-                    className='h-5 w-5 stroke-red-600'
-                  >
-                    <path
-                      fillRule='evenodd'
-                      clipRule='evenodd'
-                      d='M7.56 1h.88l6.54 12.26-.44.74H1.44L1 13.26 7.56 1zM8 2.28L2.28 13H13.7L8 2.28zM8.625 12v-1h-1.25v1h1.25zm-1.25-2V6h1.25v4h-1.25z'
-                    />
-                  </svg>
+                  <ErrorIcon />
                 )}
                 <span className='ml-2 font-bold'>
                   {formatDuration(
@@ -281,47 +266,14 @@ export const Scan = () => {
           </div>
         </>
       )}
-    </div>
-  );
-};
 
-const severityColor: { [key in Severity]: string } = {
-  Critical: 'after:bg-red-600',
-  High: 'after:bg-orange-600',
-  Medium: 'after:bg-yellow-600',
-  Low: 'after:bg-green-600',
-  Informational: '',
-  Unspecified: '',
-  Unknown: '',
-};
-
-const IssueCard = ({
-  severity,
-  amount,
-  toggled,
-  setToggled,
-}: {
-  severity: Severity;
-  amount: number;
-  toggled: Severity | null;
-  setToggled: React.Dispatch<React.SetStateAction<Severity | null>>;
-}) => {
-  const isToggled = severity === toggled;
-  return (
-    <div
-      className={`relative flex h-24 flex-col items-center justify-center bg-transparent px-4 py-2 before:absolute before:inset-0 before:-z-10 before:rounded before:bg-[--vscode-input-background] after:absolute after:inset-y-0 after:left-0 after:w-1.5 after:rounded-bl after:rounded-tl after:bg-opacity-0 hover:cursor-pointer hover:bg-transparent before:hover:brightness-75 ${isToggled ? 'before:brightness-75 after:bg-opacity-100' : ''} ${severityColor[severity]}`}
-      onClick={() => {
-        if (isToggled) {
-          setToggled(null);
-          return;
-        }
-        setToggled(severity);
-      }}
-    >
-      <span className='text-3xl font-bold'>{amount}</span>
-      <span className='text-center font-medium capitalize brightness-50'>
-        {severity} Severity
-      </span>
+      {deleteModalOpen && (
+        <DeleteModal
+          scanId={scanId}
+          scan={scan}
+          setDeleteModalOpen={setDeleteModalOpen}
+        />
+      )}
     </div>
   );
 };

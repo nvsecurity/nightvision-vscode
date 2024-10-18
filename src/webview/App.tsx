@@ -36,7 +36,7 @@ import { Overview } from '@pages/Overview';
 import { ProjectPage } from '@pages/Project';
 import { Projects } from '@pages/Projects';
 import { Reload } from '@pages/Reload';
-import { Scan } from '@pages/Scan';
+import { Scan } from '@pages/scan';
 import { Scans } from '@pages/Scans';
 import { Settings } from '@pages/Settings';
 import { TargetPage } from '@pages/Target';
