@@ -1,11 +1,48 @@
 import { useUser } from '@hooks/useUser';
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { InstallButton } from '@components/InstallButton';
 import { isCliOutdated } from '@utils/isCliOutdated';
+import { useToggleDASTOptions } from '@hooks/useToggleDASTOptions';
+
+interface GeneralRouteParams {
+  path: string;
+  title: string;
+  tip: string;
+  icon: React.JSX.Element;
+}
+
+const CustomLink = ({p, onClick, className}: {p: GeneralRouteParams, onClick?: () => void, className?: string }) => {
+  return (
+    <div className="tooltip">
+      <Link
+        to={p.path}
+        key={p.path}
+        className={`${className ? className : ""} tooltip-trigger relative flex flex-col justify-between p-2 text-[--vscode-foreground] before:absolute before:inset-0 before:-z-10 before:rounded before:bg-[--vscode-input-background] hover:cursor-pointer hover:text-[--vscode-foreground] before:hover:brightness-75`}
+        onClick={(event) => {
+          if (onClick) {
+            event.preventDefault();
+            onClick();
+          }
+        }}
+      >
+        <div className='flex flex-col items-center justify-center space-y-1'>
+          {p.icon}
+          <span>{p.title}</span>
+        </div>
+      </Link>
+      <span className="tooltiptext">{p.tip}</span>
+    </div>
+  )
+}
 
 export const Overview = () => {
   const { cliVersion, setCliVersion, setIsCliInstalled } = useUser();
+  const { isShowDASTOptions, setIsShowDASTOptions } = useToggleDASTOptions();
+
+  const handleScanClick = () => {
+    setIsShowDASTOptions(!isShowDASTOptions);
+  };
 
   return (
     <div className='flex flex-col space-y-4'>
@@ -26,18 +63,14 @@ export const Overview = () => {
         </Link>
       </div>
       <div className='grid auto-cols-min grid-cols-1 gap-3 min-[360px]:grid-cols-2 md:grid-cols-3'>
-        {MAIN_ROUTES.map(({path, title, icon}) => (
-          <Link
-            to={path}
-            key={path}
-            className='relative flex flex-col justify-between p-2 text-[--vscode-foreground] before:absolute before:inset-0 before:-z-10 before:rounded before:bg-[--vscode-input-background] hover:cursor-pointer hover:text-[--vscode-foreground] before:hover:brightness-75'
-          >
-            <div className='flex flex-col items-center justify-center space-y-1'>
-              {icon}
-              <span>{title}</span>
-            </div>
-          </Link>
-        ))}
+        <CustomLink p={{ path: '/api-discovery', title: 'API Discovery', tip: 'document and discover hidden endpoints in your API', icon: <ApiDiscoverySvg /> }} />
+        <CustomLink p={{ path: '.', title: 'DAST', tip: "run the DAST tool and enhance your security", icon: <DastSvg /> }} onClick={handleScanClick} className={`${isShowDASTOptions ? 'active' : ''}`} />
+        <div className={`dast-options ${isShowDASTOptions ? 'visible' : ''} grid auto-cols-min grid-cols-1 gap-3 min-[360px]:grid-cols-2 md:grid-cols-3`}>
+          <CustomLink p={{ path: '/scans', title: 'Scans', tip: "run the DAST tool and enhance your security", icon: <ScansSvg /> }} />
+          <CustomLink p={{ path: '/targets', title: 'Targets', tip: "<TODO>", icon: <TargetsSvg /> }} />
+          <CustomLink p={{ path: '/authentications', title: 'Authentications', tip: "<TODO>", icon: <AuthenticationsSvg /> }} />
+          <CustomLink p={{ path: '/projects', title: 'Projects', tip: "<TODO>", icon: <ProjectsSvg /> }} />
+        </div>
       </div>
       {cliVersion && isCliOutdated(cliVersion) && (
         <InstallButton
@@ -53,6 +86,42 @@ export const Overview = () => {
     </div>
   );
 };
+
+const DastSvg = () => {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className="h-12 w-12 stroke-[--vscode-foreground]"
+    >
+      <path
+        d="M12 2L4 6V11C4 16.52 7.67 20.74 12 22C16.33 20.74 20 16.52 20 11V6L12 2Z"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <circle
+        cx="15.5"
+        cy="15.5"
+        r="4.5"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <line
+        x1="18.7"
+        y1="18.7"
+        x2="21.5"
+        y2="21.5"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+};
+
 
 const ScansSvg = () => {
   return (
@@ -142,17 +211,3 @@ const ApiDiscoverySvg = () => (
     ></path>
   </svg>
 )
-
-interface GeneralRouteParams {
-  path: string;
-  title: string;
-  icon: React.JSX.Element;
-}
-
-const MAIN_ROUTES: GeneralRouteParams[] = [
-  { path: '/scans', title: 'Scans', icon: <ScansSvg /> },
-  { path: '/targets', title: 'Targets', icon: <TargetsSvg /> },
-  { path: '/authentications', title: 'Authentications', icon: <AuthenticationsSvg /> },
-  { path: '/projects', title: 'Projects', icon: <ProjectsSvg /> },
-  { path: '/api-discovery', title: 'API Discovery', icon: <ApiDiscoverySvg /> },
-];
