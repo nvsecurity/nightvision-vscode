@@ -10,6 +10,8 @@ import { messageHandler } from '@utils/MessageHandler';
 import formatDuration from '@utils/formatDuration';
 import { PageHeader } from '@components/PageHeader';
 import { API_URL } from '@constants/GlobalConstants';
+import useItemSelection from '@hooks/use-item-selection';
+import { Checkbox } from '@components/checkbox';
 
 const countIssues = (issues: any[]) => {
   return issues.reduce(
@@ -205,6 +207,26 @@ export const Scans = () => {
     return () => clearInterval(interval);
   }, [scans]);
 
+  const itemSelectionApi = useItemSelection<ScanType>({
+    data: filteredScans?.length ? filteredScans : [],
+    keyBy: item => item?.id || '',
+    labelBy: item => item?.target.name || '',
+  });
+
+  React.useEffect(() => {
+    if (filteredScans) {
+      const selectedItems = new Map(itemSelectionApi.selectedItems);
+      itemSelectionApi.reinitializeData(filteredScans);
+
+      itemSelectionApi.selectedItems.forEach((item) => {
+        if (selectedItems.has(item.id) && !filteredScans.find((issue) => issue.id === item.id)) {
+          selectedItems.delete(item.id);
+        }
+      });
+      itemSelectionApi.reinitialize(selectedItems);
+    }
+  }, [filteredScans]);
+
   return (
     <div className='flex flex-col space-y-4'>
       <PageHeader title='Scans' backTo='/'/>
@@ -282,11 +304,18 @@ export const Scans = () => {
             <span className='!mt-10 w-full text-center'>No scans found</span>
           )}
           <div className='!mt-1'>
-            <div className='grid grid-cols-3 gap-3'>
+            <div className='grid gap-3' style={{gridTemplateColumns: '3rem repeat(3, minmax(0, 1fr))'}}>
               {/* Table Headers */}
-              <div className='font-bold uppercase flex justify-center items-center'>Target</div>
-              <div className='flex font-bold uppercase flex justify-center items-center'>Project</div>
-              <div className='font-bold uppercase flex justify-center items-center'>
+              <div className='font-bold uppercase flex justify-center items-center px-4'>
+                <Checkbox
+                  checked={itemSelectionApi.isAllSelected}
+                  onChange={() => itemSelectionApi.onToggleAll()}
+                  indeterminate={itemSelectionApi.isPartiallySelected}
+                />
+              </div>
+              <div className='font-bold uppercase flex justify-start items-center'>Target</div>
+              <div className='flex font-bold uppercase flex justify-start items-center'>Project</div>
+              <div className='font-bold uppercase flex justify-start items-center'>
                 <span className='block s-400px:hidden'>Vuln.</span>
                 <span className='hidden s-400px:block'>Vulnerabilities</span>
               </div>
@@ -298,9 +327,17 @@ export const Scans = () => {
                 key={scan.id}
                 className='!mt-2 relative flex h-24 flex-col justify-center items-center overflow-hidden px-4 py-2 text-[--vscode-foreground] before:absolute before:inset-0 before:-z-10 before:rounded before:bg-[--vscode-input-background] hover:cursor-pointer hover:text-[--vscode-foreground] before:hover:brightness-75'
               >
-                <div className='grid grid-cols-3 gap-3 w-full h-full'>
+                <div className='grid gap-3 w-full h-full' style={{gridTemplateColumns: '2rem repeat(3, minmax(0, 1fr))'}}>
+                   {/* Checkbox Column */}
+                  <div className='truncate flex flex-col justify-center' onClick={(e) => e.stopPropagation()}>
+                    <Checkbox
+                      checked={itemSelectionApi.selectedItems.has(scan.id)}
+                      onChange={() => itemSelectionApi?.onToggleItem(scan)}
+                    />
+                  </div>
+
                   {/* Target Column */}
-                  <div className='truncate flex flex-col justify-center'>
+                  <div className='truncate flex flex-col justify-start'>
                     <span className='truncate font-bold'>
                       {scan.target?.name ?? '-'}
                     </span>
@@ -358,14 +395,14 @@ export const Scans = () => {
                   </div>
 
                   {/* Project Column - hidden on small screens, visible on medium and up */}
-                  <div className='flex truncate flex flex-col justify-center items-center'>
+                  <div className='flex truncate flex flex-col justify-start items-center'>
                     <span className='truncate font-bold'>
                     {scan.project?.name ?? '-'}
                     </span>
                   </div>
 
                   {/* Vulnerabilities Column */}
-                  <div className='flex flex-wrap space-x-3 justify-center'>
+                  <div className='flex flex-wrap space-x-3 justify-start'>
                     {!!scan.vulnPathsStatistics?.Critical && (
                       <div className='flex items-center space-x-0.5'>
                         <div className='mt-0.5 h-2 w-2 rounded-full bg-red-600' />
