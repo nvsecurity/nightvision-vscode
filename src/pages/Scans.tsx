@@ -86,9 +86,8 @@ const getScans = async (
           endedAt: scan.ended_at ? new Date(scan.ended_at) : undefined,
           status: scan.status_value,
           isScanning: scan.status_value === 'RUNNING',
-          isError:
-            scan.status_value !== 'RUNNING' &&
-            scan.status_value !== 'SUCCEEDED',
+          disrupted: scan.status_value === 'TIMED_OUT' || scan.status_value === 'FAILED',
+          aborted: scan.status_value === 'ABORTED',
           vulnPathsStatistics:
             scan.vulnerable_paths_statistics ?? vulnPathsStatistics,
           issues: [],
@@ -322,7 +321,7 @@ export const Scans = () => {
                           />
                         </svg>
                       )}
-                      {scan.isError && (
+                      {scan.disrupted && (
                         <svg
                           width='16'
                           height='16'
@@ -336,6 +335,18 @@ export const Scans = () => {
                             clipRule='evenodd'
                             d='M7.56 1h.88l6.54 12.26-.44.74H1.44L1 13.26 7.56 1zM8 2.28L2.28 13H13.7L8 2.28zM8.625 12v-1h-1.25v1h1.25zm-1.25-2V6h1.25v4h-1.25z'
                           />
+                        </svg>
+                      )}
+                       {scan.aborted && (
+                        <svg
+                          xmlns='http://www.w3.org/2000/svg'
+                          width='18'
+                          height='18'
+                          viewBox='0 0 256 256'
+                          fill='#F07F23'
+                          className={`mt-0 mr-2 fill-#F07F23`}
+                        >
+                          <path d='M176,128a8,8,0,0,1-8,8H88a8,8,0,0,1,0-16h80A8,8,0,0,1,176,128Zm56,0A104,104,0,1,1,128,24,104.11,104.11,0,0,1,232,128Zm-16,0a88,88,0,1,0-88,88A88.1,88.1,0,0,0,216,128Z'></path>
                         </svg>
                       )}
                       <span className='text-sm font-bold'>

@@ -1,36 +1,33 @@
 import { useUser } from '@hooks/useUser';
 import { ScanType } from '@types_/scan';
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
 import { messageHandler } from '@utils/MessageHandler';
 import { ConfirmationModal } from '@components/ConfirmationModal';
 
-interface DeleteModalProps {
+interface AbortModalProps {
   scanId?: string;
   scan?: ScanType;
-  setDeleteModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  setAbortModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-export const DeleteModal: React.FC<DeleteModalProps> = ({
+export const AbortModal: React.FC<AbortModalProps> = ({
   scanId,
   scan,
-  setDeleteModalOpen,
+  setAbortModalOpen,
 }) => {
-  const [scanDeleteInProgress, setScanDeleteInProgress] = React.useState(false);
-  const [deleteError, setDeleteError] = React.useState('');
+  const [scanAbortInProgress, setScanAbortInProgress] = React.useState(false);
+  const [abortError, setAbortError] = React.useState('');
 
   const { setIsLoggedIn } = useUser();
-  const navigate = useNavigate();
 
-  const onDeleteScan = async () => {
+  const onAbortScan = async () => {
     try {
-      setScanDeleteInProgress(true);
+      setScanAbortInProgress(true);
       await messageHandler.api(
-        'delete',
-        `https://api.nightvision.net/api/v1/scans/${scanId}`
+        'POST',
+        `https://api.nightvision.net/api/v1/scans/${scanId}/kill/`,
       );
-      setDeleteModalOpen(false);
-      navigate(-1);
+      setAbortModalOpen(false);
     }
     catch (error: any) {
       const err = JSON.parse(error);
@@ -47,7 +44,7 @@ export const DeleteModal: React.FC<DeleteModalProps> = ({
               break;
             }
             case 'not_found': {
-              setDeleteError(`Failed to delete ${scan?.target.name} Scan`);
+              setAbortError(`Failed to abort ${scan?.target.name} Scan`);
             }
           }
         }
@@ -56,35 +53,35 @@ export const DeleteModal: React.FC<DeleteModalProps> = ({
       }
     }
     finally {
-      setScanDeleteInProgress(false);
+      setScanAbortInProgress(false);
     }
   };
 
   const body = React.useMemo(() => (
     <>
       <p className='overflow-hidden'>
-        Are you sure you want to delete this Scan of <strong>{scan?.target.name}</strong>{' '}
+        Are you sure you want to abort this Scan of <strong>{scan?.target.name}</strong>{' '}
         from your account?
       </p>
       <p>This action is irreversible.</p>
-      {deleteError && (
+      {abortError && (
         <ul className='list-disc'>
           <li className='font-semibold text-red-600'>
-            {deleteError}
+            {abortError}
           </li>
         </ul>
       )}
     </>
-  ), [scan, deleteError]);
+  ), [scan, abortError]);
 
   return (
     <ConfirmationModal
-      onClose={() => setDeleteModalOpen(false)}
-      title={'Delete Scan?'}
+      onClose={() => setAbortModalOpen(false)}
+      title={'Abort Scan?'}
       body={body}
-      action={onDeleteScan}
-      buttonText={scanDeleteInProgress ? 'Deleting...' : 'Delete'}
-      isSubmitting={scanDeleteInProgress}
+      action={onAbortScan}
+      buttonText={scanAbortInProgress ? 'Aborting...' : 'Abort'}
+      isSubmitting={scanAbortInProgress}
     />
   );
 };

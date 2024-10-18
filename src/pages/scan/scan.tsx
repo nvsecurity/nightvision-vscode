@@ -9,7 +9,7 @@ import { messageHandler } from '@utils/MessageHandler';
 import formatDuration from '@utils/formatDuration';
 import { PageHeader } from '@components/PageHeader';
 import { API_URL } from '@constants/GlobalConstants';
-import { DeleteModal, IssueCard } from './components';
+import { AbortModal, DeleteModal, IssueCard } from './components';
 import { ErrorIcon, ExtraLinkIcon, LoadingIcon, StopIcon, TrashIcon } from './assets';
 
 export const Scan = () => {
@@ -22,6 +22,7 @@ export const Scan = () => {
   const [isFetchingApi, setIsFetchingApi] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [abortModalOpen, setAbortModalOpen] = useState(false);
 
   const scanRef = useRef(scan);
 
@@ -75,9 +76,8 @@ export const Scan = () => {
               : undefined,
             status: response.status_value,
             isScanning: response.status_value === 'RUNNING',
-            isError:
-              response.status_value !== 'RUNNING' &&
-              response.status_value !== 'SUCCEEDED',
+            disrupted: response.status_value === 'TIMED_OUT' || response.status_value === 'FAILED',
+            aborted: response.status_value === 'ABORTED',
             vulnPathsStatistics: response.vulnerable_paths_statistics,
             issues: issues.map((issue: any) => ({
               kind_id: issue.kind_id,
@@ -124,7 +124,7 @@ export const Scan = () => {
       ignore = true;
       clearInterval(interval);
     };
-  }, [scanId]);
+  }, [scanId, abortModalOpen]);
 
   return (
     <div className='flex flex-col space-y-4'>
@@ -188,20 +188,25 @@ export const Scan = () => {
                 >
                   <TrashIcon />
                 </button>
-                <button
-                  className='unstyled'
-                  title='Abort Scan'
-                  onClick={() => {}}
-                >
-                  <StopIcon />
-                </button>
+                {scan.isScanning && (
+                  <button
+                    className='unstyled'
+                    title='Abort Scan'
+                    onClick={() => setAbortModalOpen(true)}
+                  >
+                    <StopIcon />
+                  </button>
+                )}
               </div>
               <div className='flex items-center'>
                 {scan.isScanning && (
                  <LoadingIcon />
                 )}
-                {scan.isError && (
+                {scan.disrupted && (
                   <ErrorIcon />
+                )}
+                {scan.aborted && (
+                  <StopIcon color='#F07F23'/>
                 )}
                 <span className='ml-2 font-bold'>
                   {formatDuration(
@@ -272,6 +277,14 @@ export const Scan = () => {
           scanId={scanId}
           scan={scan}
           setDeleteModalOpen={setDeleteModalOpen}
+        />
+      )}
+
+      {abortModalOpen && (
+        <AbortModal
+          scanId={scanId}
+          scan={scan}
+          setAbortModalOpen={setAbortModalOpen}
         />
       )}
     </div>
