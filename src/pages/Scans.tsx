@@ -1,3 +1,4 @@
+import { useProject } from '@hooks/useProject';
 import { useUser } from '@hooks/useUser';
 import { Project } from '@types_/project';
 import { ScanType, Severity, normalizedSeverity } from '@types_/scan';
@@ -10,6 +11,8 @@ import { messageHandler } from '@utils/MessageHandler';
 import formatDuration from '@utils/formatDuration';
 import { PageHeader } from '@components/PageHeader';
 import { API_URL } from '@constants/GlobalConstants';
+
+const ALL_PROJECTS_FILTER_OPTION = "All";
 
 const countIssues = (issues: any[]) => {
   return issues.reduce(
@@ -119,11 +122,12 @@ const getScans = async (
 };
 
 export const Scans = () => {
+  const { currentProject, setCurrentProject } = useProject();
   const { setIsLoggedIn } = useUser();
   const [scans, setScans] = useState<ScanType[]>();
   const [currentTime, setCurrentTime] = useState(new Date());
   const [projects, setProjects] = useState<Project[]>();
-  const [projectFilter, setProjectFilter] = useState<Project>();
+  const [projectFilter, setProjectFilter] = useState<Project>(currentProject);
 
   const filteredScans = scans?.filter(
     (scan) => scan.project.id === projectFilter?.id || projectFilter?.id === ''
@@ -138,6 +142,12 @@ export const Scans = () => {
 
     return () => clearInterval(interval);
   }, [currentTime]);
+
+  useEffect(() => {
+    if (projectFilter && projectFilter?.id !== ALL_PROJECTS_FILTER_OPTION) {
+      setCurrentProject(projectFilter);
+    }
+  }, [projectFilter]);
 
   // Periodically get scans
   useEffect(() => {
@@ -272,7 +282,7 @@ export const Scans = () => {
             <div className='w-[calc(50%-.375rem)]'>
               <Dropdown
                 selectedItem={projectFilter}
-                items={[{ id: '', name: 'All' }, ...projects]}
+                items={[{ id: '', name: ALL_PROJECTS_FILTER_OPTION }, ...projects]}
                 name='Project'
                 handleChange={setProjectFilter}
                 id='current-project'
