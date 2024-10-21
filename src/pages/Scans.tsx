@@ -186,9 +186,9 @@ export const Scans = () => {
             prevState?.map((oldScan) =>
               oldScan.id === scan.id
                 ? {
-                    ...oldScan,
-                    vulnPathsStatistics: countIssues(issues),
-                  }
+                  ...oldScan,
+                  vulnPathsStatistics: countIssues(issues),
+                }
                 : oldScan
             )
           );
@@ -218,7 +218,7 @@ export const Scans = () => {
 
   return (
     <div className='flex flex-col space-y-4'>
-      <PageHeader title='Scans' backTo='/'/>
+      <PageHeader title='Scans' backTo='/' />
 
       <div className='grid grid-cols-1 gap-3 min-[480px]:grid-cols-2'>
         <Link
@@ -289,111 +289,112 @@ export const Scans = () => {
               />
             </div>
           </div>
-          {filteredScans.length === 0 && (
-            <span className='!mt-10 w-full text-center'>No scans found</span>
-          )}
-          <div className='!mt-1'>
-            <div className='grid grid-cols-3 gap-3'>
-              {/* Table Headers */}
-              <div className='font-bold uppercase flex justify-center items-center'>Target</div>
-              <div className='flex font-bold uppercase flex justify-center items-center'>Project</div>
-              <div className='font-bold uppercase flex justify-center items-center'>
-                <span className='block s-400px:hidden'>Vuln.</span>
-                <span className='hidden s-400px:block'>Vulnerabilities</span>
+          {filteredScans.length === 0 ? (
+            <span className='!mt-5 w-full text-center'>No scans found</span>
+          ) : (
+            <div className='!mt-1'>
+              <div className='grid grid-cols-3 gap-3'>
+                {/* Table Headers */}
+                <div className='font-bold uppercase flex justify-center items-center'>Target</div>
+                <div className='flex font-bold uppercase flex justify-center items-center'>Project</div>
+                <div className='font-bold uppercase flex justify-center items-center'>
+                  <span className='block s-400px:hidden'>Vuln.</span>
+                  <span className='hidden s-400px:block'>Vulnerabilities</span>
+                </div>
               </div>
-            </div>
 
-            {filteredScans.map((scan) => (
-              <Link
-                to={`/scans/${scan.id}`}
-                key={scan.id}
-                className='!mt-2 relative flex h-24 flex-col justify-center items-center overflow-hidden px-4 py-2 text-[--vscode-foreground] before:absolute before:inset-0 before:-z-10 before:rounded before:bg-[--vscode-input-background] hover:cursor-pointer hover:text-[--vscode-foreground] before:hover:brightness-75'
-              >
-                <div className='grid grid-cols-3 gap-3 w-full h-full'>
-                  {/* Target Column */}
-                  <div className='truncate flex flex-col justify-center'>
-                    <span className='truncate font-bold'>
-                      {scan.target?.name ?? '-'}
-                    </span>
-                    <div className='flex items-center mt-1'>
-                      {scan.isScanning && (
-                        <svg
-                          xmlns='http://www.w3.org/2000/svg'
-                          viewBox='0 0 100 100'
-                          className='mr-2 h-5 w-5 animate-spin stroke-[--vscode-foreground]'
-                        >
-                          <circle
-                            cx='50'
-                            cy='50'
-                            fill='none'
-                            strokeWidth='8'
-                            r='35'
-                            strokeDasharray='164.93361431346415 56.97787143782138'
-                          />
-                        </svg>
-                      )}
-                      {scan.isError && (
-                        <svg
-                          width='16'
-                          height='16'
-                          viewBox='0 0 16 16'
-                          xmlns='http://www.w3.org/2000/svg'
-                          fill='currentColor'
-                          className='mr-2 h-5 w-5 stroke-red-600'
-                        >
-                          <path
-                            fillRule='evenodd'
-                            clipRule='evenodd'
-                            d='M7.56 1h.88l6.54 12.26-.44.74H1.44L1 13.26 7.56 1zM8 2.28L2.28 13H13.7L8 2.28zM8.625 12v-1h-1.25v1h1.25zm-1.25-2V6h1.25v4h-1.25z'
-                          />
-                        </svg>
-                      )}
-                      <span className='text-sm font-bold'>
-                        {formatDuration(
-                          (scan.endedAt ? scan.endedAt.getTime() : currentTime.getTime()) - scan.createdAt.getTime()
+              {filteredScans.map((scan) => (
+                <Link
+                  to={`/scans/${scan.id}`}
+                  key={scan.id}
+                  className='!mt-2 relative flex h-24 flex-col justify-center items-center overflow-hidden px-4 py-2 text-[--vscode-foreground] before:absolute before:inset-0 before:-z-10 before:rounded before:bg-[--vscode-input-background] hover:cursor-pointer hover:text-[--vscode-foreground] before:hover:brightness-75'
+                >
+                  <div className='grid grid-cols-3 gap-3 w-full h-full'>
+                    {/* Target Column */}
+                    <div className='truncate flex flex-col justify-center'>
+                      <span className='truncate font-bold'>
+                        {scan.target?.name ?? '-'}
+                      </span>
+                      <div className='flex items-center mt-1'>
+                        {scan.isScanning && (
+                          <svg
+                            xmlns='http://www.w3.org/2000/svg'
+                            viewBox='0 0 100 100'
+                            className='mr-2 h-5 w-5 animate-spin stroke-[--vscode-foreground]'
+                          >
+                            <circle
+                              cx='50'
+                              cy='50'
+                              fill='none'
+                              strokeWidth='8'
+                              r='35'
+                              strokeDasharray='164.93361431346415 56.97787143782138'
+                            />
+                          </svg>
                         )}
+                        {scan.isError && (
+                          <svg
+                            width='16'
+                            height='16'
+                            viewBox='0 0 16 16'
+                            xmlns='http://www.w3.org/2000/svg'
+                            fill='currentColor'
+                            className='mr-2 h-5 w-5 stroke-red-600'
+                          >
+                            <path
+                              fillRule='evenodd'
+                              clipRule='evenodd'
+                              d='M7.56 1h.88l6.54 12.26-.44.74H1.44L1 13.26 7.56 1zM8 2.28L2.28 13H13.7L8 2.28zM8.625 12v-1h-1.25v1h1.25zm-1.25-2V6h1.25v4h-1.25z'
+                            />
+                          </svg>
+                        )}
+                        <span className='text-sm font-bold'>
+                          {formatDuration(
+                            (scan.endedAt ? scan.endedAt.getTime() : currentTime.getTime()) - scan.createdAt.getTime()
+                          )}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Project Column - hidden on small screens, visible on medium and up */}
+                    <div className='flex truncate flex flex-col justify-center items-center'>
+                      <span className='truncate font-bold'>
+                        {scan.project?.name ?? '-'}
                       </span>
                     </div>
-                  </div>
 
-                  {/* Project Column - hidden on small screens, visible on medium and up */}
-                  <div className='flex truncate flex flex-col justify-center items-center'>
-                    <span className='truncate font-bold'>
-                    {scan.project?.name ?? '-'}
-                    </span>
+                    {/* Vulnerabilities Column */}
+                    <div className='flex flex-wrap space-x-3 justify-center'>
+                      {!!scan.vulnPathsStatistics?.Critical && (
+                        <div className='flex items-center space-x-0.5'>
+                          <div className='mt-0.5 h-2 w-2 rounded-full bg-red-600' />
+                          <span>{scan.vulnPathsStatistics.Critical}</span>
+                        </div>
+                      )}
+                      {!!scan.vulnPathsStatistics?.High && (
+                        <div className='flex items-center space-x-0.5'>
+                          <div className='mt-0.5 h-2 w-2 rounded-full bg-orange-600' />
+                          <span>{scan.vulnPathsStatistics.High}</span>
+                        </div>
+                      )}
+                      {!!scan.vulnPathsStatistics?.Medium && (
+                        <div className='flex items-center space-x-0.5'>
+                          <div className='mt-0.5 h-2 w-2 rounded-full bg-yellow-600' />
+                          <span>{scan.vulnPathsStatistics.Medium}</span>
+                        </div>
+                      )}
+                      {!!scan.vulnPathsStatistics?.Low && (
+                        <div className='flex items-center space-x-0.5'>
+                          <div className='mt-0.5 h-2 w-2 rounded-full bg-green-600' />
+                          <span>{scan.vulnPathsStatistics.Low}</span>
+                        </div>
+                      )}
+                    </div>
                   </div>
-
-                  {/* Vulnerabilities Column */}
-                  <div className='flex flex-wrap space-x-3 justify-center'>
-                    {!!scan.vulnPathsStatistics?.Critical && (
-                      <div className='flex items-center space-x-0.5'>
-                        <div className='mt-0.5 h-2 w-2 rounded-full bg-red-600' />
-                        <span>{scan.vulnPathsStatistics.Critical}</span>
-                      </div>
-                    )}
-                    {!!scan.vulnPathsStatistics?.High && (
-                      <div className='flex items-center space-x-0.5'>
-                        <div className='mt-0.5 h-2 w-2 rounded-full bg-orange-600' />
-                        <span>{scan.vulnPathsStatistics.High}</span>
-                      </div>
-                    )}
-                    {!!scan.vulnPathsStatistics?.Medium && (
-                      <div className='flex items-center space-x-0.5'>
-                        <div className='mt-0.5 h-2 w-2 rounded-full bg-yellow-600' />
-                        <span>{scan.vulnPathsStatistics.Medium}</span>
-                      </div>
-                    )}
-                    {!!scan.vulnPathsStatistics?.Low && (
-                      <div className='flex items-center space-x-0.5'>
-                        <div className='mt-0.5 h-2 w-2 rounded-full bg-green-600' />
-                        <span>{scan.vulnPathsStatistics.Low}</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </Link>
-            ))}
-          </div>
+                </Link>
+              ))}
+            </div>
+          )}
         </>
       )}
       {(!filteredScans || !projects) && <Loading />}
