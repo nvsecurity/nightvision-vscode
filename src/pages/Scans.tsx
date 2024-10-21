@@ -130,7 +130,7 @@ export const Scans = () => {
   const [projectFilter, setProjectFilter] = useState<Project>(currentProject);
 
   const filteredScans = scans?.filter(
-    (scan) => scan.project.id === projectFilter?.id || projectFilter?.id === ''
+    (scan) => scan.project.id === projectFilter?.id || projectFilter?.id === ALL_PROJECTS_FILTER_OPTION
   );
 
   useEffect(() => {
@@ -282,7 +282,7 @@ export const Scans = () => {
             <div className='w-[calc(50%-.375rem)]'>
               <Dropdown
                 selectedItem={projectFilter}
-                items={[{ id: '', name: ALL_PROJECTS_FILTER_OPTION }, ...projects]}
+                items={[{ id: ALL_PROJECTS_FILTER_OPTION, name: ALL_PROJECTS_FILTER_OPTION }, ...projects]}
                 name='Project'
                 handleChange={setProjectFilter}
                 id='current-project'
