@@ -12,7 +12,7 @@ import formatDuration from '@utils/formatDuration';
 import { PageHeader } from '@components/PageHeader';
 import { API_URL } from '@constants/GlobalConstants';
 
-const ALL_PROJECTS_FILTER_OPTION = "All";
+const ALL_PROJECTS_FILTER_OPTION = { id: "", name: "All" };
 
 const countIssues = (issues: any[]) => {
   return issues.reduce(
@@ -130,7 +130,7 @@ export const Scans = () => {
   const [projectFilter, setProjectFilter] = useState<Project>(currentProject);
 
   const filteredScans = scans?.filter(
-    (scan) => scan.project.id === projectFilter?.id || projectFilter?.id === ALL_PROJECTS_FILTER_OPTION
+    (scan) => scan.project.id === projectFilter?.id || projectFilter?.id === ALL_PROJECTS_FILTER_OPTION.id
   );
 
   useEffect(() => {
@@ -144,7 +144,7 @@ export const Scans = () => {
   }, [currentTime]);
 
   useEffect(() => {
-    if (projectFilter && projectFilter?.id !== ALL_PROJECTS_FILTER_OPTION) {
+    if (projectFilter && projectFilter?.id !== ALL_PROJECTS_FILTER_OPTION.id) {
       setCurrentProject(projectFilter);
     }
   }, [projectFilter]);
@@ -282,7 +282,7 @@ export const Scans = () => {
             <div className='w-[calc(50%-.375rem)]'>
               <Dropdown
                 selectedItem={projectFilter}
-                items={[{ id: ALL_PROJECTS_FILTER_OPTION, name: ALL_PROJECTS_FILTER_OPTION }, ...projects]}
+                items={[ALL_PROJECTS_FILTER_OPTION, ...projects]}
                 name='Project'
                 handleChange={setProjectFilter}
                 id='current-project'
