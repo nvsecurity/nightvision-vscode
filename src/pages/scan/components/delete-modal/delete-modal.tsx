@@ -4,6 +4,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { messageHandler } from '@utils/MessageHandler';
 import { ConfirmationModal } from '@components/ConfirmationModal';
+import { API_URL } from '@constants/GlobalConstants';
 
 interface DeleteModalProps {
   scanId?: string;
@@ -27,7 +28,7 @@ export const DeleteModal: React.FC<DeleteModalProps> = ({
       setScanDeleteInProgress(true);
       await messageHandler.api(
         'delete',
-        `https://api.nightvision.net/api/v1/scans/${scanId}`
+        `${API_URL}/api/v1/scans/${scanId}`
       );
       setDeleteModalOpen(false);
       navigate(-1);

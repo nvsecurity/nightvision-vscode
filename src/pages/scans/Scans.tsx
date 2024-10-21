@@ -170,7 +170,7 @@ export const Scans = () => {
     }, 20000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [deleteModalOpen]);
 
   // Get issues for scans that are still running
   useEffect(() => {
@@ -218,7 +218,7 @@ export const Scans = () => {
     }, 5000);
 
     return () => clearInterval(interval);
-  }, [scans, deleteModalOpen]);
+  }, [scans]);
 
   const itemSelectionApi = useItemSelection<ScanType>({
     data: filteredScans?.length ? filteredScans : [],

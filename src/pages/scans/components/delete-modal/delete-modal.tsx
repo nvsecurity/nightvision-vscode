@@ -22,7 +22,6 @@ export const BulkDeleteModal: React.FC<BulkDeleteProps> = ({
   const onDeleteScan = async () => {
     try {
       setScanDeleteInProgress(true);
-      debugger;
       await messageHandler.api(
         'POST',
         `${API_URL}/api/v1/scans/drop/`,
