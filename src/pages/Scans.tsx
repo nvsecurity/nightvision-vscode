@@ -356,7 +356,7 @@ export const Scans = () => {
                       </div>
                     </div>
 
-                    {/* Project Column - hidden on small screens, visible on medium and up */}
+                    {/* Project Column */}
                     <div className='flex truncate flex flex-col justify-center items-center'>
                       <span className='truncate font-bold'>
                         {scan.project?.name ?? '-'}
