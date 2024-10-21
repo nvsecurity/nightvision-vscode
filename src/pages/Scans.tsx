@@ -12,7 +12,7 @@ import formatDuration from '@utils/formatDuration';
 import { PageHeader } from '@components/PageHeader';
 import { API_URL } from '@constants/GlobalConstants';
 
-const ALL_PROJECTS_FILTER_OPTION = { id: "", name: "All" };
+const ALL_PROJECTS_FILTER_OPTION: Project = { id: "", name: "All" };
 
 const countIssues = (issues: any[]) => {
   return issues.reduce(
