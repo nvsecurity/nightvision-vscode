@@ -3,6 +3,7 @@ import { ScanType } from '@types_/scan';
 import React from 'react';
 import { messageHandler } from '@utils/MessageHandler';
 import { ConfirmationModal } from '@components/ConfirmationModal';
+import { API_URL } from '@constants/GlobalConstants';
 
 interface AbortModalProps {
   scanId?: string;
@@ -25,7 +26,7 @@ export const AbortModal: React.FC<AbortModalProps> = ({
       setScanAbortInProgress(true);
       await messageHandler.api(
         'POST',
-        `https://api.nightvision.net/api/v1/scans/${scanId}/kill/`,
+        `${API_URL}/api/v1/scans/${scanId}/kill/`,
       );
       setAbortModalOpen(false);
     }

@@ -3,6 +3,7 @@ import { ScanType } from '@types_/scan';
 import React from 'react';
 import { messageHandler } from '@utils/MessageHandler';
 import { ConfirmationModal } from '@components/ConfirmationModal';
+import { API_URL } from '@constants/GlobalConstants';
 
 interface BulkDeleteProps {
   scans?: string[];
@@ -24,7 +25,7 @@ export const BulkDeleteModal: React.FC<BulkDeleteProps> = ({
       debugger;
       await messageHandler.api(
         'POST',
-        `https://api.nightvision.net/api/v1/scans/drop/`,
+        `${API_URL}/api/v1/scans/drop/`,
         { ids: scans }
       );
       setDeleteModalOpen(false);
