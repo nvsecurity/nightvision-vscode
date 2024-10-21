@@ -350,11 +350,13 @@ export const Scans = () => {
               >
                 <div className='grid gap-3 w-full h-full' style={{gridTemplateColumns: '3rem repeat(3, minmax(0, 1fr))'}}>
                    {/* Checkbox Column */}
-                  <div className='truncate flex flex-col justify-center' onClick={(e) => e.stopPropagation()}>
-                    <Checkbox
-                      checked={itemSelectionApi.selectedItems.has(scan.id)}
-                      onChange={() => itemSelectionApi?.onToggleItem(scan)}
-                    />
+                  <div className='truncate flex flex-col justify-center'>
+                    <div className='flex w-fit' onClick={(e) => e.stopPropagation()}>
+                      <Checkbox
+                        checked={itemSelectionApi.selectedItems.has(scan.id)}
+                        onChange={() => itemSelectionApi?.onToggleItem(scan)}
+                      />
+                    </div>
                   </div>
 
                   {/* Target Column */}
