@@ -141,7 +141,7 @@ const ApiDiscoverySvg = () => (
       strokeLinejoin='round'
     ></path>
   </svg>
-)
+);
 
 interface GeneralRouteParams {
   path: string;

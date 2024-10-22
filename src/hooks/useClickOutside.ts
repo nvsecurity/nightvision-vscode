@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 
-export default function useClickOutside() {
-  const [showComponent, setShowComponent] = useState(false);
+export default function useClickOutside(showInit?: boolean) {
+  const [showComponent, setShowComponent] = useState(showInit || false);
   const componentRef = useRef<HTMLInputElement>(null);
   const buttonRef = useRef<HTMLInputElement>(null);
   const clickStartedInside = useRef(false);

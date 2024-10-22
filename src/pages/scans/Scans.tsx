@@ -11,6 +11,10 @@ import { messageHandler } from '@utils/MessageHandler';
 import formatDuration from '@utils/formatDuration';
 import { PageHeader } from '@components/PageHeader';
 import { API_URL } from '@constants/GlobalConstants';
+import useItemSelection from '@hooks/use-item-selection';
+import { Checkbox } from '@components/checkbox';
+import { BulkDeleteModal } from './components';
+import { TrashIcon } from '../scan/assets';
 
 const ALL_PROJECTS_FILTER_OPTION: Project = { id: "<Internal-All>", name: "All" };
 
@@ -89,9 +93,8 @@ const getScans = async (
           endedAt: scan.ended_at ? new Date(scan.ended_at) : undefined,
           status: scan.status_value,
           isScanning: scan.status_value === 'RUNNING',
-          isError:
-            scan.status_value !== 'RUNNING' &&
-            scan.status_value !== 'SUCCEEDED',
+          disrupted: scan.status_value === 'TIMED_OUT' || scan.status_value === 'FAILED',
+          aborted: scan.status_value === 'ABORTED',
           vulnPathsStatistics:
             scan.vulnerable_paths_statistics ?? vulnPathsStatistics,
           issues: [],
@@ -128,6 +131,7 @@ export const Scans = () => {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [projects, setProjects] = useState<Project[]>();
   const [projectFilter, setProjectFilter] = useState<Project>(currentProject);
+  const [deleteModalOpen, setDeleteModalOpen] = React.useState(false);
 
   const filteredScans = scans?.filter(
     (scan) => scan.project.id === projectFilter?.id || projectFilter?.id === ALL_PROJECTS_FILTER_OPTION.id
@@ -166,7 +170,7 @@ export const Scans = () => {
     }, 20000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [deleteModalOpen]);
 
   // Get issues for scans that are still running
   useEffect(() => {
@@ -215,6 +219,26 @@ export const Scans = () => {
 
     return () => clearInterval(interval);
   }, [scans]);
+
+  const itemSelectionApi = useItemSelection<ScanType>({
+    data: filteredScans?.length ? filteredScans : [],
+    keyBy: item => item?.id || '',
+    labelBy: item => item?.target.name || '',
+  });
+
+  React.useEffect(() => {
+    if (filteredScans) {
+      const selectedItems = new Map(itemSelectionApi.selectedItems);
+      itemSelectionApi.reinitializeData(filteredScans);
+
+      itemSelectionApi.selectedItems.forEach((item) => {
+        if (selectedItems.has(item.id) && !filteredScans.find((issue) => issue.id === item.id)) {
+          selectedItems.delete(item.id);
+        }
+      });
+      itemSelectionApi.reinitialize(selectedItems);
+    }
+  }, [JSON.stringify(filteredScans)]);
 
   return (
     <div className='flex flex-col space-y-4'>
@@ -290,14 +314,30 @@ export const Scans = () => {
             </div>
           </div>
           {filteredScans.length === 0 ? (
-            <span className='!mt-5 w-full text-center'>No scans found</span>
+            <span className='!mt-10 w-full text-center'>No scans found</span>
           ) : (
             <div className='!mt-1'>
-              <div className='grid grid-cols-3 gap-3'>
+              <div className='grid gap-3' style={{ gridTemplateColumns: '4rem repeat(3, minmax(0, 1fr))' }}>
                 {/* Table Headers */}
-                <div className='font-bold uppercase flex justify-center items-center'>Target</div>
-                <div className='flex font-bold uppercase flex justify-center items-center'>Project</div>
-                <div className='font-bold uppercase flex justify-center items-center'>
+                <div className='font-bold uppercase flex justify-start items-center px-4 gap-1 pl-4'>
+                  <Checkbox
+                    checked={itemSelectionApi.isAllSelected}
+                    onChange={() => itemSelectionApi.onToggleAll()}
+                    indeterminate={itemSelectionApi.isPartiallySelected}
+                    disabled={!filteredScans.length}
+                  />
+                  <button
+                    className='unstyled'
+                    title='Delete Selected Scans'
+                    disabled={!itemSelectionApi.selectedItems.size}
+                    onClick={() => setDeleteModalOpen(true)}
+                  >
+                    <TrashIcon color={!itemSelectionApi.selectedItems.size ? '#5A657C' : undefined} />
+                  </button>
+                </div>
+                <div className='font-bold uppercase flex justify-start items-center'>Target</div>
+                <div className='flex font-bold uppercase flex justify-start items-center'>Project</div>
+                <div className='font-bold uppercase flex justify-start items-center'>
                   <span className='block s-400px:hidden'>Vuln.</span>
                   <span className='hidden s-400px:block'>Vulnerabilities</span>
                 </div>
@@ -309,14 +349,24 @@ export const Scans = () => {
                   key={scan.id}
                   className='!mt-2 relative flex h-24 flex-col justify-center items-center overflow-hidden px-4 py-2 text-[--vscode-foreground] before:absolute before:inset-0 before:-z-10 before:rounded before:bg-[--vscode-input-background] hover:cursor-pointer hover:text-[--vscode-foreground] before:hover:brightness-75'
                 >
-                  <div className='grid grid-cols-3 gap-3 w-full h-full'>
+                  <div className='grid gap-3 w-full h-full' style={{ gridTemplateColumns: '3rem repeat(3, minmax(0, 1fr))' }}>
+                    {/* Checkbox Column */}
+                    <div className='truncate flex flex-col justify-center'>
+                      <div className='flex w-fit' onClick={(e) => e.stopPropagation()}>
+                        <Checkbox
+                          checked={itemSelectionApi.selectedItems.has(scan.id)}
+                          onChange={() => itemSelectionApi?.onToggleItem(scan)}
+                        />
+                      </div>
+                    </div>
+
                     {/* Target Column */}
                     <div className='truncate flex flex-col justify-center'>
                       <span className='truncate font-bold'>
                         {scan.target?.name ?? '-'}
                       </span>
                       <div className='flex items-center mt-1'>
-                        {scan.isScanning && (
+                        {scan.isScanning ? (
                           <svg
                             xmlns='http://www.w3.org/2000/svg'
                             viewBox='0 0 100 100'
@@ -331,8 +381,7 @@ export const Scans = () => {
                               strokeDasharray='164.93361431346415 56.97787143782138'
                             />
                           </svg>
-                        )}
-                        {scan.isError && (
+                        ) : scan.disrupted ? (
                           <svg
                             width='16'
                             height='16'
@@ -346,6 +395,17 @@ export const Scans = () => {
                               clipRule='evenodd'
                               d='M7.56 1h.88l6.54 12.26-.44.74H1.44L1 13.26 7.56 1zM8 2.28L2.28 13H13.7L8 2.28zM8.625 12v-1h-1.25v1h1.25zm-1.25-2V6h1.25v4h-1.25z'
                             />
+                          </svg>
+                        ) : scan.aborted && (
+                          <svg
+                            xmlns='http://www.w3.org/2000/svg'
+                            width='18'
+                            height='18'
+                            viewBox='0 0 256 256'
+                            fill='#F07F23'
+                            className={`mt-0 mr-2 fill-#F07F23`}
+                          >
+                            <path d='M176,128a8,8,0,0,1-8,8H88a8,8,0,0,1,0-16h80A8,8,0,0,1,176,128Zm56,0A104,104,0,1,1,128,24,104.11,104.11,0,0,1,232,128Zm-16,0a88,88,0,1,0-88,88A88.1,88.1,0,0,0,216,128Z'></path>
                           </svg>
                         )}
                         <span className='text-sm font-bold'>
@@ -398,6 +458,12 @@ export const Scans = () => {
         </>
       )}
       {(!filteredScans || !projects) && <Loading />}
+      {deleteModalOpen && (
+        <BulkDeleteModal
+          scans={Array.from(itemSelectionApi.selectedItems.values()).map(scan => scan.id)}
+          setDeleteModalOpen={setDeleteModalOpen}
+        />
+      )}
     </div>
   );
 };
