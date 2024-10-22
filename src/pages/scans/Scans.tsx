@@ -324,6 +324,7 @@ export const Scans = () => {
                     checked={itemSelectionApi.isAllSelected}
                     onChange={() => itemSelectionApi.onToggleAll()}
                     indeterminate={itemSelectionApi.isPartiallySelected}
+                    disabled={!filteredScans.length}
                   />
                   <button
                     className='unstyled'
