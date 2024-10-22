@@ -199,13 +199,11 @@ export const Scan = () => {
                 )}
               </div>
               <div className='flex items-center'>
-                {scan.isScanning && (
+                {scan.isScanning ? (
                  <LoadingIcon />
-                )}
-                {scan.disrupted && (
+                ) : scan.disrupted ? (
                   <ErrorIcon />
-                )}
-                {scan.aborted && (
+                ): scan.aborted && (
                   <StopIcon color='#F07F23'/>
                 )}
                 <span className='ml-2 font-bold'>
