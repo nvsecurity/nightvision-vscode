@@ -34,29 +34,14 @@ const getIssues = async (
   scanId: string
 ) => {
   try {
-    const response = await messageHandler.api(
-      'get',
-      `${API_URL}/api/v1/issues/kind/?scan=${scanId}`
-    );
-
+    const response = await messageHandler.api({
+      method: 'get',
+      url: `https://api.nightvision.net/api/v1/issues/kind/?scan=${scanId}`,
+      setIsLoggedIn: setIsLoggedIn,
+    });
     return response.results;
   } catch (err: any) {
-    if (
-      err?.type === 'client_error' ||
-      err?.type === 'validation_error' ||
-      err?.type === 'server_error'
-    ) {
-      for (const error of err.errors) {
-        switch (error.code) {
-          case 'not_authenticated':
-          case 'authentication_failed': {
-            setIsLoggedIn(false);
-          }
-        }
-      }
-    } else {
-      console.error(err);
-    }
+    console.error(err);
     return [];
   }
 };
@@ -69,10 +54,11 @@ const getScans = async (
   try {
     const projectFilter = project ? `&project=${project}` : '';
     const response = (
-      await messageHandler.api(
-        'get',
-        `${API_URL}/api/v1/scans/?order=-created_at&page_size=24&page=${page}${projectFilter}`
-      )
+      await messageHandler.api({
+        method: 'get',
+        url: `${API_URL}/api/v1/scans/?order=-created_at&page_size=24&page=${page}${projectFilter}`,
+        setIsLoggedIn: setIsLoggedIn,
+      })
     );
 
     const nextPage = response.next && new URL(response.next).searchParams.get('page');
@@ -111,22 +97,7 @@ const getScans = async (
       totalCount: totalCount,
     };
   } catch (err: any) {
-    if (
-      err?.type === 'client_error' ||
-      err?.type === 'validation_error' ||
-      err?.type === 'server_error'
-    ) {
-      for (const error of err.errors) {
-        switch (error.code) {
-          case 'not_authenticated':
-          case 'authentication_failed': {
-            setIsLoggedIn(false);
-          }
-        }
-      }
-    } else {
-      console.error(err);
-    }
+    console.error(err);
   }
 };
 
@@ -192,42 +163,23 @@ export const Scans = () => {
     clearInterval(interval);
 
     interval = setInterval(async () => {
-      try {
-        for (const scan of scans ?? []) {
-          if (!scan.isScanning) {
-            return;
-          }
-
-          const issues = await getIssues(setIsLoggedIn, scan.id);
-
-          setScans((prevState) =>
-            prevState?.map((oldScan) =>
-              oldScan.id === scan.id
-                ? {
-                  ...oldScan,
-                  vulnPathsStatistics: countIssues(issues),
-                }
-                : oldScan
-            )
-          );
+      for (const scan of scans ?? []) {
+        if (!scan.isScanning) {
+          return;
         }
-      } catch (err: any) {
-        if (
-          err?.type === 'client_error' ||
-          err?.type === 'validation_error' ||
-          err?.type === 'server_error'
-        ) {
-          for (const error of err.errors) {
-            switch (error.code) {
-              case 'not_authenticated':
-              case 'authentication_failed': {
-                setIsLoggedIn(false);
+
+        const issues = await getIssues(setIsLoggedIn, scan.id);
+
+        setScans((prevState) =>
+          prevState?.map((oldScan) =>
+            oldScan.id === scan.id
+              ? {
+                ...oldScan,
+                vulnPathsStatistics: countIssues(issues),
               }
-            }
-          }
-        } else {
-          console.error(err);
-        }
+              : oldScan
+          )
+        );
       }
     }, 5000);
 

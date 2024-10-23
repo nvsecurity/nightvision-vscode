@@ -35,10 +35,11 @@ export const getProjects = async (
 ) => {
   try {
     const projects = (
-      await messageHandler.api(
-        'get',
-        `${API_URL}/api/v1/projects/?order=name`
-      )
+      await messageHandler.api({
+        method: 'get',
+        url: `${API_URL}/api/v1/projects/?order=name`,
+        setIsLoggedIn: setIsLoggedIn,
+      })
     ).results;
 
     if (ignore) {
@@ -75,22 +76,7 @@ export const getProjects = async (
       )
     );
   } catch (err: any) {
-    if (
-      err?.type === 'client_error' ||
-      err?.type === 'validation_error' ||
-      err?.type === 'server_error'
-    ) {
-      for (const error of err.errors) {
-        switch (error.code) {
-          case 'not_authenticated':
-          case 'authentication_failed': {
-            setIsLoggedIn(false);
-          }
-        }
-      }
-    } else {
-      console.error(err);
-    }
+    console.error(err);
   }
 };
 

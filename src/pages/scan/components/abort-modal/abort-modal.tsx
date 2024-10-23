@@ -24,34 +24,16 @@ export const AbortModal: React.FC<AbortModalProps> = ({
   const onAbortScan = async () => {
     try {
       setScanAbortInProgress(true);
-      await messageHandler.api(
-        'POST',
-        `${API_URL}/api/v1/scans/${scanId}/kill/`,
-      );
+      await messageHandler.api({
+        method: 'POST',
+        url: `${API_URL}/api/v1/scans/${scanId}/kill/`,
+        setIsLoggedIn: setIsLoggedIn,
+    });
       setAbortModalOpen(false);
     }
     catch (error: any) {
-      const err = JSON.parse(error);
-      if (
-        err?.type === 'client_error' ||
-        err?.type === 'validation_error' ||
-        err?.type === 'server_error'
-      ) {
-        for (const error of err.errors) {
-          switch (error.code) {
-            case 'not_authenticated':
-            case 'authentication_failed': {
-              setIsLoggedIn(false);
-              break;
-            }
-            case 'not_found': {
-              setAbortError(`Failed to abort ${scan?.target.name} Scan`);
-            }
-          }
-        }
-      } else {
-        console.error(err);
-      }
+      setAbortError(`Failed to abort ${scan?.target.name} Scan`);
+      console.error(error);
     }
     finally {
       setScanAbortInProgress(false);

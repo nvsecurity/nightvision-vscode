@@ -43,10 +43,11 @@ export const getTargets = async (
   try {
     const _type = type ? type.toLocaleLowerCase() + '/' : '';
     const targets = (
-      await messageHandler.api(
-        'get',
-        `${API_URL}/api/v1/targets/${_type}?order=name&project=${projectId}`
-      )
+      await messageHandler.api({
+        method: 'get',
+        url: `${API_URL}/api/v1/targets/${_type}?order=name&project=${projectId}`,
+        setIsLoggedIn: setIsLoggedIn,
+      })
     ).results;
 
     if (ignore) {
@@ -64,22 +65,7 @@ export const getTargets = async (
       )
     );
   } catch (err: any) {
-    if (
-      err?.type === 'client_error' ||
-      err?.type === 'validation_error' ||
-      err?.type === 'server_error'
-    ) {
-      for (const error of err.errors) {
-        switch (error.code) {
-          case 'not_authenticated':
-          case 'authentication_failed': {
-            setIsLoggedIn(false);
-          }
-        }
-      }
-    } else {
-      console.error(err);
-    }
+    console.error(err);
   }
 };
 

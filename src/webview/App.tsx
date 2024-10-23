@@ -274,7 +274,10 @@ export const App = () => {
       let url = `${API_URL}/api/v1/auth/cli/token/`;
 
       while (true) {
-        const response = await messageHandler.api('GET', url);
+        const response = await messageHandler.api({
+          method: 'GET',
+          url: url,
+        });
         apiTokens = [...apiTokens, ...response.results];
 
         if (response.next) {
@@ -297,10 +300,10 @@ export const App = () => {
         ) {
           continue;
         }
-        await messageHandler.api(
-          'DELETE',
-          `${API_URL}/api/v1/auth/cli/token/${token.digest}/`
-        );
+        await messageHandler.api({
+          method: 'DELETE',
+          url: `${API_URL}/api/v1/auth/cli/token/${token.digest}/`,
+        });
         await messageHandler.request(DELETE_TOKENS, [token.token_key]);
       }
     } catch (err) {
@@ -311,10 +314,11 @@ export const App = () => {
   const getUser = async () => {
     try {
       const user = (
-        await messageHandler.api(
-          'get',
-          `${API_URL}/api/v1/user/me/`
-        )
+        await messageHandler.api({
+          method: 'get',
+          url: `${API_URL}/api/v1/user/me/`,
+          setIsLoggedIn: setIsLoggedIn,
+        })
       ).user;
 
       setCurrentUser({

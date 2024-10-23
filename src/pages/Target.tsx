@@ -43,18 +43,20 @@ export const getTarget = async (
   }
 
   try {
-    const target = await messageHandler.api(
-      'get',
-      `${API_URL}/api/v1/targets/${targetType.toLocaleLowerCase()}/${targetId}/`
-    );
+    const target = await messageHandler.api({
+      method: 'get',
+      url: `${API_URL}/api/v1/targets/${targetType.toLocaleLowerCase()}/${targetId}/`,
+      setIsLoggedIn: setIsLoggedIn,
+    });
 
     let specUrl: string | undefined;
     if (target.has_spec_uploaded) {
       specUrl = (
-        await messageHandler.api(
-          'get',
-          `${API_URL}/api/v1/targets/openapi/${targetId}/get-spec-url/`
-        )
+        await messageHandler.api({
+          method: 'get',
+          url:  `${API_URL}/api/v1/targets/openapi/${targetId}/get-spec-url/`,
+          setIsLoggedIn: setIsLoggedIn,
+        })
       ).url;
     }
 
@@ -81,22 +83,7 @@ export const getTarget = async (
         : null,
     });
   } catch (err: any) {
-    if (
-      err?.type === 'client_error' ||
-      err?.type === 'validation_error' ||
-      err?.type === 'server_error'
-    ) {
-      for (const error of err.errors) {
-        switch (error.code) {
-          case 'not_authenticated':
-          case 'authentication_failed': {
-            setIsLoggedIn(false);
-          }
-        }
-      }
-    } else {
-      console.error(err);
-    }
+    console.error(err);
   }
 };
 
