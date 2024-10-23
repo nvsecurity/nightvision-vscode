@@ -1,5 +1,6 @@
 import { v4 } from 'uuid';
 import { MessageData, Messenger } from '@utils/Messenger';
+import { CHECK_HEALTH, UNAUTHORIZED_ACCESS } from '@commands/CommandConstants';
 
 class MessageHandler {
   private static instance: MessageHandler;
@@ -31,11 +32,12 @@ class MessageHandler {
   public api(
     method: RequestInit['method'],
     url: string,
-    body?: any
+    body?: any,
+    setIsLoggedIn?: (val: boolean) => void,
   ): Promise<any> {
     const requestId = v4();
 
-    return new Promise((resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
       MessageHandler.listeners[requestId] = (
         command: string,
         payload: any,
@@ -52,6 +54,20 @@ class MessageHandler {
           delete MessageHandler.listeners[requestId];
         }
       };
+
+      // Check if CLI is alive
+      const result = messageHandler.requestGenerator(
+        CHECK_HEALTH,
+        v4(),
+      );
+      for await (const response of result) {
+        switch (response.command) {
+          case UNAUTHORIZED_ACCESS: {
+            setIsLoggedIn?.(false);
+            break;
+          }
+        }
+      }
 
       const vscode = Messenger.getVsCodeAPI();
       vscode.postMessage({ url, method, body, requestId });
