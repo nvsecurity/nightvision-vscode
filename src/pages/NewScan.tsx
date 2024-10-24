@@ -21,7 +21,7 @@ import { Label } from '@components/Label';
 import { Loading } from '@components/Loading';
 import { getAuths } from '@pages/Authentications';
 import { getProjects } from '@pages/Projects';
-import { getTargets } from '@pages/Targets';
+import { getTargets } from '@pages/targets';
 import { messageHandler } from '@utils/MessageHandler';
 import { PageHeader } from '@components/PageHeader';
 
@@ -50,7 +50,14 @@ export const NewScan = () => {
 
     const fetchApi = async () => {
       setIsFetching(true);
-      await getAuths(setAuths, setIsLoggedIn, currentProject.id, ignore);
+      // TODO
+      const result = await getAuths(
+        setIsLoggedIn,
+        currentProject.id,
+        1,
+        ignore
+      );
+      setAuths(result?.auths);
       await getProjects(setProjects, setIsLoggedIn, ignore);
       // TODO
       const res = await getTargets(

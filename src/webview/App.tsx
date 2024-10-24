@@ -40,7 +40,7 @@ import { Scan } from '@pages/scan';
 import { Scans } from '@pages/scans';
 import { Settings } from '@pages/Settings';
 import { TargetPage } from '@pages/Target';
-import { Targets } from '@pages/Targets';
+import { Targets } from '@pages/targets';
 import { messageHandler } from '@utils/MessageHandler';
 import { ApiDiscoveryPage } from '@pages/ApiDiscovery';
 import { API_URL } from '@constants/GlobalConstants';

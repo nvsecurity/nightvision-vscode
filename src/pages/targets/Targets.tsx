@@ -61,16 +61,6 @@ export const getTargets = async (
   };
 };
 
-const types: { type: TargetType; name: string }[] = [
-  { type: 'URL', name: 'Web Target' },
-  { type: 'OPENAPI', name: 'API Target' },
-];
-
-const apiSpecs: { type: ApiSpec; name: string }[] = [
-  { type: 'URL', name: 'OpenAPI URL' },
-  { type: 'FILE', name: 'Swagger File' },
-];
-
 export const Targets = () => {
   const navigate = useNavigate();
   const { currentProject, setCurrentProject } = useProject();
@@ -78,6 +68,7 @@ export const Targets = () => {
   const [showCreateModal, setShowCreateModal] = React.useState(false);
 
   const [targets, setTargets] = React.useState<Target[]>();
+  const [invalidateTargetsList, setInvalidateTargetsList] = React.useState(false);
   const [isTargetsLoading, setIsTargetsLoading] = React.useState(false);
   const [page, setPage] = React.useState(1);
   const [totalCount, setTotalCount] = React.useState(0);
@@ -85,30 +76,43 @@ export const Targets = () => {
   const [projects, setProjects] = React.useState<Project[]>();
   const [isProjectsLoading, setIsProjectsLoading] = React.useState(false);
 
+  const fetchTargets = async (ignore: boolean) => {
+    setIsTargetsLoading(true);
+
+    const res = await getTargets(
+      setIsLoggedIn,
+      currentProject.id,
+      page,
+      undefined,
+      ignore
+    );
+
+    setTargets(res?.targets);
+    setTotalCount(res?.totalCount);
+    setIsTargetsLoading(false);
+  };
+
   React.useEffect(() => {
     let ignore = false;
 
-    const fetchTargets = async () => {
-      setIsTargetsLoading(true);
-      console.log(page);
-      const res = await getTargets(
-        setIsLoggedIn,
-        currentProject.id,
-        page,
-        undefined,
-        ignore
-      );
-      setTargets(res?.targets);
-      setTotalCount(res?.totalCount);
-      setIsTargetsLoading(false);
-    };
-
-    fetchTargets();
+    fetchTargets(ignore);
 
     return () => {
       ignore = true;
     };
-  }, [currentProject, page, showCreateModal]);
+  }, [currentProject, page]);
+
+  React.useEffect(() => {
+    let ignore = false;
+
+    if (invalidateTargetsList) {
+      fetchTargets(ignore);
+    }
+
+    return () => {
+      ignore = true;
+    };
+  }, [invalidateTargetsList]);
 
   React.useEffect(() => {
     const fetchProjects = async () => {
@@ -190,6 +194,7 @@ export const Targets = () => {
           onAfterCreate={() => {
             setPage(1);
             setShowCreateModal(false);
+            setInvalidateTargetsList(true);
           }}
           onClose={() => setShowCreateModal(false)}
         />

@@ -50,7 +50,7 @@ export const CreateTargetModal: React.FC<CreateTargetModalProps> = ({
     componentRef: createRef,
     showComponent: showModal,
     setShowComponent: setShowModal,
-  } = useClickOutside();
+  } = useClickOutside(true);
 
   React.useEffect(() => {
     if (!showModal) {
