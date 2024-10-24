@@ -52,13 +52,15 @@ export const NewScan = () => {
       setIsFetching(true);
       await getAuths(setAuths, setIsLoggedIn, currentProject.id, ignore);
       await getProjects(setProjects, setIsLoggedIn, ignore);
-      await getTargets(
-        setTargets,
+      // TODO
+      const res = await getTargets(
         setIsLoggedIn,
         currentProject.id,
+        1,
         targetType === 'url' ? 'URL' : 'OPENAPI',
         ignore
       );
+      setTargets(res?.targets);
       setIsFetching(false);
     };
 

@@ -48,7 +48,7 @@ const getIssues = async (
 
 const getScans = async (
   setIsLoggedIn: React.Dispatch<React.SetStateAction<boolean>>,
-  page?: number,
+  page: number,
   project?: string,
 ) => {
   try {
@@ -99,6 +99,9 @@ const getScans = async (
   } catch (err: any) {
     console.error(err);
   }
+  return {
+    scans: [],
+  };
 };
 
 export const Scans = () => {
