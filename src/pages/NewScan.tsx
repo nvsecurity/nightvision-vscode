@@ -19,7 +19,7 @@ import { ScanParams } from '@commands/Scan';
 import { Dropdown } from '@components/Dropdown';
 import { Label } from '@components/Label';
 import { Loading } from '@components/Loading';
-import { getAuths } from '@pages/Authentications';
+import { getAuths } from '@pages/authentications';
 import { getProjects } from '@pages/Projects';
 import { getTargets } from '@pages/targets';
 import { messageHandler } from '@utils/MessageHandler';

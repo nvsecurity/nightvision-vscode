@@ -1,0 +1,1 @@
+export { Authentications, getAuths } from './Authentications';

@@ -30,7 +30,7 @@ import { InstallButton } from '@components/InstallButton';
 import { Layout } from '@components/Layout';
 import { Loading } from '@components/Loading';
 import { AuthenticationPage } from '@pages/Authentication';
-import { Authentications } from '@pages/Authentications';
+import { Authentications } from '@pages/authentications';
 import { NewScan } from '@pages/NewScan';
 import { Overview } from '@pages/Overview';
 import { ProjectPage } from '@pages/Project';
