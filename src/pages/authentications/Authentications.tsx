@@ -70,7 +70,7 @@ export const Authentications = () => {
   const { setIsLoggedIn } = useUser();
   const [showCreateModal, setShowCreateModal] = React.useState(false);
 
-  const [auths, setAuths] = React.useState<Auth[]>();
+  const [auths, setAuths] = React.useState<Auth[]>([]);
   const [invalidateAuthsList, setInvalidateAuthsList] = React.useState(false);
   const [isAuthsLoading, setIsAuthsLoading] = React.useState(false);
   const [page, setPage] = React.useState(1);
@@ -177,6 +177,7 @@ export const Authentications = () => {
             setInvalidateAuthsList(true);
           }}
           onClose={() => setShowCreateModal(false)}
+          auths={auths}
         />
       )}
     </>

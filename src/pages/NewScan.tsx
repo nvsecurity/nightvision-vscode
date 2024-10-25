@@ -50,7 +50,7 @@ export const NewScan = () => {
 
     const fetchApi = async () => {
       setIsFetching(true);
-      // TODO
+      // TODO: fetch all auth-s
       const result = await getAuths(
         setIsLoggedIn,
         currentProject.id,
@@ -58,10 +58,10 @@ export const NewScan = () => {
         ignore
       );
       setAuths(result?.auths);
-      // TODO
+      // TODO: fetch all projects
       const projResult = await getProjects(setIsLoggedIn, 1, ignore);
       setProjects(projResult?.projects);
-      // TODO
+      // TODO: fetch all targets
       const res = await getTargets(
         setIsLoggedIn,
         currentProject.id,

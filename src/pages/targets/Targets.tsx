@@ -65,7 +65,7 @@ export const Targets = () => {
   const { setIsLoggedIn } = useUser();
   const [showCreateModal, setShowCreateModal] = React.useState(false);
 
-  const [targets, setTargets] = React.useState<Target[]>();
+  const [targets, setTargets] = React.useState<Target[]>([]);
   const [invalidateTargetsList, setInvalidateTargetsList] = React.useState(false);
   const [isTargetsLoading, setIsTargetsLoading] = React.useState(false);
   const [page, setPage] = React.useState(1);
@@ -175,6 +175,7 @@ export const Targets = () => {
             setInvalidateTargetsList(true);
           }}
           onClose={() => setShowCreateModal(false)}
+          targets={targets}
         />
       )}
     </>

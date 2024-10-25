@@ -9,15 +9,18 @@ import { v4 } from 'uuid';
 import { useUser } from '@hooks/useUser';
 import { SecondaryButton } from '@components/SecondaryButton';
 import { CreateProjectParams } from '@commands/CreateProject';
+import { ProjectInfo } from '@types_/project';
 
 interface CreateProjModalProps {
   onAfterCreate?: () => void;
   onClose: () => void;
+  projects: ProjectInfo[];
 }
 
 export const CreateProjModal: React.FC<CreateProjModalProps> = ({
   onAfterCreate,
   onClose,
+  projects,
 }) => {
   const { setIsLoggedIn, setIsCliInstalled } = useUser();
 
@@ -67,10 +70,11 @@ export const CreateProjModal: React.FC<CreateProjModalProps> = ({
       );
     }
 
-    // TODO
-    // if (projects?.some((project) => project.name === projectName)) {
-    //   errors.push('Project name already exists');
-    // }
+    // O_o
+    // TODO: use API request to check this info
+    if (projects?.some((project) => project.name === projectName)) {
+      errors.push('Project name already exists');
+    }
 
     setProjectNameErrors(errors);
     setIsValidatingInput(false);

@@ -4,7 +4,7 @@ import { Modal } from '@components/Modal';
 import { TextInput } from '@components/TextInput';
 import { Project } from '@types_/project';
 import { useDebounce } from 'use-debounce';
-import { AuthHeader, AuthType } from '@types_/auth';
+import { Auth, AuthHeader, AuthType } from '@types_/auth';
 import { messageHandler } from '@utils/MessageHandler';
 import { CreateAuthParams } from '@commands/CreateAuth';
 import { AUTH_DESCRIPTION_LENGTH, AUTH_MISSING_HEADERS, CLI_MISSING, CREATE_AUTH, DUPLICATE_NAME, INVALID_AUTH_FORM, INVALID_NAME, INVALID_URL, UNAUTHORIZED_ACCESS } from '@commands/CommandConstants';
@@ -24,12 +24,14 @@ interface CreateAuthModalProps {
   onAfterCreate?: () => void;
   currentProject: Project;
   onClose: () => void;
+  auths: Auth[];
 }
 
 export const CreateAuthModal: React.FC<CreateAuthModalProps> = ({
   onAfterCreate,
   currentProject,
   onClose,
+  auths,
 }) => {
   const { setIsLoggedIn, setIsCliInstalled } = useUser();
 
@@ -111,10 +113,11 @@ export const CreateAuthModal: React.FC<CreateAuthModalProps> = ({
       );
     }
 
-    // TODO: use API call to check info
-    // if (auths?.some((auth) => auth.name === authName)) {
-    //   errors.push('Authentication name already exists');
-    // }
+    // O_o
+    // TODO: use API request to check this info
+    if (auths?.some((auth) => auth.name === authName)) {
+      errors.push('Authentication name already exists');
+    }
 
     setAuthNameErrors(errors);
     setIsValidatingInput(false);

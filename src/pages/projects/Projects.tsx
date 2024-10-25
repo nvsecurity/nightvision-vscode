@@ -82,7 +82,7 @@ export const Projects = () => {
   const { setIsLoggedIn } = useUser();
   const [showCreateModal, setShowCreateModal] = React.useState(false);
 
-  const [projects, setProjects] = useState<ProjectInfo[]>();
+  const [projects, setProjects] = useState<ProjectInfo[]>([]);
   const [invalidateProjectsList, setInvalidateProjectsList] = React.useState(false);
   const [isProjectsLoading, setIsProjectsLoading] = React.useState(false);
   const [page, setPage] = React.useState(1);
@@ -189,6 +189,7 @@ export const Projects = () => {
             setInvalidateProjectsList(true);
           }}
           onClose={() => setShowCreateModal(false)}
+          projects={projects}
         />
       )}
     </>

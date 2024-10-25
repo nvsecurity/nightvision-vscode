@@ -1,6 +1,6 @@
 import useClickOutside from '@hooks/useClickOutside';
 import { useUser } from '@hooks/useUser';
-import { ApiSpec, TargetType } from '@types_/target';
+import { ApiSpec, Target, TargetType } from '@types_/target';
 import { useDebounce } from 'use-debounce';
 import { v4 } from 'uuid';
 import React, { useEffect } from 'react';
@@ -37,12 +37,14 @@ interface CreateTargetModalProps {
   onAfterCreate?: () => void;
   currentProject: Project;
   onClose: () => void;
+  targets: Target[];
 }
 
 export const CreateTargetModal: React.FC<CreateTargetModalProps> = ({
   onAfterCreate,
   currentProject,
   onClose,
+  targets,
 }) => {
   const { setIsLoggedIn, setIsCliInstalled } = useUser();
 
@@ -119,10 +121,11 @@ export const CreateTargetModal: React.FC<CreateTargetModalProps> = ({
       );
     }
 
-    // 0_o TODO: use API request to check this info
-    // if (targets?.some((target) => target.name === targetName)) {
-    //   errors.push('Target name already exists');
-    // }
+    // O_o
+    // TODO: use API request to check this info
+    if (targets?.some((target) => target.name === targetName)) {
+      errors.push('Target name already exists');
+    }
 
     setTargetNameErrors(errors);
     setIsValidatingInput(false);
