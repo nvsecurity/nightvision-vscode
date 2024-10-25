@@ -4,14 +4,13 @@ import { Project } from '@types_/project';
 import { ScanType, Severity, normalizedSeverity } from '@types_/scan';
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Dropdown } from '@components/Dropdown';
 import { Loading } from '@components/Loading';
-import { getProjects } from '@pages/Projects';
 import { messageHandler } from '@utils/MessageHandler';
 import { PageHeader } from '@components/PageHeader';
 import { API_URL } from '@constants/GlobalConstants';
 import useItemSelection from '@hooks/use-item-selection';
 import { BulkDeleteModal, ScansTable } from './components';
+import { ProjectDropdown } from '@components/project-dropdown';
 
 const ALL_PROJECTS_FILTER_OPTION: Project = { id: "<Internal-All>", name: "All" };
 
@@ -108,11 +107,9 @@ export const Scans = () => {
   const { currentProject, setCurrentProject } = useProject();
   const { setIsLoggedIn } = useUser();
   const [scans, setScans] = useState<ScanType[]>();
-  const [projects, setProjects] = useState<Project[]>();
   const [projectFilter, setProjectFilter] = useState<Project>(currentProject);
   const [deleteModalOpen, setDeleteModalOpen] = React.useState(false);
   const [scansLoading, setScansLoading] = React.useState(false);
-  const [projectsLoading, setProjectsLoading] = React.useState(false);
   const [page, setPage] = React.useState(1);
   const [totalCount, setTotalCount] = React.useState(0);
 
@@ -149,16 +146,6 @@ export const Scans = () => {
 
     return () => clearInterval(interval);
   }, [deleteModalOpen, page, projectFilter]);
-
-  React.useEffect(() => {
-    const fetchProjects = async () => {
-      setProjectsLoading(true);
-      await getProjects(setProjects, setIsLoggedIn);
-      setProjectsLoading(false);
-    };
-
-    fetchProjects();
-  }, []);
 
   // Get issues for scans that are still running
   useEffect(() => {
@@ -268,22 +255,18 @@ export const Scans = () => {
         </Link>
       </div>
 
-      {projects && (
-        <div className='!mb-2 !mt-6 flex items-end justify-between'>
-          <h2 className='truncate text-sm uppercase'>Previous Scans</h2>
-          <div className='w-[calc(50%-.375rem)]'>
-            <Dropdown
-              selectedItem={projectFilter}
-              items={[ALL_PROJECTS_FILTER_OPTION, ...projects]}
-              name='Project'
-              handleChange={setProjectFilter}
-              id='current-project'
-            />
-          </div>
+      <div className='!mb-2 !mt-6 flex items-end justify-between'>
+        <h2 className='truncate text-sm uppercase'>Previous Scans</h2>
+        <div className='w-[calc(50%-.375rem)]'>
+          <ProjectDropdown
+            project={projectFilter}
+            onProjectChange={setProjectFilter}
+            includeAllOption
+          />
         </div>
-      )}
+      </div>
 
-      {(scansLoading || projectsLoading) ? (
+      {scansLoading ? (
         <Loading />
       ) : (
         scans?.length ? (

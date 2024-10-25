@@ -1,20 +1,18 @@
 import { useProject } from '@hooks/useProject';
 import { useUser } from '@hooks/useUser';
-import { Project } from '@types_/project';
-import { ApiSpec, Target, TargetType } from '@types_/target';
+import {  Target, TargetType } from '@types_/target';
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Dropdown } from '@components/Dropdown';
 import { EditList } from '@components/EditList';
 import { Label } from '@components/Label';
 import { Loading } from '@components/Loading';
 import { TargetTypeLabel } from '@components/TargetTypeLabel';
-import { getProjects } from '@pages/Projects';
 import { messageHandler } from '@utils/MessageHandler';
 import { PageHeader } from '@components/PageHeader';
 import { API_URL } from '@constants/GlobalConstants';
 import { Pagination } from '@components/pagination';
 import { CreateTargetModal } from './components';
+import { ProjectDropdown } from '@components/project-dropdown';
 
 export const getTargets = async (
   setIsLoggedIn: React.Dispatch<React.SetStateAction<boolean>>,
@@ -73,9 +71,6 @@ export const Targets = () => {
   const [page, setPage] = React.useState(1);
   const [totalCount, setTotalCount] = React.useState(0);
 
-  const [projects, setProjects] = React.useState<Project[]>();
-  const [isProjectsLoading, setIsProjectsLoading] = React.useState(false);
-
   const fetchTargets = async (ignore: boolean) => {
     setIsTargetsLoading(true);
 
@@ -114,16 +109,6 @@ export const Targets = () => {
     };
   }, [invalidateTargetsList]);
 
-  React.useEffect(() => {
-    const fetchProjects = async () => {
-      setIsProjectsLoading(true);
-      await getProjects(setProjects, setIsLoggedIn);
-      setIsProjectsLoading(false);
-    };
-
-    fetchProjects();
-  }, []);
-
   const onProjectChange = (value: any) => {
     setPage(1);
     setCurrentProject(value);
@@ -134,30 +119,23 @@ export const Targets = () => {
       <div className='flex flex-col space-y-4'>
         <PageHeader title='Targets'/>
 
-        {projects && (
-           <>
-            <div>
-              <Label htmlFor='current-project'>Current Project</Label>
-              <Dropdown
-                selectedItem={currentProject}
-                items={projects}
-                name='Project'
-                handleChange={onProjectChange}
-                id='current-project'
-              />
-            </div>
-            <button
-              onClick={() => {
-                setShowCreateModal(true);
-              }}
-              className='rounded'
-            >
-              Create Target
-            </button>
-           </>
-        )}
+        <div>
+          <Label htmlFor='current-project'>Current Project</Label>
+          <ProjectDropdown
+            project={currentProject}
+            onProjectChange={onProjectChange}
+          />
+        </div>
+        <button
+          onClick={() => {
+            setShowCreateModal(true);
+          }}
+          className='rounded'
+        >
+          Create Target
+        </button>
 
-        {(isTargetsLoading || isProjectsLoading) ? (
+        {isTargetsLoading ? (
           <Loading />
         ) : (
           targets?.length ? (

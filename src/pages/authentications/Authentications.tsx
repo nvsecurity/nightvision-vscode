@@ -1,19 +1,17 @@
 import { useProject } from '@hooks/useProject';
 import { useUser } from '@hooks/useUser';
 import { Auth, AuthType } from '@types_/auth';
-import { Project } from '@types_/project';
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Dropdown } from '@components/Dropdown';
 import { EditList } from '@components/EditList';
 import { Label } from '@components/Label';
 import { Loading } from '@components/Loading';
-import { getProjects } from '@pages/Projects';
 import { messageHandler } from '@utils/MessageHandler';
 import { PageHeader } from '@components/PageHeader';
 import { API_URL } from '@constants/GlobalConstants';
 import { CreateAuthModal } from './components';
 import { Pagination } from '@components/pagination';
+import { ProjectDropdown } from '@components/project-dropdown';
 
 export const getAuths = async (
   setIsLoggedIn: React.Dispatch<React.SetStateAction<boolean>>,
@@ -78,9 +76,6 @@ export const Authentications = () => {
   const [page, setPage] = React.useState(1);
   const [totalCount, setTotalCount] = React.useState(0);
 
-  const [projects, setProjects] = React.useState<Project[]>();
-  const [isProjectsLoading, setIsProjectsLoading] = React.useState(false);
-
   const fetchAuths = async (ignore: boolean) => {
     setIsAuthsLoading(true);
     const res = await getAuths(
@@ -116,16 +111,6 @@ export const Authentications = () => {
     };
   }, [invalidateAuthsList]);
 
-  React.useEffect(() => {
-    const fetchProjects = async () => {
-      setIsProjectsLoading(true);
-      await getProjects(setProjects, setIsLoggedIn);
-      setIsProjectsLoading(false);
-    };
-
-    fetchProjects();
-  }, []);
-
   const onProjectChange = (value: any) => {
     setPage(1);
     setCurrentProject(value);
@@ -136,30 +121,23 @@ export const Authentications = () => {
       <div className='flex flex-col space-y-4'>
         <PageHeader title='Authentications'/>
 
-        {projects && (
-           <>
-            <div>
-              <Label htmlFor='current-project'>Current Project</Label>
-              <Dropdown
-                selectedItem={currentProject}
-                items={projects}
-                name='Project'
-                handleChange={onProjectChange}
-                id='current-project'
-              />
-            </div>
-            <button
-              onClick={() => {
-                setShowCreateModal(true);
-              }}
-              className='rounded'
-            >
-              Create Authentication
-            </button>
-           </>
-        )}
+        <div>
+          <Label htmlFor='current-project'>Current Project</Label>
+          <ProjectDropdown
+            project={currentProject}
+            onProjectChange={onProjectChange}
+          />
+        </div>
+        <button
+          onClick={() => {
+            setShowCreateModal(true);
+          }}
+          className='rounded'
+        >
+          Create Authentication
+        </button>
 
-        {(isAuthsLoading || isProjectsLoading) ? (
+        {isAuthsLoading ? (
           <Loading />
         ) : (
           auths?.length ? (

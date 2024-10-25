@@ -13,7 +13,13 @@ interface DropdownProps<T> {
   optional?: boolean;
   optionalText?: string;
   labelBy?: (item: T) => string;
+  loading?: boolean;
 }
+
+const LOADING_OPTION = {
+  id: '<loading>',
+  name: 'Loading...',
+};
 
 export const Dropdown = <T extends IdAndName,>({
   selectedItem,
@@ -26,9 +32,10 @@ export const Dropdown = <T extends IdAndName,>({
   optional = false,
   optionalText = '-',
   labelBy = (item: T) => item.name,
+  loading = false,
 }: DropdownProps<T>) => {
   useEffect(() => {
-    if (optional) {
+    if (optional || loading) {
       return;
     }
 
@@ -40,19 +47,19 @@ export const Dropdown = <T extends IdAndName,>({
     ) {
       handleChange(items[0]);
     }
-  }, [selectedItem]);
+  }, [selectedItem, loading]);
 
   return (
     <div className='flex flex-nowrap items-center space-x-2'>
       <select
         className={`w-full bg-[--vscode-input-background] px-0.5 py-1.5 ${optional && 'text-neutral-400'}`}
-        value={selectedItem?.id}
+        value={loading ? LOADING_OPTION.id : selectedItem?.id}
         onChange={(e) => {
           const item = items.filter((item) => item.id === e.target.value)[0];
           handleChange(item);
         }}
         id={id}
-        disabled={disabled}
+        disabled={disabled || loading}
       >
         {(optional || items.length === 0) && <option value=''>{optionalText}</option>}
         {items.map((item) => (
@@ -60,6 +67,7 @@ export const Dropdown = <T extends IdAndName,>({
             {labelBy(item)}
           </option>
         ))}
+        {loading && <option disabled value={LOADING_OPTION.id}>{LOADING_OPTION.name}</option>}
       </select>
       {route && !disabled && (
         <Link to={route} title={name ? 'Create new ' + name : ''}>
