@@ -66,7 +66,13 @@ export const getProjects = async ({
       })
     );
 
-    const nextPage = response.next && new URL(response.next).searchParams.get('page');
+    let nextPage: number | undefined;
+    try {
+      nextPage = response.next && Number(new URL(response.next).searchParams.get('page'));
+    }
+    catch{
+      // error converting next page param to number
+    }
     const totalCount = response.count;
 
     const projects = response.results.map(
@@ -102,12 +108,12 @@ export const ProjectDropdown: React.FC<ProjectDropdownProps> = ({
 
     let page: number | undefined = 1;
     do {
-      const { projects, nextPage = undefined } = await getProjects({
+      const { projects, ...other } = await getProjects({
         setIsLoggedIn: setIsLoggedIn,
         page: page,
       });
       setProjects((old) => [...old, ...projects]);
-      page = nextPage;
+      page = other.nextPage;
     } while (!!page);
 
     setIsProjectsListLoading(false);
@@ -132,4 +138,4 @@ export const ProjectDropdown: React.FC<ProjectDropdownProps> = ({
       id='current-project'
     />
   );
-}
+};

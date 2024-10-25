@@ -20,7 +20,7 @@ import { Dropdown } from '@components/Dropdown';
 import { Label } from '@components/Label';
 import { Loading } from '@components/Loading';
 import { getAuths } from '@pages/authentications';
-import { getProjects } from '@pages/Projects';
+import { getProjects } from '@pages/projects';
 import { getTargets } from '@pages/targets';
 import { messageHandler } from '@utils/MessageHandler';
 import { PageHeader } from '@components/PageHeader';
@@ -58,7 +58,9 @@ export const NewScan = () => {
         ignore
       );
       setAuths(result?.auths);
-      await getProjects(setProjects, setIsLoggedIn, ignore);
+      // TODO
+      const projResult = await getProjects(setIsLoggedIn, 1, ignore);
+      setProjects(projResult?.projects);
       // TODO
       const res = await getTargets(
         setIsLoggedIn,

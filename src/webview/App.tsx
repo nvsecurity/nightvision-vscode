@@ -34,7 +34,7 @@ import { Authentications } from '@pages/authentications';
 import { NewScan } from '@pages/NewScan';
 import { Overview } from '@pages/Overview';
 import { ProjectPage } from '@pages/Project';
-import { Projects } from '@pages/Projects';
+import { Projects } from '@pages/projects';
 import { Reload } from '@pages/Reload';
 import { Scan } from '@pages/scan';
 import { Scans } from '@pages/scans';
