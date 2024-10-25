@@ -1,3 +1,4 @@
+import { useProject } from '@hooks/useProject';
 import { useUser } from '@hooks/useUser';
 import { Project } from '@types_/project';
 import { ScanType, Severity, normalizedSeverity } from '@types_/scan';
@@ -10,6 +11,12 @@ import { messageHandler } from '@utils/MessageHandler';
 import formatDuration from '@utils/formatDuration';
 import { PageHeader } from '@components/PageHeader';
 import { API_URL } from '@constants/GlobalConstants';
+import useItemSelection from '@hooks/use-item-selection';
+import { Checkbox } from '@components/checkbox';
+import { BulkDeleteModal } from './components';
+import { TrashIcon } from '../scan/assets';
+
+const ALL_PROJECTS_FILTER_OPTION: Project = { id: "<Internal-All>", name: "All" };
 
 const countIssues = (issues: any[]) => {
   return issues.reduce(
@@ -86,9 +93,8 @@ const getScans = async (
           endedAt: scan.ended_at ? new Date(scan.ended_at) : undefined,
           status: scan.status_value,
           isScanning: scan.status_value === 'RUNNING',
-          isError:
-            scan.status_value !== 'RUNNING' &&
-            scan.status_value !== 'SUCCEEDED',
+          disrupted: scan.status_value === 'TIMED_OUT' || scan.status_value === 'FAILED',
+          aborted: scan.status_value === 'ABORTED',
           vulnPathsStatistics:
             scan.vulnerable_paths_statistics ?? vulnPathsStatistics,
           issues: [],
@@ -119,14 +125,16 @@ const getScans = async (
 };
 
 export const Scans = () => {
+  const { currentProject, setCurrentProject } = useProject();
   const { setIsLoggedIn } = useUser();
   const [scans, setScans] = useState<ScanType[]>();
   const [currentTime, setCurrentTime] = useState(new Date());
   const [projects, setProjects] = useState<Project[]>();
-  const [projectFilter, setProjectFilter] = useState<Project>();
+  const [projectFilter, setProjectFilter] = useState<Project>(currentProject);
+  const [deleteModalOpen, setDeleteModalOpen] = React.useState(false);
 
   const filteredScans = scans?.filter(
-    (scan) => scan.project.id === projectFilter?.id || projectFilter?.id === ''
+    (scan) => scan.project.id === projectFilter?.id || projectFilter?.id === ALL_PROJECTS_FILTER_OPTION.id
   );
 
   useEffect(() => {
@@ -138,6 +146,12 @@ export const Scans = () => {
 
     return () => clearInterval(interval);
   }, [currentTime]);
+
+  useEffect(() => {
+    if (projectFilter && projectFilter?.id !== ALL_PROJECTS_FILTER_OPTION.id) {
+      setCurrentProject(projectFilter);
+    }
+  }, [projectFilter]);
 
   // Periodically get scans
   useEffect(() => {
@@ -156,7 +170,7 @@ export const Scans = () => {
     }, 20000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [deleteModalOpen]);
 
   // Get issues for scans that are still running
   useEffect(() => {
@@ -176,9 +190,9 @@ export const Scans = () => {
             prevState?.map((oldScan) =>
               oldScan.id === scan.id
                 ? {
-                    ...oldScan,
-                    vulnPathsStatistics: countIssues(issues),
-                  }
+                  ...oldScan,
+                  vulnPathsStatistics: countIssues(issues),
+                }
                 : oldScan
             )
           );
@@ -206,9 +220,29 @@ export const Scans = () => {
     return () => clearInterval(interval);
   }, [scans]);
 
+  const itemSelectionApi = useItemSelection<ScanType>({
+    data: filteredScans?.length ? filteredScans : [],
+    keyBy: item => item?.id || '',
+    labelBy: item => item?.target.name || '',
+  });
+
+  React.useEffect(() => {
+    if (filteredScans) {
+      const selectedItems = new Map(itemSelectionApi.selectedItems);
+      itemSelectionApi.reinitializeData(filteredScans);
+
+      itemSelectionApi.selectedItems.forEach((item) => {
+        if (selectedItems.has(item.id) && !filteredScans.find((issue) => issue.id === item.id)) {
+          selectedItems.delete(item.id);
+        }
+      });
+      itemSelectionApi.reinitialize(selectedItems);
+    }
+  }, [JSON.stringify(filteredScans)]);
+
   return (
     <div className='flex flex-col space-y-4'>
-      <PageHeader title='Scans' backTo='/'/>
+      <PageHeader title='Scans' backTo='/' />
 
       <div className='grid grid-cols-1 gap-3 min-[480px]:grid-cols-2'>
         <Link
@@ -272,121 +306,164 @@ export const Scans = () => {
             <div className='w-[calc(50%-.375rem)]'>
               <Dropdown
                 selectedItem={projectFilter}
-                items={[{ id: '', name: 'All' }, ...projects]}
+                items={[ALL_PROJECTS_FILTER_OPTION, ...projects]}
                 name='Project'
                 handleChange={setProjectFilter}
                 id='current-project'
               />
             </div>
           </div>
-          {filteredScans.length === 0 && (
+          {filteredScans.length === 0 ? (
             <span className='!mt-10 w-full text-center'>No scans found</span>
-          )}
-          <div className='!mt-1'>
-            <div className='grid grid-cols-3 gap-3'>
-              {/* Table Headers */}
-              <div className='font-bold uppercase flex justify-center items-center'>Target</div>
-              <div className='flex font-bold uppercase flex justify-center items-center'>Project</div>
-              <div className='font-bold uppercase flex justify-center items-center'>
-                <span className='block s-400px:hidden'>Vuln.</span>
-                <span className='hidden s-400px:block'>Vulnerabilities</span>
+          ) : (
+            <div className='!mt-1'>
+              <div className='grid gap-3' style={{ gridTemplateColumns: '4rem repeat(3, minmax(0, 1fr))' }}>
+                {/* Table Headers */}
+                <div className='font-bold uppercase flex justify-start items-center px-4 gap-1 pl-4'>
+                  <Checkbox
+                    checked={itemSelectionApi.isAllSelected}
+                    onChange={() => itemSelectionApi.onToggleAll()}
+                    indeterminate={itemSelectionApi.isPartiallySelected}
+                    disabled={!filteredScans.length}
+                  />
+                  <button
+                    className='unstyled'
+                    title='Delete Selected Scans'
+                    disabled={!itemSelectionApi.selectedItems.size}
+                    onClick={() => setDeleteModalOpen(true)}
+                  >
+                    <TrashIcon color={!itemSelectionApi.selectedItems.size ? '#5A657C' : undefined} />
+                  </button>
+                </div>
+                <div className='font-bold uppercase flex justify-start items-center'>Target</div>
+                <div className='flex font-bold uppercase flex justify-start items-center'>Project</div>
+                <div className='font-bold uppercase flex justify-start items-center'>
+                  <span className='block s-400px:hidden'>Vuln.</span>
+                  <span className='hidden s-400px:block'>Vulnerabilities</span>
+                </div>
               </div>
-            </div>
 
-            {filteredScans.map((scan) => (
-              <Link
-                to={`/scans/${scan.id}`}
-                key={scan.id}
-                className='!mt-2 relative flex h-24 flex-col justify-center items-center overflow-hidden px-4 py-2 text-[--vscode-foreground] before:absolute before:inset-0 before:-z-10 before:rounded before:bg-[--vscode-input-background] hover:cursor-pointer hover:text-[--vscode-foreground] before:hover:brightness-75'
-              >
-                <div className='grid grid-cols-3 gap-3 w-full h-full'>
-                  {/* Target Column */}
-                  <div className='truncate flex flex-col justify-center'>
-                    <span className='truncate font-bold'>
-                      {scan.target?.name ?? '-'}
-                    </span>
-                    <div className='flex items-center mt-1'>
-                      {scan.isScanning && (
-                        <svg
-                          xmlns='http://www.w3.org/2000/svg'
-                          viewBox='0 0 100 100'
-                          className='mr-2 h-5 w-5 animate-spin stroke-[--vscode-foreground]'
-                        >
-                          <circle
-                            cx='50'
-                            cy='50'
-                            fill='none'
-                            strokeWidth='8'
-                            r='35'
-                            strokeDasharray='164.93361431346415 56.97787143782138'
-                          />
-                        </svg>
-                      )}
-                      {scan.isError && (
-                        <svg
-                          width='16'
-                          height='16'
-                          viewBox='0 0 16 16'
-                          xmlns='http://www.w3.org/2000/svg'
-                          fill='currentColor'
-                          className='mr-2 h-5 w-5 stroke-red-600'
-                        >
-                          <path
-                            fillRule='evenodd'
-                            clipRule='evenodd'
-                            d='M7.56 1h.88l6.54 12.26-.44.74H1.44L1 13.26 7.56 1zM8 2.28L2.28 13H13.7L8 2.28zM8.625 12v-1h-1.25v1h1.25zm-1.25-2V6h1.25v4h-1.25z'
-                          />
-                        </svg>
-                      )}
-                      <span className='text-sm font-bold'>
-                        {formatDuration(
-                          (scan.endedAt ? scan.endedAt.getTime() : currentTime.getTime()) - scan.createdAt.getTime()
+              {filteredScans.map((scan) => (
+                <Link
+                  to={`/scans/${scan.id}`}
+                  key={scan.id}
+                  className='!mt-2 relative flex h-24 flex-col justify-center items-center overflow-hidden px-4 py-2 text-[--vscode-foreground] before:absolute before:inset-0 before:-z-10 before:rounded before:bg-[--vscode-input-background] hover:cursor-pointer hover:text-[--vscode-foreground] before:hover:brightness-75'
+                >
+                  <div className='grid gap-3 w-full h-full' style={{ gridTemplateColumns: '3rem repeat(3, minmax(0, 1fr))' }}>
+                    {/* Checkbox Column */}
+                    <div className='truncate flex flex-col justify-center'>
+                      <div className='flex w-fit' onClick={(e) => e.stopPropagation()}>
+                        <Checkbox
+                          checked={itemSelectionApi.selectedItems.has(scan.id)}
+                          onChange={() => itemSelectionApi?.onToggleItem(scan)}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Target Column */}
+                    <div className='truncate flex flex-col justify-center'>
+                      <span className='truncate font-bold'>
+                        {scan.target?.name ?? '-'}
+                      </span>
+                      <div className='flex items-center mt-1'>
+                        {scan.isScanning ? (
+                          <svg
+                            xmlns='http://www.w3.org/2000/svg'
+                            viewBox='0 0 100 100'
+                            className='mr-2 h-5 w-5 animate-spin stroke-[--vscode-foreground]'
+                          >
+                            <circle
+                              cx='50'
+                              cy='50'
+                              fill='none'
+                              strokeWidth='8'
+                              r='35'
+                              strokeDasharray='164.93361431346415 56.97787143782138'
+                            />
+                          </svg>
+                        ) : scan.disrupted ? (
+                          <svg
+                            width='16'
+                            height='16'
+                            viewBox='0 0 16 16'
+                            xmlns='http://www.w3.org/2000/svg'
+                            fill='currentColor'
+                            className='mr-2 h-5 w-5 stroke-red-600'
+                          >
+                            <path
+                              fillRule='evenodd'
+                              clipRule='evenodd'
+                              d='M7.56 1h.88l6.54 12.26-.44.74H1.44L1 13.26 7.56 1zM8 2.28L2.28 13H13.7L8 2.28zM8.625 12v-1h-1.25v1h1.25zm-1.25-2V6h1.25v4h-1.25z'
+                            />
+                          </svg>
+                        ) : scan.aborted && (
+                          <svg
+                            xmlns='http://www.w3.org/2000/svg'
+                            width='18'
+                            height='18'
+                            viewBox='0 0 256 256'
+                            fill='#F07F23'
+                            className={`mt-0 mr-2 fill-#F07F23`}
+                          >
+                            <path d='M176,128a8,8,0,0,1-8,8H88a8,8,0,0,1,0-16h80A8,8,0,0,1,176,128Zm56,0A104,104,0,1,1,128,24,104.11,104.11,0,0,1,232,128Zm-16,0a88,88,0,1,0-88,88A88.1,88.1,0,0,0,216,128Z'></path>
+                          </svg>
                         )}
+                        <span className='text-sm font-bold'>
+                          {formatDuration(
+                            (scan.endedAt ? scan.endedAt.getTime() : currentTime.getTime()) - scan.createdAt.getTime()
+                          )}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Project Column */}
+                    <div className='flex truncate flex flex-col justify-center items-center'>
+                      <span className='truncate font-bold'>
+                        {scan.project?.name ?? '-'}
                       </span>
                     </div>
-                  </div>
 
-                  {/* Project Column - hidden on small screens, visible on medium and up */}
-                  <div className='flex truncate flex flex-col justify-center items-center'>
-                    <span className='truncate font-bold'>
-                    {scan.project?.name ?? '-'}
-                    </span>
+                    {/* Vulnerabilities Column */}
+                    <div className='flex flex-wrap space-x-3 justify-center'>
+                      {!!scan.vulnPathsStatistics?.Critical && (
+                        <div className='flex items-center space-x-0.5'>
+                          <div className='mt-0.5 h-2 w-2 rounded-full bg-red-600' />
+                          <span>{scan.vulnPathsStatistics.Critical}</span>
+                        </div>
+                      )}
+                      {!!scan.vulnPathsStatistics?.High && (
+                        <div className='flex items-center space-x-0.5'>
+                          <div className='mt-0.5 h-2 w-2 rounded-full bg-orange-600' />
+                          <span>{scan.vulnPathsStatistics.High}</span>
+                        </div>
+                      )}
+                      {!!scan.vulnPathsStatistics?.Medium && (
+                        <div className='flex items-center space-x-0.5'>
+                          <div className='mt-0.5 h-2 w-2 rounded-full bg-yellow-600' />
+                          <span>{scan.vulnPathsStatistics.Medium}</span>
+                        </div>
+                      )}
+                      {!!scan.vulnPathsStatistics?.Low && (
+                        <div className='flex items-center space-x-0.5'>
+                          <div className='mt-0.5 h-2 w-2 rounded-full bg-green-600' />
+                          <span>{scan.vulnPathsStatistics.Low}</span>
+                        </div>
+                      )}
+                    </div>
                   </div>
-
-                  {/* Vulnerabilities Column */}
-                  <div className='flex flex-wrap space-x-3 justify-center'>
-                    {!!scan.vulnPathsStatistics?.Critical && (
-                      <div className='flex items-center space-x-0.5'>
-                        <div className='mt-0.5 h-2 w-2 rounded-full bg-red-600' />
-                        <span>{scan.vulnPathsStatistics.Critical}</span>
-                      </div>
-                    )}
-                    {!!scan.vulnPathsStatistics?.High && (
-                      <div className='flex items-center space-x-0.5'>
-                        <div className='mt-0.5 h-2 w-2 rounded-full bg-orange-600' />
-                        <span>{scan.vulnPathsStatistics.High}</span>
-                      </div>
-                    )}
-                    {!!scan.vulnPathsStatistics?.Medium && (
-                      <div className='flex items-center space-x-0.5'>
-                        <div className='mt-0.5 h-2 w-2 rounded-full bg-yellow-600' />
-                        <span>{scan.vulnPathsStatistics.Medium}</span>
-                      </div>
-                    )}
-                    {!!scan.vulnPathsStatistics?.Low && (
-                      <div className='flex items-center space-x-0.5'>
-                        <div className='mt-0.5 h-2 w-2 rounded-full bg-green-600' />
-                        <span>{scan.vulnPathsStatistics.Low}</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </Link>
-            ))}
-          </div>
+                </Link>
+              ))}
+            </div>
+          )}
         </>
       )}
       {(!filteredScans || !projects) && <Loading />}
+      {deleteModalOpen && (
+        <BulkDeleteModal
+          scans={Array.from(itemSelectionApi.selectedItems.values()).map(scan => scan.id)}
+          setDeleteModalOpen={setDeleteModalOpen}
+        />
+      )}
     </div>
   );
 };

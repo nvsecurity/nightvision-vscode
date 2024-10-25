@@ -44,7 +44,8 @@ export interface ScanType {
   endedAt?: Date;
   status: ScanStatus;
   isScanning: boolean;
-  isError: boolean;
+  disrupted: boolean;
+  aborted: boolean;
   vulnPathsStatistics?: Partial<Record<Severity, number>>;
   issues: { kind_id: string; name: string; severity: Severity }[];
 }
