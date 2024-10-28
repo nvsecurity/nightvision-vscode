@@ -14,19 +14,19 @@ export const Pagination: React.FC<PaginationProps> = ({
   setPage,
 }) => {
   const start = (page - 1) * PAGE_SIZE + 1;
-  const end = page * PAGE_SIZE > totalCount ? totalCount : page * PAGE_SIZE;
+  const end = Math.min(page * PAGE_SIZE, totalCount);
 
   const prevDisabled = page <= 1;
   const nextDisabled = page >= Math.ceil(totalCount / PAGE_SIZE);
 
   const onPrevClick = () => {
-    if (page > 1) {
+    if (!prevDisabled) {
       setPage(page - 1);
     }
   };
 
   const onNextClick = () => {
-    if (page < Math.ceil(totalCount / PAGE_SIZE)) {
+    if (!nextDisabled) {
       setPage(page + 1);
     }
   };

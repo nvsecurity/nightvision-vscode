@@ -61,13 +61,18 @@ export const Dropdown = <T extends IdAndName,>({
         id={id}
         disabled={disabled || loading}
       >
-        {(optional || items.length === 0) && <option value=''>{optionalText}</option>}
-        {items.map((item) => (
-          <option key={item.id} value={item.id} className=''>
-            {labelBy(item)}
-          </option>
-        ))}
-        {loading && <option disabled value={LOADING_OPTION.id}>{LOADING_OPTION.name}</option>}
+        {loading ? (
+          loading && <option disabled value={LOADING_OPTION.id}>{LOADING_OPTION.name}</option>
+        ) : (
+          <>
+            {(optional || items.length === 0) && <option value=''>{optionalText}</option>}
+            {items.map((item) => (
+              <option key={item.id} value={item.id} className=''>
+                {labelBy(item)}
+              </option>
+            ))}
+          </>
+        )}
       </select>
       {route && !disabled && (
         <Link to={route} title={name ? 'Create new ' + name : ''}>
