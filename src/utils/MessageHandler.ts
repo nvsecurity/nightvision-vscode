@@ -1,5 +1,14 @@
 import { v4 } from 'uuid';
 import { MessageData, Messenger } from '@utils/Messenger';
+import { API_ERROR_TYPES } from '@constants/GlobalConstants';
+import { CHECK_HEALTH, UNAUTHORIZED_ACCESS } from '@commands/CommandConstants';
+
+interface MessageHandlerApiProps {
+  method: RequestInit['method'],
+  url: string,
+  body?: any,
+  setIsLoggedIn?: (val: boolean) => void,
+}
 
 class MessageHandler {
   private static instance: MessageHandler;
@@ -28,14 +37,15 @@ class MessageHandler {
     return MessageHandler.instance;
   }
 
-  public api(
-    method: RequestInit['method'],
-    url: string,
-    body?: any
-  ): Promise<any> {
+  public api({
+    method,
+    url,
+    body,
+    setIsLoggedIn,
+  }: MessageHandlerApiProps): Promise<any> {
     const requestId = v4();
 
-    return new Promise((resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
       MessageHandler.listeners[requestId] = (
         command: string,
         payload: any,
@@ -43,7 +53,25 @@ class MessageHandler {
         isFinal: boolean
       ) => {
         if (error) {
-          reject(error);
+          try {
+            const err = JSON.parse(error);
+            // catch common errors
+            if (API_ERROR_TYPES.includes(err?.type)) {
+              for (const error of err.errors) {
+                switch (error.code) {
+                  case 'not_authenticated':
+                  case 'authentication_failed': {
+                    setIsLoggedIn?.(false);
+                  }
+                }
+              }
+            } else {
+              reject(error);
+            }
+          }
+          catch {
+            reject(error);
+          }
         } else {
           resolve(payload);
         }
@@ -52,6 +80,20 @@ class MessageHandler {
           delete MessageHandler.listeners[requestId];
         }
       };
+
+      // Check if CLI is alive
+      const result = messageHandler.requestGenerator(
+        CHECK_HEALTH,
+        v4(),
+      );
+      for await (const response of result) {
+        switch (response.command) {
+          case UNAUTHORIZED_ACCESS: {
+            setIsLoggedIn?.(false);
+            break;
+          }
+        }
+      }
 
       const vscode = Messenger.getVsCodeAPI();
       vscode.postMessage({ url, method, body, requestId });

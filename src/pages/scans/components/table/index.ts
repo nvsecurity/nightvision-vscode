@@ -1,0 +1,1 @@
+export { ScansTable } from './scans-table';

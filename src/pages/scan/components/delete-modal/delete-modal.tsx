@@ -26,35 +26,17 @@ export const DeleteModal: React.FC<DeleteModalProps> = ({
   const onDeleteScan = async () => {
     try {
       setScanDeleteInProgress(true);
-      await messageHandler.api(
-        'delete',
-        `${API_URL}/api/v1/scans/${scanId}`
-      );
+      await messageHandler.api({
+        method: 'delete',
+        url: `${API_URL}/api/v1/scans/${scanId}`,
+        setIsLoggedIn: setIsLoggedIn,
+      });
       setDeleteModalOpen(false);
       navigate(-1);
     }
     catch (error: any) {
-      const err = JSON.parse(error);
-      if (
-        err?.type === 'client_error' ||
-        err?.type === 'validation_error' ||
-        err?.type === 'server_error'
-      ) {
-        for (const error of err.errors) {
-          switch (error.code) {
-            case 'not_authenticated':
-            case 'authentication_failed': {
-              setIsLoggedIn(false);
-              break;
-            }
-            case 'not_found': {
-              setDeleteError(`Failed to delete ${scan?.target.name} Scan`);
-            }
-          }
-        }
-      } else {
-        console.error(err);
-      }
+      setDeleteError(`Failed to delete ${scan?.target.name} Scan`);
+      console.error(error);
     }
     finally {
       setScanDeleteInProgress(false);

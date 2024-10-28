@@ -30,17 +30,17 @@ import { InstallButton } from '@components/InstallButton';
 import { Layout } from '@components/Layout';
 import { Loading } from '@components/Loading';
 import { AuthenticationPage } from '@pages/Authentication';
-import { Authentications } from '@pages/Authentications';
+import { Authentications } from '@pages/authentications';
 import { NewScan } from '@pages/NewScan';
 import { Overview } from '@pages/Overview';
 import { ProjectPage } from '@pages/Project';
-import { Projects } from '@pages/Projects';
+import { Projects } from '@pages/projects';
 import { Reload } from '@pages/Reload';
 import { Scan } from '@pages/scan';
 import { Scans } from '@pages/scans';
 import { Settings } from '@pages/Settings';
 import { TargetPage } from '@pages/Target';
-import { Targets } from '@pages/Targets';
+import { Targets } from '@pages/targets';
 import { messageHandler } from '@utils/MessageHandler';
 import { ApiDiscoveryPage } from '@pages/ApiDiscovery';
 import { API_URL } from '@constants/GlobalConstants';
@@ -274,7 +274,10 @@ export const App = () => {
       let url = `${API_URL}/api/v1/auth/cli/token/`;
 
       while (true) {
-        const response = await messageHandler.api('GET', url);
+        const response = await messageHandler.api({
+          method: 'GET',
+          url: url,
+        });
         apiTokens = [...apiTokens, ...response.results];
 
         if (response.next) {
@@ -297,10 +300,10 @@ export const App = () => {
         ) {
           continue;
         }
-        await messageHandler.api(
-          'DELETE',
-          `${API_URL}/api/v1/auth/cli/token/${token.digest}/`
-        );
+        await messageHandler.api({
+          method: 'DELETE',
+          url: `${API_URL}/api/v1/auth/cli/token/${token.digest}/`,
+        });
         await messageHandler.request(DELETE_TOKENS, [token.token_key]);
       }
     } catch (err) {
@@ -311,10 +314,11 @@ export const App = () => {
   const getUser = async () => {
     try {
       const user = (
-        await messageHandler.api(
-          'get',
-          `${API_URL}/api/v1/user/me/`
-        )
+        await messageHandler.api({
+          method: 'get',
+          url: `${API_URL}/api/v1/user/me/`,
+          setIsLoggedIn: setIsLoggedIn,
+        })
       ).user;
 
       setCurrentUser({

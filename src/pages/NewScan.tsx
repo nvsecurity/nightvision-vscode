@@ -19,9 +19,9 @@ import { ScanParams } from '@commands/Scan';
 import { Dropdown } from '@components/Dropdown';
 import { Label } from '@components/Label';
 import { Loading } from '@components/Loading';
-import { getAuths } from '@pages/Authentications';
-import { getProjects } from '@pages/Projects';
-import { getTargets } from '@pages/Targets';
+import { getAuths } from '@pages/authentications';
+import { getProjects } from '@pages/projects';
+import { getTargets } from '@pages/targets';
 import { messageHandler } from '@utils/MessageHandler';
 import { PageHeader } from '@components/PageHeader';
 
@@ -50,15 +50,26 @@ export const NewScan = () => {
 
     const fetchApi = async () => {
       setIsFetching(true);
-      await getAuths(setAuths, setIsLoggedIn, currentProject.id, ignore);
-      await getProjects(setProjects, setIsLoggedIn, ignore);
-      await getTargets(
-        setTargets,
+      // TODO: fetch all auth-s
+      const result = await getAuths(
         setIsLoggedIn,
         currentProject.id,
+        1,
+        ignore
+      );
+      setAuths(result?.auths);
+      // TODO: fetch all projects
+      const projResult = await getProjects(setIsLoggedIn, 1, ignore);
+      setProjects(projResult?.projects);
+      // TODO: fetch all targets
+      const res = await getTargets(
+        setIsLoggedIn,
+        currentProject.id,
+        1,
         targetType === 'url' ? 'URL' : 'OPENAPI',
         ignore
       );
+      setTargets(res?.targets);
       setIsFetching(false);
     };
 

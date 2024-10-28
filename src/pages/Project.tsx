@@ -26,7 +26,7 @@ import { SecondaryButton } from '@components/SecondaryButton';
 import { TextInput } from '@components/TextInput';
 import { messageHandler } from '@utils/MessageHandler';
 import { PageHeader } from '@components/PageHeader';
-import { API_URL } from '@constants/GlobalConstants';
+import { API_ERROR_TYPES, API_URL } from '@constants/GlobalConstants';
 
 export const getProject = async (
   setProject: React.Dispatch<React.SetStateAction<ProjectInfo | undefined>>,
@@ -39,10 +39,11 @@ export const getProject = async (
   }
 
   try {
-    const project = await messageHandler.api(
-      'get',
-      `${API_URL}/api/v1/projects/${projectId}/`
-    );
+    const project = await messageHandler.api({
+      method: 'get',
+      url: `${API_URL}/api/v1/projects/${projectId}/`,
+      setIsLoggedIn: setIsLoggedIn,
+    });
 
     if (ignore) {
       return;
@@ -74,22 +75,7 @@ export const getProject = async (
       isDefault: project.is_default,
     });
   } catch (err: any) {
-    if (
-      err?.type === 'client_error' ||
-      err?.type === 'validation_error' ||
-      err?.type === 'server_error'
-    ) {
-      for (const error of err.errors) {
-        switch (error.code) {
-          case 'not_authenticated':
-          case 'authentication_failed': {
-            setIsLoggedIn(false);
-          }
-        }
-      }
-    } else {
-      console.error(err);
-    }
+    console.error(err);
   }
 };
 
@@ -104,10 +90,11 @@ export const getUsers = async (
 ) => {
   try {
     const users = (
-      await messageHandler.api(
-        'GET',
-        `${API_URL}/api/v1/user/?filter=${user}&is_active=true`
-      )
+      await messageHandler.api({
+        method: 'GET',
+        url: `${API_URL}/api/v1/user/?filter=${user}&is_active=true`,
+        setIsLoggedIn: setIsLoggedIn,
+      })
     ).results;
 
     if (ignore) {
@@ -135,19 +122,7 @@ export const getUsers = async (
     return {};
   } catch (err: any) {
     setSearchedUsers([]);
-    if (
-      err?.type === 'client_error' ||
-      err?.type === 'validation_error' ||
-      err?.type === 'server_error'
-    ) {
-      for (const error of err.errors) {
-        switch (error.code) {
-          case 'not_authenticated':
-          case 'authentication_failed': {
-            setIsLoggedIn(false);
-          }
-        }
-      }
+    if (API_ERROR_TYPES.includes(err?.type)) {
       return { errors: [err.errors] };
     } else {
       console.error(err);
@@ -162,26 +137,15 @@ export const shareProject = async (
   usernames: string[]
 ) => {
   try {
-    await messageHandler.api(
-      'POST',
-      `${API_URL}/api/v1/projects/${projectId}/share/`,
-      { usernames }
-    );
+    await messageHandler.api({
+      method: 'POST',
+      url: `${API_URL}/api/v1/projects/${projectId}/share/`,
+      body: { usernames },
+      setIsLoggedIn: setIsLoggedIn,
+    });
     return {};
   } catch (err: any) {
-    if (
-      err?.type === 'client_error' ||
-      err?.type === 'validation_error' ||
-      err?.type === 'server_error'
-    ) {
-      for (const error of err.errors) {
-        switch (error.code) {
-          case 'not_authenticated':
-          case 'authentication_failed': {
-            setIsLoggedIn(false);
-          }
-        }
-      }
+    if (API_ERROR_TYPES.includes(err?.type)) {
       return { errors: [err.errors] };
     } else {
       console.error(err);
@@ -196,27 +160,16 @@ export const unshareProject = async (
   userId: string
 ) => {
   try {
-    await messageHandler.api(
-      'POST',
-      `${API_URL}/api/v1/projects/${projectId}/unshare/`,
-      { users: [userId] }
-    );
+    await messageHandler.api({
+      method: 'POST',
+      url: `${API_URL}/api/v1/projects/${projectId}/unshare/`,
+      body: { users: [userId] },
+      setIsLoggedIn: setIsLoggedIn,
+    });
 
     return {};
   } catch (err: any) {
-    if (
-      err?.type === 'client_error' ||
-      err?.type === 'validation_error' ||
-      err?.type === 'server_error'
-    ) {
-      for (const error of err.errors) {
-        switch (error.code) {
-          case 'not_authenticated':
-          case 'authentication_failed': {
-            setIsLoggedIn(false);
-          }
-        }
-      }
+    if (API_ERROR_TYPES.includes(err?.type)) {
       return { errors: [err.errors] };
     } else {
       console.error(err);

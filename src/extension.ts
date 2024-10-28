@@ -7,6 +7,7 @@ import * as vscode from 'vscode';
 import { ExtensionContext, ExtensionMode, Uri } from 'vscode';
 import CliVersion from '@commands/CliVersion';
 import {
+  CHECK_HEALTH,
   CLI_INSTALL,
   CLI_INSTALL_FAILED,
   CLI_VERSION,
@@ -50,6 +51,7 @@ import UpdateTarget from '@commands/UpdateTarget';
 import fs from 'fs/promises';
 import { openFileDialog } from '@commands/OpenFileDialog';
 import SwaggerExtract from '@commands/SwaggerExtract';
+import GetTokensList from '@commands/GetTokensList';
 
 export async function activate(context: vscode.ExtensionContext) {
   const sidebarProvider = new SidebarProvider(context);
@@ -449,6 +451,17 @@ class SidebarProvider implements vscode.WebviewViewProvider {
               requestId,
               isFinal: true,
             });
+            break;
+          }
+          case CHECK_HEALTH: {
+            const command = new GetTokensList(
+              webviewView.webview,
+              requestId,
+              this._extensionContext,
+              this.nightvisionToken
+            );
+
+            this._children[requestId] = command.execute();
             break;
           }
           case OPEN_FILE_DIALOG: {

@@ -3,12 +3,12 @@ import React, { ReactNode } from 'react';
 
 export const EditList = <T extends IdAndName>({
   list,
-  emptyText,
+  emptyText = 'No items found',
   handleClick,
   renderItem,
 }: {
   list: T[];
-  emptyText: string;
+  emptyText?: string;
   handleClick: (listItem: T) => void;
   renderItem: (listItem: T) => ReactNode;
 }) => {
