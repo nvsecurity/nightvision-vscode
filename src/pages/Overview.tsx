@@ -64,7 +64,7 @@ export const Overview = () => {
       </div>
       <div className='grid auto-cols-min grid-cols-1 gap-3 min-[360px]:grid-cols-2 md:grid-cols-2'>
         <CustomLink p={{ path: '/api-discovery', title: 'API Discovery', tip: 'Document and discover hidden endpoints in your API', icon: <ApiDiscoverySvg /> }} />
-        <CustomLink p={{ path: '.', title: 'DAST', tip: "Run the DAST tool and track down vulnerabilities", icon: <DastSvg /> }} onClick={handleScanClick} className={`${isShowDASTOptions ? 'active' : ''}`} />
+        <CustomLink p={{ path: '.', title: 'API Security Testing', tip: "Show options to configure and run API security scans", icon: <DastSvg /> }} onClick={handleScanClick} className={`${isShowDASTOptions ? 'active' : ''}`} />
       </div>
       <div className={`dast-options ${isShowDASTOptions ? 'visible' : ''} grid auto-cols-min grid-cols-1 gap-3 min-[360px]:grid-cols-2 md:grid-cols-2`}>
         <CustomLink p={{ path: '/scans', title: 'Scans', tip: "List and run new scans", icon: <ScansSvg /> }} />

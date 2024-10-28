@@ -46,6 +46,10 @@ body {
   --input-padding-horizontal: 4px;
   --input-margin-vertical: 4px;
   --input-margin-horizontal: 0;
+  --light-active-bg-color: #bdb;
+  --light-tooltip-background-color: #f1f1f1;
+  --dark-active-bg-color: #1d4c1d;
+  --dark-tooltip-background-color: #4a4a4a;
 }
 
 body {
@@ -182,7 +186,7 @@ button.unstyled {
 .tooltip .tooltiptext {
   visibility: hidden;
   width: 80%;
-  background-color: #f1f1f1;
+  background-color: var(--light-tooltip-background-color);
   text-align: center;
   padding: 5px 0;
   padding: 0.5em;
@@ -210,7 +214,15 @@ button.unstyled {
   height: 0;
   border-left: 10px solid transparent;
   border-right: 10px solid transparent;
-  border-bottom: 10px solid #f1f1f1; /* Match the box color */
+  border-bottom: 10px solid var(--light-tooltip-background-color); /* Match the tooltip background */
+}
+
+.vscode-dark .tooltip .tooltiptext {
+  background-color: var(--dark-tooltip-background-color);
+}
+
+.vscode-dark .tooltip .tooltiptext::before {
+  border-bottom: 10px solid var(--dark-tooltip-background-color);
 }
 
 .tooltip .tooltip-trigger:hover + .tooltiptext {
@@ -222,6 +234,10 @@ button.unstyled {
   pointer-events: none;
 }
 
-.active {
-  background-color: #bdb;
+.vscode-light .active {
+  background-color: var(--light-active-bg-color);
+}
+
+.vscode-dark .active {
+  background-color: var(--dark-active-bg-color);
 }
