@@ -214,13 +214,15 @@ button.unstyled {
   height: 0;
   border-left: 10px solid transparent;
   border-right: 10px solid transparent;
-  border-bottom: 10px solid var(--light-tooltip-background-color); /* Match the tooltip background */
+  border-bottom: 10px solid var(--light-tooltip-background-color);
 }
 
+.vscode-high-contrast:not(.vscode-high-contrast-light) .tooltip .tooltiptext,
 .vscode-dark .tooltip .tooltiptext {
   background-color: var(--dark-tooltip-background-color);
 }
 
+.vscode-high-contrast:not(.vscode-high-contrast-light) .tooltip .tooltiptext::before,
 .vscode-dark .tooltip .tooltiptext::before {
   border-bottom: 10px solid var(--dark-tooltip-background-color);
 }
@@ -234,10 +236,11 @@ button.unstyled {
   pointer-events: none;
 }
 
-.vscode-light .active {
+.active {
   background-color: var(--light-active-bg-color);
 }
 
+.vscode-high-contrast:not(.vscode-high-contrast-light) .active,
 .vscode-dark .active {
   background-color: var(--dark-active-bg-color);
 }
