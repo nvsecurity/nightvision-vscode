@@ -32,6 +32,7 @@ import {
   UPDATE_AUTH,
   UPDATE_PROJECT,
   UPDATE_TARGET,
+  VALIDATE_FILE_PATH,
 } from '@commands/CommandConstants';
 import CreateAuth from '@commands/CreateAuth';
 import CreateProject from '@commands/CreateProject';
@@ -51,6 +52,7 @@ import UpdateTarget from '@commands/UpdateTarget';
 import fs from 'fs/promises';
 import { openFileDialog } from '@commands/OpenFileDialog';
 import SwaggerExtract from '@commands/SwaggerExtract';
+import FilePathValidator from '@commands/FilePathValidator';
 import GetTokensList from '@commands/GetTokensList';
 
 export async function activate(context: vscode.ExtensionContext) {
@@ -483,6 +485,20 @@ class SidebarProvider implements vscode.WebviewViewProvider {
             );
 
             this._children[requestId] = command.execute();
+            break;
+          }
+          case VALIDATE_FILE_PATH: {
+            const validator = new FilePathValidator(
+              payload
+            );
+
+            const result = validator.validate();
+            webviewView.webview.postMessage({
+              command: VALIDATE_FILE_PATH,
+              requestId,
+              payload: result,
+              isFinal: true,
+            });
             break;
           }
         }

@@ -5,6 +5,7 @@ import { v4 } from 'uuid';
 import { SWAGGER_EXTRACT, SWAGGER_EXTRACT_ERROR } from './CommandConstants';
 import { NIGHTVISION } from '@constants/GlobalConstants';
 import * as path from 'path';
+import { makeFilePathAbsolute } from '@utils/filePathAbsolute';
 
 export interface SwaggerExtractParams {
   dirPath: string;
@@ -30,20 +31,8 @@ export default class SwaggerExtract extends Command {
   ) {
     const fileName = `nv-swagger-${v4()}.yml`;
 
-    // TODO: Move this to common function
-    if (!path.isAbsolute(dirPath)) {
-      // Resolve the path relative to the workspace root
-      const workspaceFolders = vscode.workspace.workspaceFolders;
+    dirPath = makeFilePathAbsolute(dirPath);
 
-      if (workspaceFolders && workspaceFolders.length > 0) {
-        // Use the first workspace folder
-        const workspaceRoot = workspaceFolders[0].uri.fsPath;
-        dirPath = path.join(workspaceRoot, dirPath);
-      } else {
-        // If no workspace is open, resolve relative to the current working directory (unlikely to happen?)
-        dirPath = path.resolve(dirPath);
-      }
-    }
     super({
       command: `${NIGHTVISION} swagger extract ${dirPath} --lang ${language} --no-upload --output ${fileName}`,
       webview: webview,
@@ -87,19 +76,8 @@ export default class SwaggerExtract extends Command {
     try {
       let filePath = path.join(this.dirPath, this.fileName);
 
-      if (!path.isAbsolute(filePath)) {
-        // Resolve the path relative to the workspace root
-        const workspaceFolders = vscode.workspace.workspaceFolders;
-
-        if (workspaceFolders && workspaceFolders.length > 0) {
-          // Use the first workspace folder
-          const workspaceRoot = workspaceFolders[0].uri.fsPath;
-          filePath = path.join(workspaceRoot, filePath);
-        } else {
-          // If no workspace is open, resolve relative to the current working directory (unlikely to happen?)
-          filePath = path.resolve(filePath);
-        }
-      }
+      filePath = makeFilePathAbsolute(filePath);
+      
       await fs.access(filePath);
       await this.processFile(filePath);
 

@@ -1,13 +1,14 @@
 import React from 'react';
 import { PageHeader } from '@components/PageHeader';
 import { messageHandler } from '@utils/MessageHandler';
-import { OPEN_FILE_DIALOG, SWAGGER_EXTRACT, SWAGGER_EXTRACT_ERROR, UNAUTHORIZED_ACCESS, CLI_MISSING } from '@commands/CommandConstants';
+import { OPEN_FILE_DIALOG, VALIDATE_FILE_PATH, SWAGGER_EXTRACT, SWAGGER_EXTRACT_ERROR, UNAUTHORIZED_ACCESS, CLI_MISSING } from '@commands/CommandConstants';
 import { v4 } from 'uuid';
 import { OpenFileDialogParams } from '@commands/OpenFileDialog';
 import { Label } from '@components/Label';
 import { Dropdown } from '@components/Dropdown';
 import { IdAndName } from '@types_/idAndName';
 import { SwaggerExtractParams, SwaggerExtractSuccessResults } from '@commands/SwaggerExtract';
+import { FilePathValidatorParams, ValidationResult } from '@commands/FilePathValidator';
 import { useUser } from '@hooks/useUser';
 
 const PATH_REQUIRED_ERROR = 'Path is required';
@@ -65,8 +66,9 @@ export const ApiDiscoveryPage: React.FC = () => {
 
     try {
       for await (const response of result) {
-        if (response.command === OPEN_FILE_DIALOG) {
-          setDirPath(response.payload.selectedPaths[0] || '');
+        if (response.command === OPEN_FILE_DIALOG && response.payload.selectedPaths[0]) {
+          setDirPath(response.payload.selectedPaths[0]);
+          validateDirPath(response.payload.selectedPaths[0]);
         }
       }
     } catch (err) {
@@ -76,8 +78,34 @@ export const ApiDiscoveryPage: React.FC = () => {
     !pathTouched && setPathTouched(true);
   };
 
+  const validateDirPath = async (filePath: string): Promise<boolean> => {
+    const result = messageHandler.requestGenerator<FilePathValidatorParams>(
+      VALIDATE_FILE_PATH,
+      v4(),
+      { filePath, mustBeDirectory: true }
+    )
+
+    try {
+      for await (const response of result) {
+        if (response.command === VALIDATE_FILE_PATH) {
+          response.payload.error && setPathError(response.payload.error);
+          return response.payload.valid;
+        }
+      }
+    } catch (err) {
+      console.error(err);
+    }
+
+    return false;
+  }
+
   const onSubmit = async () => {
     clearResults();
+
+    const isValid = await validateDirPath(dirPath);
+    if (!isValid) {
+      return;
+    }
 
     const result = messageHandler.requestGenerator<SwaggerExtractParams>(
       SWAGGER_EXTRACT,
@@ -134,35 +162,21 @@ export const ApiDiscoveryPage: React.FC = () => {
 
         <div className='flex flex-row gap-2'>
           <input
+            type="text"
             value={dirPath}
-            onClick={() => onSelectDirectory()}
-            id='path-to-folder'
-            placeholder='Select'
-            disabled={!!dirPath}
-            readOnly
+            onChange={(e) => setDirPath(e.target.value)}
+            onBlur={(e) => validateDirPath(e.target.value)}
+            id="path-to-folder"
+            placeholder="Select or paste path"
           />
-          {dirPath && (
-            <button
-              className='unstyled'
-              title='Delete'
-              onClick={() => setDirPath('')}
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="32"
-                height="32"
-                fill='currentColor'
-                className='mt-0 h-6 w-6 fill-[--vscode-foreground]'
-                viewBox="0 0 256 256"
-              >
-                <path
-                  fillRule='evenodd'
-                  clipRule='evenodd'
-                  d="M205.66,194.34a8,8,0,0,1-11.32,11.32L128,139.31,61.66,205.66a8,8,0,0,1-11.32-11.32L116.69,128,50.34,61.66A8,8,0,0,1,61.66,50.34L128,116.69l66.34-66.35a8,8,0,0,1,11.32,11.32L139.31,128Z"
-                  ></path>
-              </svg>
-            </button>
-          )}
+          <button
+            type="button"
+            className="unstyled"
+            title="Select Directory"
+            onClick={onSelectDirectory}
+          >
+            <CustomFileSelectIcon />
+          </button>
         </div>
 
         {pathError && (
@@ -215,3 +229,10 @@ export const ApiDiscoveryPage: React.FC = () => {
     </div>
   );
 };
+
+const CustomFileSelectIcon: React.FC = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="32" height="32">
+    <path d="M4 20V56C4 58.2 5.8 60 8 60H56C58.2 60 60 58.2 60 56V24C60 21.8 58.2 20 56 20H30L26 14H8C5.8 14 4 15.8 4 18V20Z" fill="#CCCCCC"/>
+    <path d="M32 32L32 48M32 32L24 40M32 32L40 40" stroke="#000" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>
+);
