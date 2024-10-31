@@ -34,10 +34,10 @@ export const NewScan = () => {
   const { currentTarget, setCurrentTarget } = useTarget();
   const { setIsLoggedIn, setIsCliInstalled } = useUser();
 
-  const [auths, setAuths] = useState<Auth[]>();
+  const [auths, setAuths] = useState<Auth[]>([]);
   const [currentAuth, setCurrentAuth] = useState<Auth | null>();
-  const [projects, setProjects] = useState<Project[]>();
-  const [targets, setTargets] = useState<Target[]>();
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [targets, setTargets] = useState<Target[]>([]);
 
   const [targetErrors, setTargetErrors] = useState<string[]>([]);
 
@@ -45,40 +45,71 @@ export const NewScan = () => {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [isFetching, setIsFetching] = useState(false);
 
-  useEffect(() => {
-    let ignore = false;
+  const [isAuthsLoading, setIsAuthsLoading] = React.useState(false);
+  const fetchAllAuthentications = async () => {
+    setIsAuthsLoading(true);
+    const auths = [];
 
-    const fetchApi = async () => {
-      setIsFetching(true);
-      // TODO: fetch all auth-s
+    let page: number | undefined = 1;
+    do {
       const result = await getAuths(
         setIsLoggedIn,
         currentProject.id,
-        1,
-        ignore
+        page,
       );
-      setAuths(result?.auths);
-      // TODO: fetch all projects
-      const projResult = await getProjects(setIsLoggedIn, 1, ignore);
-      setProjects(projResult?.projects);
-      // TODO: fetch all targets
-      const res = await getTargets(
+      auths.push(...result?.auths);
+      page = result?.nextPage;
+    } while (!!page);
+    setAuths(auths);
+
+    setIsAuthsLoading(false);
+  };
+
+  const [isProjectsLoading, setIsProjectsLoading] = React.useState(false);
+  const fetchAllProjects = async () => {
+    setIsProjectsLoading(true);
+    const projects = [];
+
+    let page: number | undefined = 1;
+    do {
+      const result = await getProjects(
+        setIsLoggedIn,
+        page,
+      );
+      projects.push(...result?.projects);
+      page = result?.nextPage;
+    } while (!!page);
+    setProjects(projects);
+
+    setIsProjectsLoading(false);
+  };
+
+  const [isTargetsLoading, setIsTargetsLoading] = React.useState(false);
+  const fetchAllTargets = async () => {
+    setIsTargetsLoading(true);
+    const targets = [];
+
+    let page: number | undefined = 1;
+    do {
+      const result = await getTargets(
         setIsLoggedIn,
         currentProject.id,
-        1,
+        page,
         targetType === 'url' ? 'URL' : 'OPENAPI',
-        ignore
       );
-      setTargets(res?.targets);
-      setIsFetching(false);
-    };
+      targets.push(...result?.targets);
+      page = result?.nextPage;
+    } while (!!page);
+    setTargets(targets);
 
-    fetchApi();
+    setIsTargetsLoading(false);
+  };
+
+  useEffect(() => {
+    fetchAllProjects();
+    fetchAllTargets();
+    fetchAllAuthentications();
     setTargetErrors([]);
-
-    return () => {
-      ignore = true;
-    };
   }, [currentProject]);
 
   const handleScanClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -169,74 +200,71 @@ export const NewScan = () => {
     <div className='flex flex-col space-y-4'>
       <PageHeader title='Scan' backTo={isLoading ? '.' : '/scans'}/>
 
-      {auths && projects && targets && (
-        <>
-          <div>
-            <Label htmlFor='current-project'>Current Project</Label>
-            <Dropdown
-              selectedItem={currentProject}
-              items={projects}
-              name='Project'
-              handleChange={setCurrentProject}
-              id='current-project'
-            />
-          </div>
-          {isFetching && <Loading />}
-          {!isFetching && (
-            <>
-              <div className='flex flex-col space-y-1'>
-                <div>
-                  <Label htmlFor='target'>
-                    Target ({targetType === 'url' ? 'WEB' : 'API'})
-                  </Label>
-                  <Dropdown
-                    selectedItem={currentTarget}
-                    items={targets}
-                    name='Target'
-                    labelBy={target => `${target.name} (${target.location})`}
-                    route={isLoading ? '.' : `/targets`}
-                    handleChange={
-                      setCurrentTarget as (value: IdAndName) => void
-                    }
-                    id='target'
-                    disabled={isLoading}
-                  />
-                  {targetErrors.length > 0 && (
-                    <ul className='list-disc'>
-                      {Array.from(new Set(targetErrors)).map((error) => (
-                        <li key={error} className='font-semibold text-red-600'>
-                          {error}
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-                <div>
-                  <Label htmlFor='auth'>Authentication (Optional)</Label>
-                  <Dropdown
-                    selectedItem={currentAuth}
-                    items={auths}
-                    optional={true}
-                    name='Authentication'
-                    route={isLoading ? '.' : `/authentications`}
-                    handleChange={setCurrentAuth as (value: IdAndName) => void}
-                    id='auth'
-                    disabled={isLoading}
-                  />
-                </div>
-              </div>
-              <button
-                onClick={handleScanClick}
-                className='truncate rounded disabled:cursor-not-allowed disabled:opacity-75 disabled:hover:bg-[--vscode-button-background]'
-                disabled={isLoading}
-              >
-                {isLoading ? 'Loading...' : 'Start Scan'}
-              </button>
-            </>
+      <div>
+        <Label htmlFor='current-project'>Current Project</Label>
+        <Dropdown
+          selectedItem={currentProject}
+          items={projects}
+          name='Project'
+          handleChange={setCurrentProject}
+          loading={isProjectsLoading}
+          id='current-project'
+        />
+      </div>
+      <div className='flex flex-col space-y-1'>
+        <div>
+          <Label htmlFor='target'>
+            Target ({targetType === 'url' ? 'WEB' : 'API'})
+          </Label>
+          <Dropdown
+            selectedItem={currentTarget}
+            items={targets}
+            name='Target'
+            labelBy={target => `${target.name} (${target.location})`}
+            route={isLoading ? '.' : `/targets`}
+            handleChange={
+              setCurrentTarget as (value: IdAndName) => void
+            }
+            id='target'
+            disabled={isLoading}
+            loading={isTargetsLoading}
+          />
+          {targetErrors.length > 0 && (
+            <ul className='list-disc'>
+              {Array.from(new Set(targetErrors)).map((error) => (
+                <li key={error} className='font-semibold text-red-600'>
+                  {error}
+                </li>
+              ))}
+            </ul>
           )}
-        </>
+        </div>
+        <div>
+          <Label htmlFor='auth'>Authentication (Optional)</Label>
+          <Dropdown
+            selectedItem={currentAuth}
+            items={auths}
+            optional={true}
+            name='Authentication'
+            route={isLoading ? '.' : `/authentications`}
+            handleChange={setCurrentAuth as (value: IdAndName) => void}
+            id='auth'
+            disabled={isLoading}
+            loading={isAuthsLoading}
+          />
+        </div>
+      </div>
+      {isProjectsLoading || isTargetsLoading || isAuthsLoading ? (
+        <Loading />
+      )  : (
+        <button
+          onClick={handleScanClick}
+          className='truncate rounded disabled:cursor-not-allowed disabled:opacity-75 disabled:hover:bg-[--vscode-button-background]'
+          disabled={isLoading}
+        >
+          {isLoading ? 'Loading...' : 'Start Scan'}
+        </button>
       )}
-      {(!auths || !projects || !targets) && <Loading />}
     </div>
   );
 };
