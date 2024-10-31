@@ -52,7 +52,7 @@ export const NewScan = () => {
 
     let page: number | undefined = 1;
     do {
-      const result = await getAuths(
+      const result: any = await getAuths(
         setIsLoggedIn,
         currentProject.id,
         page,
@@ -72,7 +72,7 @@ export const NewScan = () => {
 
     let page: number | undefined = 1;
     do {
-      const result = await getProjects(
+      const result: any = await getProjects(
         setIsLoggedIn,
         page,
       );
@@ -91,7 +91,7 @@ export const NewScan = () => {
 
     let page: number | undefined = 1;
     do {
-      const result = await getTargets(
+      const result: any = await getTargets(
         setIsLoggedIn,
         currentProject.id,
         page,
