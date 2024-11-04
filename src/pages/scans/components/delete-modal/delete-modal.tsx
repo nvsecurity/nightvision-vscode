@@ -61,7 +61,7 @@ export const BulkDeleteModal: React.FC<BulkDeleteProps> = ({
       title={'Delete selected Scans?'}
       body={body}
       action={onDeleteScan}
-      buttonText={scanDeleteInProgress ? 'Deleteing...' : 'Delete'}
+      buttonText={scanDeleteInProgress ? 'Deleting...' : 'Delete'}
       isSubmitting={scanDeleteInProgress}
     />
   );

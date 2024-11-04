@@ -55,7 +55,7 @@ const getScans = async (
     const response = (
       await messageHandler.api({
         method: 'get',
-        url: `${API_URL}/api/v1/scans/?order=-created_at&page_size=24&page=${page}${projectFilter}`,
+        url: `${API_URL}/api/v1/scans/?order=-created_at&page=${page}${projectFilter}`,
         setIsLoggedIn: setIsLoggedIn,
       })
     );
