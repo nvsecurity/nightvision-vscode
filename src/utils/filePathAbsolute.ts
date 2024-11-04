@@ -5,7 +5,7 @@ export const makeFilePathAbsolute = (filePath: string): string => {
     if (path.isAbsolute(filePath)) {
         return filePath;
     }
-    
+
     // Resolve the path relative to the workspace root
     const workspaceFolders = vscode.workspace.workspaceFolders;
 
@@ -20,4 +20,4 @@ export const makeFilePathAbsolute = (filePath: string): string => {
     
 
     return filePath;
-}
+};

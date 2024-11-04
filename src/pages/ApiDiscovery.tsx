@@ -218,7 +218,7 @@ export const ApiDiscoveryPage: React.FC = () => {
         submitResults && (
           <div className='flex flex-col gap-2'>
             <span>
-              {`Number of discovered path: ${submitResults.paths}`}
+              {`Number of discovered paths: ${submitResults.paths}`}
             </span>
             <span>
               {`Number of discovered classes: ${submitResults.classes}`}
