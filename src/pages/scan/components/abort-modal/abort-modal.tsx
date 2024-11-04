@@ -43,8 +43,7 @@ export const AbortModal: React.FC<AbortModalProps> = ({
   const body = React.useMemo(() => (
     <>
       <p className='overflow-hidden'>
-        Are you sure you want to abort this Scan of <strong>{scan?.target.name}</strong>{' '}
-        from your account?
+        Are you sure you want to abort this Scan of <strong>{scan?.target.name}</strong>?
       </p>
       <p>This action is irreversible.</p>
       {abortError && (
