@@ -22,6 +22,8 @@ export interface UpdateTargetParams {
   apiSpecType: ApiSpec;
   openApiUrl?: string;
   swaggerFilePath?: string | null;
+  excludedUrlPatterns?: string[];
+  excludedXPaths?: string[];
 }
 
 export default class UpdateTarget extends Command {
@@ -41,6 +43,8 @@ export default class UpdateTarget extends Command {
       apiSpecType,
       openApiUrl,
       swaggerFilePath,
+      excludedUrlPatterns,
+      excludedXPaths,
     }: UpdateTargetParams
   ) {
     const flags: Flag[] = [
@@ -52,6 +56,33 @@ export default class UpdateTarget extends Command {
       flags.push({
         flag: apiSpecType === 'FILE' ? '-f' : '-s',
         value: (apiSpecType === 'FILE' ? swaggerFilePath : openApiUrl) ?? '',
+      });
+    }
+
+    if (excludedUrlPatterns?.length) {
+      excludedUrlPatterns?.forEach(urlPattern => flags.push({
+        flag: '--exclude-url',
+        value: urlPattern,
+      }));
+    }
+    else {
+      flags.push({
+        flag: '--exclude-url',
+        value: '',
+      });
+    }
+
+    // TODO
+    if (excludedXPaths?.length) {
+      excludedUrlPatterns?.forEach(urlPattern => flags.push({
+        flag: '--exclude-xpath',
+        value: urlPattern,
+      }));
+    }
+    else {
+      flags.push({
+        flag: '--exclude-xpath',
+        value: '',
       });
     }
 

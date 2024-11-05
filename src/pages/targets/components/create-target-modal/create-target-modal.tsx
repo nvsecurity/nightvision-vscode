@@ -22,6 +22,7 @@ import { TabSelector } from '@components/TabSelector';
 import { TextInput } from '@components/TextInput';
 import { messageHandler } from '@utils/MessageHandler';
 import { Project } from '@types_/project';
+import { Exclusion } from '@components/exclusion';
 
 const types: { type: TargetType; name: string }[] = [
   { type: 'URL', name: 'Web Target' },
@@ -67,6 +68,8 @@ export const CreateTargetModal: React.FC<CreateTargetModalProps> = ({
   const [_openApiUrl, setOpenApiUrl] = useState('');
   const [openApiUrl] = useDebounce(_openApiUrl, 500);
   const [swaggerFile, setSwaggerFile] = useState<File | null>();
+  const [urlPatterns, setUrlPatterns] = useState<string[]>([]);
+  const [xPaths, setXPaths] = useState<string[]>([]);
 
   const [targetNameErrors, setTargetNameErrors] = useState<string[]>([]);
   const [targetUrlErrors, setTargetUrlErrors] = useState<string[]>([]);
@@ -212,6 +215,8 @@ export const CreateTargetModal: React.FC<CreateTargetModalProps> = ({
         openApiUrl: selectedApiSpec.type === 'URL' ? openApiUrl : undefined,
         swaggerFilePath:
           selectedApiSpec.type === 'FILE' ? swaggerFile?.path : undefined,
+        excludedUrlPatterns: urlPatterns,
+        excludedXPaths: xPaths,
       });
 
     setIsLoading(true);
@@ -303,7 +308,7 @@ export const CreateTargetModal: React.FC<CreateTargetModalProps> = ({
             </svg>
           </button>
         </div>
-        <div className='flex flex-col space-y-1'>
+        <div className='flex flex-col space-y-1 overflow-auto'>
           <TabSelector
             values={types}
             selected={selectedType}
@@ -408,6 +413,31 @@ export const CreateTargetModal: React.FC<CreateTargetModalProps> = ({
               )}
             </>
           )}
+          <details style={{marginTop: '1rem', overflow: 'auto'}}>
+            <summary style={{fontSize: '0.9rem'}}>EXCLUSIONS</summary>
+            <div className='flex flex-col gap-2'>
+              <Exclusion
+                label='Exclude URL patterns'
+                onAddClick={value => setUrlPatterns(old => [...old, value])}
+                exclusions={urlPatterns}
+                onDeleteExclusion={index => setUrlPatterns(old => {
+                  const items = [...old];
+                  items.splice(index, 1);
+                  return items;
+                })}
+              />
+              <Exclusion
+                label='Exclude clicks based on XPath'
+                onAddClick={value => setXPaths(old => [...old, value])}
+                exclusions={xPaths}
+                onDeleteExclusion={index => setXPaths(old => {
+                  const items = [...old];
+                  items.splice(index, 1);
+                  return items;
+                })}
+              />
+            </div>
+          </details>
         </div>
         <div className='!mt-6 flex space-x-2'>
           <SecondaryButton

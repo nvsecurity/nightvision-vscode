@@ -30,6 +30,7 @@ import { TextInput } from '@components/TextInput';
 import { messageHandler } from '@utils/MessageHandler';
 import { PageHeader } from '@components/PageHeader';
 import { API_URL } from '@constants/GlobalConstants';
+import { Exclusion } from '@components/exclusion';
 
 export const getTarget = async (
   setTarget: React.Dispatch<React.SetStateAction<TargetInfo | undefined>>,
@@ -64,7 +65,7 @@ export const getTarget = async (
       return;
     }
 
-    setTarget({
+    const targetViewModel: TargetInfo = {
       id: target.id,
       name: target.name,
       location: target.location,
@@ -81,7 +82,13 @@ export const getTarget = async (
       lastSpecUploadedAt: target.last_spec_uploaded_at
         ? new Date(target.last_spec_uploaded_at)
         : null,
-    });
+      configuration: {
+        excludedUrlPatterns: target.configuration.excluded_url_patterns,
+        excludedXPaths: target.configuration.excluded_x_paths,
+      },
+    };
+
+    setTarget(targetViewModel);
   } catch (err: any) {
     console.error(err);
   }
@@ -119,6 +126,8 @@ export const TargetPage = () => {
   const [updateOpenApiUrl] = useDebounce(_updateOpenApiUrl, 500);
   const [updateSwaggerFile, setUpdateSwaggerFile] = useState<File | null>();
   const [oldSwaggerFileName, setOldSwaggerFileName] = useState<string | null>();
+  const [urlPatterns, setUrlPatterns] = useState<string[]>([]);
+  const [xPaths, setXPaths] = useState<string[]>([]);
 
   const [targetNameErrors, setTargetNameErrors] = useState<string[]>([]);
   const [targetUrlErrors, setTargetUrlErrors] = useState<string[]>([]);
@@ -192,6 +201,8 @@ export const TargetPage = () => {
     setUpdateOpenApiUrl('');
     setUpdateSwaggerFile(null);
     setOldSwaggerFileName(target?.swaggerFileName);
+    setUrlPatterns(target?.configuration?.excludedUrlPatterns || []);
+    setXPaths(target?.configuration?.excludedXPaths || []);
 
     setTargetNameErrors([]);
     setTargetUrlErrors([]);
@@ -323,6 +334,8 @@ export const TargetPage = () => {
           selectedApiSpec.type === 'URL' ? updateOpenApiUrl : undefined,
         swaggerFilePath:
           selectedApiSpec.type === 'FILE' ? updateSwaggerFile?.path : undefined,
+        excludedUrlPatterns: urlPatterns,
+        excludedXPaths: xPaths,
       });
 
     try {
@@ -752,6 +765,31 @@ export const TargetPage = () => {
                   )}
                 </>
               )}
+              <details style={{marginTop: '1rem', overflow: 'auto'}}>
+                <summary style={{fontSize: '0.9rem'}}>EXCLUSIONS</summary>
+                <div className='flex flex-col gap-2'>
+                  <Exclusion
+                    label='Exclude URL patterns'
+                    onAddClick={value => setUrlPatterns(old => [...old, value])}
+                    exclusions={urlPatterns}
+                    onDeleteExclusion={index => setUrlPatterns(old => {
+                      const items = [...old];
+                      items.splice(index, 1);
+                      return items;
+                    })}
+                  />
+                  <Exclusion
+                    label='Exclude clicks based on XPath'
+                    onAddClick={value => setXPaths(old => [...old, value])}
+                    exclusions={xPaths}
+                    onDeleteExclusion={index => setXPaths(old => {
+                      const items = [...old];
+                      items.splice(index, 1);
+                      return items;
+                    })}
+                  />
+                </div>
+              </details>
             </div>
             <div className='!mt-6 flex space-x-2'>
               <SecondaryButton
