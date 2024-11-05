@@ -10,13 +10,13 @@ export const Chip: React.FC<ChipProps> = ({
   onDelete,
 }) => {
   return (
-    <div id="chip" className="relative rounded-md flex bg-slate-800 py-0.5 pl-2.5 pr-2.5 border border-transparent text-sm text-white transition-all shadow-sm w-unset max-w-fit items-center gap-2 overflow-auto">
+    <div id="chip" className="relative rounded-md flex bg-slate-600 py-0.5 pl-2.5 pr-2.5 border border-transparent text-sm text-zinc-300 transition-all shadow-sm w-unset max-w-fit items-center gap-2 overflow-auto">
       <span className='truncate leading-4'>{text}</span>
 
       {onDelete && (
         <button
           onClick={() => onDelete()}
-          className="flex items-center justify-center transition-all p-0 text-white hover:bg-white/10 active:bg-white/10 rounded !bg-transparent w-3.5 h-3.5 !outline-offset-1"
+          className="flex items-center justify-center transition-all p-0 text-zinc-300 hover:bg-white/10 active:bg-white/10 rounded !bg-transparent w-3.5 h-3.5 !outline-offset-1"
           type="button"
         >
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" className="w-4 h-4">

@@ -31,6 +31,7 @@ import { messageHandler } from '@utils/MessageHandler';
 import { PageHeader } from '@components/PageHeader';
 import { API_URL } from '@constants/GlobalConstants';
 import { Exclusion } from '@components/exclusion';
+import { Chip } from '@components/chip';
 
 export const getTarget = async (
   setTarget: React.Dispatch<React.SetStateAction<TargetInfo | undefined>>,
@@ -144,6 +145,9 @@ export const TargetPage = () => {
   const [isTargetIdCopied, setIsTargetIdCopied] = useState(false);
   const targetIdCopyTimer = useRef<NodeJS.Timeout>();
 
+  const isUrlPatternsChanged = JSON.stringify(target?.configuration?.excludedUrlPatterns) !== JSON.stringify(urlPatterns);
+  const isXPathsChanged = JSON.stringify(target?.configuration?.excludedXPaths) !== JSON.stringify(xPaths);
+
   const hasEmptyRequiredInputs =
     !updateName ||
     !updateLocation ||
@@ -163,6 +167,7 @@ export const TargetPage = () => {
   const hasChanges =
     updateName !== target?.name ||
     updateLocation !== target.location ||
+    isUrlPatternsChanged || isXPathsChanged ||
     (target?.type === 'OPENAPI' &&
       ((selectedApiSpec.type === 'URL' && updateOpenApiUrl) ||
         (selectedApiSpec.type === 'FILE' && !oldSwaggerFileName)));
@@ -626,6 +631,38 @@ export const TargetPage = () => {
                           }
                         )}
                       </span>
+                    </>
+                  )}
+
+                  {urlPatterns.length ? (
+                    <details className='overflow-auto m-0 mb-4'>
+                      <summary>{`Excluded URL patterns (${urlPatterns.length})`}</summary>
+                      <div className='flex flex-row flex-wrap gap-2 mt-2'>
+                        {urlPatterns.map((urlPattern, index) => (
+                          <Chip text={urlPattern} key={`url-pattern-${index}`}/>
+                        ))}
+                      </div>
+                    </details>
+                  ) : (
+                    <>
+                      <span>Excluded URL patterns:</span>
+                      <span>N/A</span>
+                    </>
+                  )}
+
+                  {xPaths.length ? (
+                    <details className='overflow-auto !ml-0 !font-bold'>
+                      <summary>{`Excluded clicks based on XPath (${xPaths.length})`}</summary>
+                      <div className='flex flex-row flex-wrap gap-2 mt-2'>
+                        {xPaths.map((xPath, index) => (
+                          <Chip text={xPath} key={`url-pattern-${index}`}/>
+                        ))}
+                      </div>
+                    </details>
+                  ) : (
+                    <>
+                      <span>Excluded clicks based on XPath:</span>
+                      <span>N/A</span>
                     </>
                   )}
                 </div>
