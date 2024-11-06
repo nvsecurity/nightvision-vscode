@@ -60,11 +60,12 @@ export default class CreateTarget extends Command {
       value: urlPattern,
     }));
 
-    // TODO
-    excludedXPaths?.forEach(xPath => flags.push({
-      flag: '--exclude-xpath',
-      value: xPath,
-    }));
+    if (type === 'URL') {
+      excludedXPaths?.forEach(xPath => flags.push({
+        flag: '--exclude-xpath',
+        value: xPath,
+      }));
+    }
 
     super({
       command: `${NIGHTVISION} target create ${targetName} ${targetUrl}`,
