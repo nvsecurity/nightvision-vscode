@@ -20,8 +20,10 @@ export const Exclusion: React.FC<ExclusionProps> = ({
   const [value, setValue] = React.useState<string>('');
 
   const onAddExclusion = () => {
-    onAddClick(value);
-    setValue('');
+    if (value.trim()) {
+      onAddClick(value);
+      setValue('');
+    }
   };
 
   const onKeyUp = (e: any) => {
@@ -44,7 +46,7 @@ export const Exclusion: React.FC<ExclusionProps> = ({
         <SecondaryButton
           onClick={onAddExclusion}
           style={{width: 'unset', flexShrink: 0, marginRight: '0.25rem'}}
-          disabled={!value}
+          disabled={!value.trim()}
         >
           Add
         </SecondaryButton>
