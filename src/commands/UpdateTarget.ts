@@ -1,4 +1,4 @@
-import { ApiSpec, TargetInfo, TargetType } from '@types_/target';
+import { ApiSpec, TargetInfo, TargetType, TargetTypeEnum } from '@types_/target';
 import * as vscode from 'vscode';
 import Command, { Flag } from '@commands/Command';
 import {
@@ -22,6 +22,8 @@ export interface UpdateTargetParams {
   apiSpecType: ApiSpec;
   openApiUrl?: string;
   swaggerFilePath?: string | null;
+  excludedUrlPatterns?: string[];
+  excludedXPaths?: string[];
 }
 
 export default class UpdateTarget extends Command {
@@ -41,6 +43,8 @@ export default class UpdateTarget extends Command {
       apiSpecType,
       openApiUrl,
       swaggerFilePath,
+      excludedUrlPatterns,
+      excludedXPaths,
     }: UpdateTargetParams
   ) {
     const flags: Flag[] = [
@@ -48,11 +52,26 @@ export default class UpdateTarget extends Command {
       { flag: '-u', value: newTargetUrl },
     ];
 
-    if (type === 'OPENAPI' && (openApiUrl || swaggerFilePath)) {
+    if (type === TargetTypeEnum.OPENAPI && (openApiUrl || swaggerFilePath)) {
       flags.push({
         flag: apiSpecType === 'FILE' ? '-f' : '-s',
         value: (apiSpecType === 'FILE' ? swaggerFilePath : openApiUrl) ?? '',
       });
+    }
+
+    const addFlags = (array: string[] | undefined, flagName: string) => {
+      const items = array?.length ? array : [''];
+
+      items.forEach(item => flags.push({
+        flag: flagName,
+        value: item,
+      }));
+    };
+
+    addFlags(excludedUrlPatterns, '--exclude-url');
+
+    if (type === TargetTypeEnum.URL) {
+      addFlags(excludedXPaths, '--exclude-xpath');
     }
 
     super({

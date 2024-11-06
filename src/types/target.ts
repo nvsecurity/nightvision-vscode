@@ -14,8 +14,17 @@ export interface TargetInfo extends Target {
   swaggerFileName?: string | null;
   specUrl?: string | null;
   lastSpecUploadedAt?: Date | null;
+  configuration?: {
+    excludedUrlPatterns: string[];
+    excludedXPaths: string[];
+  }
 }
 
 export type TargetType = 'OPENAPI' | 'URL';
 
 export type ApiSpec = 'URL' | 'FILE';
+
+export enum TargetTypeEnum {
+  OPENAPI = 'OPENAPI',
+  URL = 'URL',
+}

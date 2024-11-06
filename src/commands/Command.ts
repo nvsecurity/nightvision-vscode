@@ -55,9 +55,7 @@ export default class Command {
 
     const flags = this.flags?.reduce<string[]>((acc, item) => {
       acc.push(item.flag);
-      if (item.value) {
-        acc.push(item.value.trim());
-      }
+      acc.push(item.value?.trim() || '');
       return acc;
     }, []);
 

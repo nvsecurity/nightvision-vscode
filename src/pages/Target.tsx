@@ -1,6 +1,6 @@
 import useClickOutside from '@hooks/useClickOutside';
 import { useUser } from '@hooks/useUser';
-import { ApiSpec, TargetInfo, TargetType } from '@types_/target';
+import { ApiSpec, TargetInfo, TargetType, TargetTypeEnum } from '@types_/target';
 import { useDebounce } from 'use-debounce';
 import { v4 } from 'uuid';
 import React, { useEffect, useRef } from 'react';
@@ -30,6 +30,8 @@ import { TextInput } from '@components/TextInput';
 import { messageHandler } from '@utils/MessageHandler';
 import { PageHeader } from '@components/PageHeader';
 import { API_URL } from '@constants/GlobalConstants';
+import { Exclusion } from '@components/exclusion';
+import { Chip } from '@components/chip';
 
 export const getTarget = async (
   setTarget: React.Dispatch<React.SetStateAction<TargetInfo | undefined>>,
@@ -64,7 +66,7 @@ export const getTarget = async (
       return;
     }
 
-    setTarget({
+    const targetViewModel: TargetInfo = {
       id: target.id,
       name: target.name,
       location: target.location,
@@ -81,7 +83,13 @@ export const getTarget = async (
       lastSpecUploadedAt: target.last_spec_uploaded_at
         ? new Date(target.last_spec_uploaded_at)
         : null,
-    });
+      configuration: {
+        excludedUrlPatterns: target.configuration.excluded_url_patterns,
+        excludedXPaths: target.configuration.excluded_x_paths,
+      },
+    };
+
+    setTarget(targetViewModel);
   } catch (err: any) {
     console.error(err);
   }
@@ -119,6 +127,8 @@ export const TargetPage = () => {
   const [updateOpenApiUrl] = useDebounce(_updateOpenApiUrl, 500);
   const [updateSwaggerFile, setUpdateSwaggerFile] = useState<File | null>();
   const [oldSwaggerFileName, setOldSwaggerFileName] = useState<string | null>();
+  const [urlPatterns, setUrlPatterns] = useState<string[]>([]);
+  const [xPaths, setXPaths] = useState<string[]>([]);
 
   const [targetNameErrors, setTargetNameErrors] = useState<string[]>([]);
   const [targetUrlErrors, setTargetUrlErrors] = useState<string[]>([]);
@@ -135,10 +145,13 @@ export const TargetPage = () => {
   const [isTargetIdCopied, setIsTargetIdCopied] = useState(false);
   const targetIdCopyTimer = useRef<NodeJS.Timeout>();
 
+  const isUrlPatternsChanged = JSON.stringify(target?.configuration?.excludedUrlPatterns || []) !== JSON.stringify(urlPatterns);
+  const isXPathsChanged = JSON.stringify(target?.configuration?.excludedXPaths || []) !== JSON.stringify(xPaths);
+
   const hasEmptyRequiredInputs =
     !updateName ||
     !updateLocation ||
-    (target?.type === 'OPENAPI' &&
+    (target?.type === TargetTypeEnum.OPENAPI &&
       ((selectedApiSpec.type === 'URL' && !updateOpenApiUrl) ||
         (selectedApiSpec.type === 'FILE' &&
           !updateSwaggerFile &&
@@ -147,14 +160,15 @@ export const TargetPage = () => {
   const hasErrors =
     targetNameErrors.length > 0 ||
     targetUrlErrors.length > 0 ||
-    (target?.type === 'OPENAPI' &&
+    (target?.type === TargetTypeEnum.OPENAPI &&
       ((selectedApiSpec.type === 'URL' && openApiUrlErrors.length > 0) ||
         (selectedApiSpec.type === 'FILE' && swaggerFileErrors.length > 0)));
 
   const hasChanges =
     updateName !== target?.name ||
     updateLocation !== target.location ||
-    (target?.type === 'OPENAPI' &&
+    isUrlPatternsChanged || isXPathsChanged ||
+    (target?.type === TargetTypeEnum.OPENAPI &&
       ((selectedApiSpec.type === 'URL' && updateOpenApiUrl) ||
         (selectedApiSpec.type === 'FILE' && !oldSwaggerFileName)));
 
@@ -192,6 +206,8 @@ export const TargetPage = () => {
     setUpdateOpenApiUrl('');
     setUpdateSwaggerFile(null);
     setOldSwaggerFileName(target?.swaggerFileName);
+    setUrlPatterns(target?.configuration?.excludedUrlPatterns || []);
+    setXPaths(target?.configuration?.excludedXPaths || []);
 
     setTargetNameErrors([]);
     setTargetUrlErrors([]);
@@ -296,7 +312,7 @@ export const TargetPage = () => {
       return;
     }
 
-    if (target.type === 'OPENAPI') {
+    if (target.type === TargetTypeEnum.OPENAPI) {
       if (selectedApiSpec.type === 'URL' && !updateOpenApiUrl.trim()) {
         return;
       }
@@ -323,6 +339,8 @@ export const TargetPage = () => {
           selectedApiSpec.type === 'URL' ? updateOpenApiUrl : undefined,
         swaggerFilePath:
           selectedApiSpec.type === 'FILE' ? updateSwaggerFile?.path : undefined,
+        excludedUrlPatterns: urlPatterns,
+        excludedXPaths: target.type === 'URL' ? xPaths : undefined,
       });
 
     try {
@@ -615,6 +633,40 @@ export const TargetPage = () => {
                       </span>
                     </>
                   )}
+
+                  {urlPatterns.length ? (
+                    <details className='overflow-auto m-0 mb-4'>
+                      <summary>{`Excluded URL patterns (${urlPatterns.length})`}</summary>
+                      <div className='flex flex-row flex-wrap gap-2 mt-2 font-normal'>
+                        {urlPatterns.map((urlPattern, index) => (
+                          <Chip text={urlPattern} key={`url-pattern-${index}`}/>
+                        ))}
+                      </div>
+                    </details>
+                  ) : (
+                    <>
+                      <span>Excluded URL patterns:</span>
+                      <span>N/A</span>
+                    </>
+                  )}
+
+                  {target.type === 'URL' && (
+                    xPaths.length ? (
+                      <details className='overflow-auto !ml-0 !font-bold'>
+                        <summary>{`Excluded clicks based on XPath (${xPaths.length})`}</summary>
+                        <div className='flex flex-row flex-wrap gap-2 mt-2 font-normal'>
+                          {xPaths.map((xPath, index) => (
+                            <Chip text={xPath} key={`url-pattern-${index}`}/>
+                          ))}
+                        </div>
+                      </details>
+                    ) : (
+                      <>
+                        <span className='!m-0 !font-bold'>Excluded clicks based on XPath:</span>
+                        <span className='!ml-4 !font-normal'>N/A</span>
+                      </>
+                    )
+                  )}
                 </div>
               </div>
             )}
@@ -663,7 +715,7 @@ export const TargetPage = () => {
                 errors={targetUrlErrors}
               />
 
-              {target?.type === 'OPENAPI' && (
+              {target?.type === TargetTypeEnum.OPENAPI && (
                 <>
                   <TabSelector
                     values={apiSpecs}
@@ -752,6 +804,33 @@ export const TargetPage = () => {
                   )}
                 </>
               )}
+              <details style={{marginTop: '1rem', overflow: 'auto'}}>
+                <summary style={{fontSize: '0.9rem', marginBottom: '0.25rem'}}>EXCLUSIONS</summary>
+                <div className='flex flex-col gap-2'>
+                  <Exclusion
+                    label='Exclude URL patterns'
+                    onAddClick={value => setUrlPatterns(old => [...old, value])}
+                    exclusions={urlPatterns}
+                    onDeleteExclusion={index => setUrlPatterns(old => {
+                      const items = [...old];
+                      items.splice(index, 1);
+                      return items;
+                    })}
+                  />
+                   {target?.type === 'URL' && (
+                    <Exclusion
+                      label='Exclude clicks based on XPath'
+                      onAddClick={value => setXPaths(old => [...old, value])}
+                      exclusions={xPaths}
+                      onDeleteExclusion={index => setXPaths(old => {
+                        const items = [...old];
+                        items.splice(index, 1);
+                        return items;
+                      })}
+                    />
+                  )}
+                </div>
+              </details>
             </div>
             <div className='!mt-6 flex space-x-2'>
               <SecondaryButton
