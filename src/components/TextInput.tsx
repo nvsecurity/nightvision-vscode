@@ -10,6 +10,7 @@ export const TextInput = ({
   errors,
   touched = false,
   style,
+  ...props
 }: {
   value?: string | null;
   handleOnChange: (e: string) => void;
@@ -19,7 +20,7 @@ export const TextInput = ({
   errors?: string[];
   touched?: boolean;
   style?: React.CSSProperties;
-}) => {
+} & React.DetailedHTMLProps<React.InputHTMLAttributes<HTMLInputElement>, HTMLInputElement>) => {
   const [isTouched, setIsTouched] = useState(false);
 
   return (
@@ -35,6 +36,7 @@ export const TextInput = ({
           id={id}
           onBlur={() => setIsTouched(true)}
           style={{boxSizing: 'border-box'}}
+          {...props}
         />
         {isLoading && (
           <svg

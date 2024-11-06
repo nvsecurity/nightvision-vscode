@@ -414,7 +414,7 @@ export const CreateTargetModal: React.FC<CreateTargetModalProps> = ({
             </>
           )}
           <details style={{marginTop: '1rem', overflow: 'auto'}}>
-            <summary style={{fontSize: '0.9rem'}}>EXCLUSIONS</summary>
+            <summary style={{fontSize: '0.9rem', marginBottom: '0.25rem'}}>EXCLUSIONS</summary>
             <div className='flex flex-col gap-2'>
               <Exclusion
                 label='Exclude URL patterns'

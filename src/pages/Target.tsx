@@ -145,8 +145,8 @@ export const TargetPage = () => {
   const [isTargetIdCopied, setIsTargetIdCopied] = useState(false);
   const targetIdCopyTimer = useRef<NodeJS.Timeout>();
 
-  const isUrlPatternsChanged = JSON.stringify(target?.configuration?.excludedUrlPatterns) !== JSON.stringify(urlPatterns);
-  const isXPathsChanged = JSON.stringify(target?.configuration?.excludedXPaths) !== JSON.stringify(xPaths);
+  const isUrlPatternsChanged = JSON.stringify(target?.configuration?.excludedUrlPatterns || []) !== JSON.stringify(urlPatterns);
+  const isXPathsChanged = JSON.stringify(target?.configuration?.excludedXPaths || []) !== JSON.stringify(xPaths);
 
   const hasEmptyRequiredInputs =
     !updateName ||
@@ -637,7 +637,7 @@ export const TargetPage = () => {
                   {urlPatterns.length ? (
                     <details className='overflow-auto m-0 mb-4'>
                       <summary>{`Excluded URL patterns (${urlPatterns.length})`}</summary>
-                      <div className='flex flex-row flex-wrap gap-2 mt-2'>
+                      <div className='flex flex-row flex-wrap gap-2 mt-2 font-normal'>
                         {urlPatterns.map((urlPattern, index) => (
                           <Chip text={urlPattern} key={`url-pattern-${index}`}/>
                         ))}
@@ -654,7 +654,7 @@ export const TargetPage = () => {
                     xPaths.length ? (
                       <details className='overflow-auto !ml-0 !font-bold'>
                         <summary>{`Excluded clicks based on XPath (${xPaths.length})`}</summary>
-                        <div className='flex flex-row flex-wrap gap-2 mt-2'>
+                        <div className='flex flex-row flex-wrap gap-2 mt-2 font-normal'>
                           {xPaths.map((xPath, index) => (
                             <Chip text={xPath} key={`url-pattern-${index}`}/>
                           ))}
@@ -805,7 +805,7 @@ export const TargetPage = () => {
                 </>
               )}
               <details style={{marginTop: '1rem', overflow: 'auto'}}>
-                <summary style={{fontSize: '0.9rem'}}>EXCLUSIONS</summary>
+                <summary style={{fontSize: '0.9rem', marginBottom: '0.25rem'}}>EXCLUSIONS</summary>
                 <div className='flex flex-col gap-2'>
                   <Exclusion
                     label='Exclude URL patterns'

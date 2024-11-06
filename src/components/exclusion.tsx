@@ -24,6 +24,12 @@ export const Exclusion: React.FC<ExclusionProps> = ({
     setValue('');
   };
 
+  const onKeyUp = (e: any) => {
+    if (e.key === 'Enter') {
+      onAddExclusion();
+    }
+  };
+
   return (
     <>
       <div className='flex flex-row items-end gap-3'>
@@ -31,6 +37,7 @@ export const Exclusion: React.FC<ExclusionProps> = ({
           value={value}
           handleOnChange={setValue}
           label={label}
+          onKeyUp={onKeyUp}
           id={`exclusion-${label}`}
           style={{width: '100%'}}
         />
