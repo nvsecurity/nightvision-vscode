@@ -74,9 +74,9 @@ export default class UpdateTarget extends Command {
 
     // TODO
     if (excludedXPaths?.length) {
-      excludedUrlPatterns?.forEach(urlPattern => flags.push({
+      excludedUrlPatterns?.forEach(xPath => flags.push({
         flag: '--exclude-xpath',
-        value: urlPattern,
+        value: xPath,
       }));
     }
     else {

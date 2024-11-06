@@ -216,7 +216,7 @@ export const CreateTargetModal: React.FC<CreateTargetModalProps> = ({
         swaggerFilePath:
           selectedApiSpec.type === 'FILE' ? swaggerFile?.path : undefined,
         excludedUrlPatterns: urlPatterns,
-        excludedXPaths: xPaths,
+        excludedXPaths: selectedType.type === 'URL' ? xPaths : undefined,
       });
 
     setIsLoading(true);
@@ -426,16 +426,18 @@ export const CreateTargetModal: React.FC<CreateTargetModalProps> = ({
                   return items;
                 })}
               />
-              <Exclusion
-                label='Exclude clicks based on XPath'
-                onAddClick={value => setXPaths(old => [...old, value])}
-                exclusions={xPaths}
-                onDeleteExclusion={index => setXPaths(old => {
-                  const items = [...old];
-                  items.splice(index, 1);
-                  return items;
-                })}
-              />
+              {selectedType.type === 'URL' && (
+                <Exclusion
+                  label='Exclude clicks based on XPath'
+                  onAddClick={value => setXPaths(old => [...old, value])}
+                  exclusions={xPaths}
+                  onDeleteExclusion={index => setXPaths(old => {
+                    const items = [...old];
+                    items.splice(index, 1);
+                    return items;
+                  })}
+                />
+              )}
             </div>
           </details>
         </div>

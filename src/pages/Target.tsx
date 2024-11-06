@@ -340,7 +340,7 @@ export const TargetPage = () => {
         swaggerFilePath:
           selectedApiSpec.type === 'FILE' ? updateSwaggerFile?.path : undefined,
         excludedUrlPatterns: urlPatterns,
-        excludedXPaths: xPaths,
+        excludedXPaths: target.type === 'URL' ? xPaths : undefined,
       });
 
     try {
@@ -650,20 +650,22 @@ export const TargetPage = () => {
                     </>
                   )}
 
-                  {xPaths.length ? (
-                    <details className='overflow-auto !ml-0 !font-bold'>
-                      <summary>{`Excluded clicks based on XPath (${xPaths.length})`}</summary>
-                      <div className='flex flex-row flex-wrap gap-2 mt-2'>
-                        {xPaths.map((xPath, index) => (
-                          <Chip text={xPath} key={`url-pattern-${index}`}/>
-                        ))}
-                      </div>
-                    </details>
-                  ) : (
-                    <>
-                      <span>Excluded clicks based on XPath:</span>
-                      <span>N/A</span>
-                    </>
+                  {target.type === 'URL' && (
+                    xPaths.length ? (
+                      <details className='overflow-auto !ml-0 !font-bold'>
+                        <summary>{`Excluded clicks based on XPath (${xPaths.length})`}</summary>
+                        <div className='flex flex-row flex-wrap gap-2 mt-2'>
+                          {xPaths.map((xPath, index) => (
+                            <Chip text={xPath} key={`url-pattern-${index}`}/>
+                          ))}
+                        </div>
+                      </details>
+                    ) : (
+                      <>
+                        <span>Excluded clicks based on XPath:</span>
+                        <span>N/A</span>
+                      </>
+                    )
                   )}
                 </div>
               </div>
@@ -815,16 +817,18 @@ export const TargetPage = () => {
                       return items;
                     })}
                   />
-                  <Exclusion
-                    label='Exclude clicks based on XPath'
-                    onAddClick={value => setXPaths(old => [...old, value])}
-                    exclusions={xPaths}
-                    onDeleteExclusion={index => setXPaths(old => {
-                      const items = [...old];
-                      items.splice(index, 1);
-                      return items;
-                    })}
-                  />
+                   {target?.type === 'URL' && (
+                    <Exclusion
+                      label='Exclude clicks based on XPath'
+                      onAddClick={value => setXPaths(old => [...old, value])}
+                      exclusions={xPaths}
+                      onDeleteExclusion={index => setXPaths(old => {
+                        const items = [...old];
+                        items.splice(index, 1);
+                        return items;
+                      })}
+                    />
+                  )}
                 </div>
               </details>
             </div>
