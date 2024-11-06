@@ -1,4 +1,4 @@
-import { ApiSpec, TargetInfo, TargetType } from '@types_/target';
+import { ApiSpec, TargetInfo, TargetType, TargetTypeEnum } from '@types_/target';
 import * as vscode from 'vscode';
 import Command, { Flag } from '@commands/Command';
 import {
@@ -52,7 +52,7 @@ export default class UpdateTarget extends Command {
       { flag: '-u', value: newTargetUrl },
     ];
 
-    if (type === 'OPENAPI' && (openApiUrl || swaggerFilePath)) {
+    if (type === TargetTypeEnum.OPENAPI && (openApiUrl || swaggerFilePath)) {
       flags.push({
         flag: apiSpecType === 'FILE' ? '-f' : '-s',
         value: (apiSpecType === 'FILE' ? swaggerFilePath : openApiUrl) ?? '',
@@ -70,7 +70,7 @@ export default class UpdateTarget extends Command {
 
     addFlags(excludedUrlPatterns, '--exclude-url');
 
-    if (type === 'URL') {
+    if (type === TargetTypeEnum.URL) {
       addFlags(excludedXPaths, '--exclude-xpath');
     }
 

@@ -23,3 +23,8 @@ export interface TargetInfo extends Target {
 export type TargetType = 'OPENAPI' | 'URL';
 
 export type ApiSpec = 'URL' | 'FILE';
+
+export enum TargetTypeEnum {
+  OPENAPI = 'OPENAPI',
+  URL = 'URL',
+}

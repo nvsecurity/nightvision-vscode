@@ -1,6 +1,6 @@
 import useClickOutside from '@hooks/useClickOutside';
 import { useUser } from '@hooks/useUser';
-import { ApiSpec, Target, TargetType } from '@types_/target';
+import { ApiSpec, Target, TargetType, TargetTypeEnum } from '@types_/target';
 import { useDebounce } from 'use-debounce';
 import { v4 } from 'uuid';
 import React, { useEffect } from 'react';
@@ -25,8 +25,8 @@ import { Project } from '@types_/project';
 import { Exclusion } from '@components/exclusion';
 
 const types: { type: TargetType; name: string }[] = [
-  { type: 'URL', name: 'Web Target' },
-  { type: 'OPENAPI', name: 'API Target' },
+  { type: TargetTypeEnum.URL, name: 'Web Target' },
+  { type: TargetTypeEnum.OPENAPI, name: 'API Target' },
 ];
 
 const apiSpecs: { type: ApiSpec; name: string }[] = [
@@ -85,14 +85,14 @@ export const CreateTargetModal: React.FC<CreateTargetModalProps> = ({
   const hasEmptyRequiredInputs =
     !targetName ||
     !targetUrl ||
-    (selectedType.type === 'OPENAPI' &&
+    (selectedType.type === TargetTypeEnum.OPENAPI &&
       ((selectedApiSpec.type === 'URL' && !openApiUrl) ||
         (selectedApiSpec.type === 'FILE' && !swaggerFile)));
 
   const hasErrors =
     targetNameErrors.length > 0 ||
     targetUrlErrors.length > 0 ||
-    (selectedType.type === 'OPENAPI' &&
+    (selectedType.type === TargetTypeEnum.OPENAPI &&
       ((selectedApiSpec.type === 'URL' && openApiUrlErrors.length > 0) ||
         (selectedApiSpec.type === 'FILE' && swaggerFileErrors.length > 0)));
 
@@ -196,7 +196,7 @@ export const CreateTargetModal: React.FC<CreateTargetModalProps> = ({
   const handleCreateTarget = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
 
-    if (selectedType.type === 'OPENAPI') {
+    if (selectedType.type === TargetTypeEnum.OPENAPI) {
       if (selectedApiSpec.type === 'URL' && !openApiUrl.trim()) {
         return;
       }
@@ -212,11 +212,11 @@ export const CreateTargetModal: React.FC<CreateTargetModalProps> = ({
         targetUrl,
         type: selectedType.type,
         apiSpecType: selectedApiSpec.type,
-        openApiUrl: selectedApiSpec.type === 'URL' ? openApiUrl : undefined,
+        openApiUrl: selectedApiSpec.type === TargetTypeEnum.URL ? openApiUrl : undefined,
         swaggerFilePath:
           selectedApiSpec.type === 'FILE' ? swaggerFile?.path : undefined,
         excludedUrlPatterns: urlPatterns,
-        excludedXPaths: selectedType.type === 'URL' ? xPaths : undefined,
+        excludedXPaths: selectedType.type === TargetTypeEnum.URL ? xPaths : undefined,
       });
 
     setIsLoading(true);
@@ -247,7 +247,7 @@ export const CreateTargetModal: React.FC<CreateTargetModalProps> = ({
             break;
           }
           case INVALID_OPENAPI_EXT: {
-            if (selectedApiSpec.type === 'URL') {
+            if (selectedApiSpec.type === TargetTypeEnum.URL) {
               setOpenApiUrlErrors((prevState) => [
                 ...prevState,
                 'The swagger specification url must have a .yml, .yaml, or .json extension',
@@ -328,7 +328,7 @@ export const CreateTargetModal: React.FC<CreateTargetModalProps> = ({
             id='target-url'
             errors={targetUrlErrors}
           />
-          {selectedType.type === 'OPENAPI' && (
+          {selectedType.type === TargetTypeEnum.OPENAPI && (
             <>
               <TabSelector
                 values={apiSpecs}
@@ -338,7 +338,7 @@ export const CreateTargetModal: React.FC<CreateTargetModalProps> = ({
               />
 
               <div
-                className={`${selectedApiSpec.type === 'URL' ? 'block' : 'hidden'}`}
+                className={`${selectedApiSpec.type === TargetTypeEnum.URL ? 'block' : 'hidden'}`}
               >
                 <TextInput
                   value={_openApiUrl}
@@ -426,7 +426,7 @@ export const CreateTargetModal: React.FC<CreateTargetModalProps> = ({
                   return items;
                 })}
               />
-              {selectedType.type === 'URL' && (
+              {selectedType.type === TargetTypeEnum.URL && (
                 <Exclusion
                   label='Exclude clicks based on XPath'
                   onAddClick={value => setXPaths(old => [...old, value])}

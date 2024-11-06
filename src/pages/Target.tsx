@@ -1,6 +1,6 @@
 import useClickOutside from '@hooks/useClickOutside';
 import { useUser } from '@hooks/useUser';
-import { ApiSpec, TargetInfo, TargetType } from '@types_/target';
+import { ApiSpec, TargetInfo, TargetType, TargetTypeEnum } from '@types_/target';
 import { useDebounce } from 'use-debounce';
 import { v4 } from 'uuid';
 import React, { useEffect, useRef } from 'react';
@@ -151,7 +151,7 @@ export const TargetPage = () => {
   const hasEmptyRequiredInputs =
     !updateName ||
     !updateLocation ||
-    (target?.type === 'OPENAPI' &&
+    (target?.type === TargetTypeEnum.OPENAPI &&
       ((selectedApiSpec.type === 'URL' && !updateOpenApiUrl) ||
         (selectedApiSpec.type === 'FILE' &&
           !updateSwaggerFile &&
@@ -160,7 +160,7 @@ export const TargetPage = () => {
   const hasErrors =
     targetNameErrors.length > 0 ||
     targetUrlErrors.length > 0 ||
-    (target?.type === 'OPENAPI' &&
+    (target?.type === TargetTypeEnum.OPENAPI &&
       ((selectedApiSpec.type === 'URL' && openApiUrlErrors.length > 0) ||
         (selectedApiSpec.type === 'FILE' && swaggerFileErrors.length > 0)));
 
@@ -168,7 +168,7 @@ export const TargetPage = () => {
     updateName !== target?.name ||
     updateLocation !== target.location ||
     isUrlPatternsChanged || isXPathsChanged ||
-    (target?.type === 'OPENAPI' &&
+    (target?.type === TargetTypeEnum.OPENAPI &&
       ((selectedApiSpec.type === 'URL' && updateOpenApiUrl) ||
         (selectedApiSpec.type === 'FILE' && !oldSwaggerFileName)));
 
@@ -312,7 +312,7 @@ export const TargetPage = () => {
       return;
     }
 
-    if (target.type === 'OPENAPI') {
+    if (target.type === TargetTypeEnum.OPENAPI) {
       if (selectedApiSpec.type === 'URL' && !updateOpenApiUrl.trim()) {
         return;
       }
@@ -715,7 +715,7 @@ export const TargetPage = () => {
                 errors={targetUrlErrors}
               />
 
-              {target?.type === 'OPENAPI' && (
+              {target?.type === TargetTypeEnum.OPENAPI && (
                 <>
                   <TabSelector
                     values={apiSpecs}

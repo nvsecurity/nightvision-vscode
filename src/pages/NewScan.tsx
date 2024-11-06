@@ -4,7 +4,7 @@ import { useUser } from '@hooks/useUser';
 import { Auth } from '@types_/auth';
 import { IdAndName } from '@types_/idAndName';
 import { Project } from '@types_/project';
-import { Target } from '@types_/target';
+import { Target, TargetTypeEnum } from '@types_/target';
 import { v4 } from 'uuid';
 import React, { useEffect, useState } from 'react';
 import {  useNavigate, useParams } from 'react-router-dom';
@@ -95,7 +95,7 @@ export const NewScan = () => {
         setIsLoggedIn,
         currentProject.id,
         page,
-        targetType === 'url' ? 'URL' : 'OPENAPI',
+        targetType === 'url' ? TargetTypeEnum.URL : TargetTypeEnum.OPENAPI,
       );
       targets.push(...result?.targets);
       page = result?.nextPage;

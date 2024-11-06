@@ -1,5 +1,5 @@
 import { Project } from '@types_/project';
-import { ApiSpec, TargetType } from '@types_/target';
+import { ApiSpec, TargetType, TargetTypeEnum } from '@types_/target';
 import * as vscode from 'vscode';
 import Command, { Flag } from '@commands/Command';
 import {
@@ -45,10 +45,10 @@ export default class CreateTarget extends Command {
   ) {
     const flags: Flag[] = [
       { flag: '-P', value: project.id },
-      { flag: '-t', value: type === 'URL' ? 'WEB' : 'API' },
+      { flag: '-t', value: type === TargetTypeEnum.URL ? 'WEB' : 'API' },
     ];
 
-    if (type === 'OPENAPI') {
+    if (type === TargetTypeEnum.OPENAPI) {
       flags.push({
         flag: apiSpecType === 'FILE' ? '-f' : '-s',
         value: (apiSpecType === 'FILE' ? swaggerFilePath : openApiUrl) ?? '',
@@ -60,7 +60,7 @@ export default class CreateTarget extends Command {
       value: urlPattern,
     }));
 
-    if (type === 'URL') {
+    if (type === TargetTypeEnum.URL) {
       excludedXPaths?.forEach(xPath => flags.push({
         flag: '--exclude-xpath',
         value: xPath,

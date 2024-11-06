@@ -11,6 +11,7 @@ import { PageHeader } from '@components/PageHeader';
 import { API_URL } from '@constants/GlobalConstants';
 import { AbortModal, DeleteModal, IssueCard } from './components';
 import { ErrorIcon, ExtraLinkIcon, LoadingIcon, StopIcon, TrashIcon } from './assets';
+import { TargetTypeEnum } from '@types_/target';
 
 export const Scan = () => {
   const { scanId } = useParams();
@@ -124,7 +125,7 @@ export const Scan = () => {
           <div className='flex flex-col space-y-1'>
             <div>
               <Label htmlFor='target-name'>
-                Target ({scan.target.type === 'URL' ? 'WEB' : 'API'})
+                Target ({scan.target.type === TargetTypeEnum.URL ? 'WEB' : 'API'})
               </Label>
               <select
                 className='w-full bg-[--vscode-settings-dropdownBackground] px-0.5 py-1.5'
