@@ -59,32 +59,19 @@ export default class UpdateTarget extends Command {
       });
     }
 
-    if (excludedUrlPatterns?.length) {
-      excludedUrlPatterns?.forEach(urlPattern => flags.push({
-        flag: '--exclude-url',
-        value: urlPattern,
+    const addFlags = (array: string[] | undefined, flagName: string) => {
+      const items = array?.length ? array : [''];
+
+      items.forEach(item => flags.push({
+        flag: flagName,
+        value: item,
       }));
-    }
-    else {
-      flags.push({
-        flag: '--exclude-url',
-        value: '',
-      });
-    }
+    };
+
+    addFlags(excludedUrlPatterns, '--exclude-url');
 
     if (type === 'URL') {
-      if (excludedXPaths?.length) {
-        excludedUrlPatterns?.forEach(xPath => flags.push({
-          flag: '--exclude-xpath',
-          value: xPath,
-        }));
-      }
-      else {
-        flags.push({
-          flag: '--exclude-xpath',
-          value: '',
-        });
-      }
+      addFlags(excludedXPaths, '--exclude-xpath');
     }
 
     super({

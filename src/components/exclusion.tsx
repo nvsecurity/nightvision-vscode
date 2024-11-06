@@ -32,7 +32,7 @@ export const Exclusion: React.FC<ExclusionProps> = ({
 
   return (
     <>
-      <div className='flex flex-row items-end gap-3'>
+      <div className='flex flex-row items-end gap-3 max-[320px]:flex-wrap'>
         <TextInput
           value={value}
           handleOnChange={setValue}

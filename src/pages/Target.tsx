@@ -662,8 +662,8 @@ export const TargetPage = () => {
                       </details>
                     ) : (
                       <>
-                        <span>Excluded clicks based on XPath:</span>
-                        <span>N/A</span>
+                        <span className='!m-0 !font-bold'>Excluded clicks based on XPath:</span>
+                        <span className='!ml-4 !font-normal'>N/A</span>
                       </>
                     )
                   )}
