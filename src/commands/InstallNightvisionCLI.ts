@@ -43,7 +43,7 @@ const getCLIDownloadUrl = (platform: string, arch: string): string | undefined =
 const getDestinationDirForPlatform = (platform: string): string => {
     let destinationDir: string;
     if (platform === 'win32') {
-        destinationDir = path.join(os.homedir(), 'AppData', 'Local', 'Nightvision', 'bin');
+        destinationDir = path.join(os.homedir(), 'AppData', 'Local', 'NightVision', 'bin');
     } else {
         destinationDir = path.join(os.homedir(), '.local', 'nightvision', 'bin');
     }
@@ -75,7 +75,6 @@ export const installNightvisionCLI = async (): Promise<boolean> => {
     }
 
     if (fs.existsSync(cliExecutable)) {
-        // await addToPath(`Nightvision CLI is already installed, but not added to PATH.`, destinationDir, platform);
         putCLIToVSCodePath();
         return true;
     }
@@ -106,13 +105,12 @@ export const installNightvisionCLI = async (): Promise<boolean> => {
             await fs.promises.chmod(cliExecutable, 0o755);
         }
 
-        // await addToPath(`Nightvision CLI installed successfully.`, destinationDir, platform);
         putCLIToVSCodePath();
         return true;
     } catch (err) {
         const message = getErrorMessage(err);
         console.error(`Installation error: ${message}`);
-        vscode.window.showErrorMessage(`Failed to install Nightvision CLI. Error: ${message}`);
+        vscode.window.showErrorMessage(`Failed to install NightVision CLI. Error: ${message}`);
     }
     return false;
 }
@@ -151,7 +149,7 @@ const addToPath = async (platform: string) => {
     if (!isCLIInPath()) {
         const destinationDir = getDestinationDirForPlatform(os.platform());
         const addToPathResponse = await vscode.window.showInformationMessage(
-            `The Nightvision CLI is not in your PATH. Would you like to automatically add? ('${destinationDir}')`,
+            `The NightVision CLI is not in your PATH. Would you like to automatically add? ('${destinationDir}')`,
             'Yes',
             'No'
         );
@@ -180,25 +178,25 @@ const addToUserPathUnix = async (directory: string) => {
             rcFile = path.join(homeDir, '.profile');
         }
 
-        const exportLine = `\n# Added by Nightvision\nexport PATH="$PATH${path.delimiter}${directory}"\n`;
+        const exportLine = `\n# Added by NightVision\nexport PATH="$PATH${path.delimiter}${directory}"\n`;
 
         if (fs.existsSync(rcFile)) {
             const fileContent = await fs.promises.readFile(rcFile, 'utf8');
             if (!fileContent.includes(directory)) {
                 await fs.promises.appendFile(rcFile, exportLine);
                 vscode.window.showInformationMessage(
-                    `Added Nightvision CLI to PATH in ${rcFile}. You may need to reopen the terminal windows for changes to take effect.`
+                    `Added NightVision CLI to PATH in ${rcFile}. You may need to reopen the terminal windows for changes to take effect.`
                 );
             }
         } else {
             await fs.promises.writeFile(rcFile, exportLine);
             vscode.window.showInformationMessage(
-                `Created ${rcFile} and added Nightvision CLI to PATH. You may need to reopen the terminal windows for changes to take effect.`
+                `Created ${rcFile} and added NightVision CLI to PATH. You may need to reopen the terminal windows for changes to take effect.`
             );
         }
     } catch (err) {
         console.error('Failed to update PATH:', err);
-        vscode.window.showErrorMessage('Failed to add Nightvision CLI to PATH.');
+        vscode.window.showErrorMessage('Failed to add NightVision CLI to PATH.');
     }
 };
 
@@ -209,11 +207,11 @@ const addToUserPathWindows = (directory: string) => {
             // Using 'setx' to update the user environment variable
             child_process.execSync(`setx PATH "${currentUserPath}${path.delimiter}${directory}"`);
             vscode.window.showInformationMessage(
-                'Added Nightvision CLI to PATH. You may need to reopen the terminal windows for changes to take effect.'
+                'Added NightVision CLI to PATH. You may need to reopen the terminal windows for changes to take effect.'
             );
         }
     } catch (err) {
         console.error('Failed to update PATH:', err);
-        vscode.window.showErrorMessage('Failed to add Nightvision CLI to PATH.');
+        vscode.window.showErrorMessage('Failed to add NightVision CLI to PATH.');
     }
 };
