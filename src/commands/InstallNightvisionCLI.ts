@@ -51,7 +51,9 @@ const getDestinationDirForPlatform = (platform: string): string => {
 }
 
 export const putCLIToVSCodePath = () => {
-    const destinationDir = getDestinationDirForPlatform(os.platform());
+    const platform = os.platform();
+    const destinationDir = getDestinationDirForPlatform(platform);
+    (async () => await addToPath(platform))();
     if (process.env.PATH && process.env.PATH.includes(destinationDir)) {
         return;
     }
@@ -136,23 +138,33 @@ const downloadFile = (url: string, dest: string): Promise<void> => {
     });
 }
 
-// TODO: Use this somewhere as it can be useful
-const addToPath = async (messagePrefix: string, destinationDir: string, platform: string) => {
-    // Here we ask the user if they want to add the CLI to their PATH, so they can run it from the terminal anytime
-    const addToPath = await vscode.window.showInformationMessage(
-        `${messagePrefix} Would you like to automatically add nightvision CLI to your PATH? ('${destinationDir}')`,
-        'Yes',
-        'No'
-    );
+export const isCLIInPath = (): boolean => {
+    const destinationDir = getDestinationDirForPlatform(os.platform());
+    const currentUserPath = process.env['PATH'] || '';
+    if (currentUserPath.includes(destinationDir)) {
+        return true;
+    }
+    return false;
+}
 
-    if (addToPath === 'Yes') {
-        if (platform === 'win32') {
-            addToUserPathWindows(destinationDir);
-        } else {
-            await addToUserPathUnix(destinationDir);
+const addToPath = async (platform: string) => {
+    if (!isCLIInPath()) {
+        const destinationDir = getDestinationDirForPlatform(os.platform());
+        const addToPathResponse = await vscode.window.showInformationMessage(
+            `The Nightvision CLI is not in your PATH. Would you like to automatically add? ('${destinationDir}')`,
+            'Yes',
+            'No'
+        );
+
+        if (addToPathResponse === 'Yes') {
+            if (platform === 'win32') {
+                addToUserPathWindows(destinationDir);
+            } else {
+                await addToUserPathUnix(destinationDir);
+            }
         }
     }
-}
+};
 
 const addToUserPathUnix = async (directory: string) => {
     try {
@@ -175,13 +187,13 @@ const addToUserPathUnix = async (directory: string) => {
             if (!fileContent.includes(directory)) {
                 await fs.promises.appendFile(rcFile, exportLine);
                 vscode.window.showInformationMessage(
-                    `Added Nightvision CLI to PATH in ${rcFile}. You may need to reopen all VSCode windows for changes to take effect.`
+                    `Added Nightvision CLI to PATH in ${rcFile}. You may need to reopen the terminal windows for changes to take effect.`
                 );
             }
         } else {
             await fs.promises.writeFile(rcFile, exportLine);
             vscode.window.showInformationMessage(
-                `Created ${rcFile} and added Nightvision CLI to PATH. You may need to reopen all VSCode windows for changes to take effect.`
+                `Created ${rcFile} and added Nightvision CLI to PATH. You may need to reopen the terminal windows for changes to take effect.`
             );
         }
     } catch (err) {
@@ -197,7 +209,7 @@ const addToUserPathWindows = (directory: string) => {
             // Using 'setx' to update the user environment variable
             child_process.execSync(`setx PATH "${currentUserPath}${path.delimiter}${directory}"`);
             vscode.window.showInformationMessage(
-                'Added Nightvision CLI to PATH. You may need to reopen all VSCode windows for changes to take effect.'
+                'Added Nightvision CLI to PATH. You may need to reopen the terminal windows for changes to take effect.'
             );
         }
     } catch (err) {
