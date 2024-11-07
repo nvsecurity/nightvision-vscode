@@ -14,6 +14,7 @@ import {
   useRouteError,
 } from 'react-router-dom';
 import {
+  ADD_CLI_TO_VSCODE_PATH,
   CLI_MISSING,
   CLI_VERSION,
   CREATE_TOKEN,
@@ -345,6 +346,9 @@ export const App = () => {
 
     (async () => {
       try {
+        // Adding CLI executable to VSCode PATH
+        for await (const _ of messageHandler.requestGenerator(ADD_CLI_TO_VSCODE_PATH)) {}
+        
         const promises = await Promise.all([
           getCurrentProject(ignore),
           getCurrentTarget(ignore),
