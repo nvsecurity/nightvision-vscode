@@ -128,7 +128,7 @@ const havePathAlreadySet = (platform: string, destinationDir: string): boolean =
         default:
             return havePathAlreadySetUnix(destinationDir);
     }
-}
+};
 
 const havePathAlreadySetUnix = (destinationDir: string): boolean => {
     const homeDir = os.homedir();
@@ -149,12 +149,12 @@ const havePathAlreadySetUnix = (destinationDir: string): boolean => {
     }
 
     return false;
-}
+};
 
 const havePathAlreadySetWindows = (destinationDir: string): boolean => {
     const currentUserPath = process.env['PATH'] || '';
     return currentUserPath.includes(destinationDir);
-}
+};
 
 const downloadFile = (url: string, dest: string): Promise<void> => {
     return new Promise((resolve, reject) => {
