@@ -16,7 +16,7 @@ const getErrorMessage = (err: any) => {
         message = err;
     }
     return message;
-}
+};
 
 const getCLIDownloadUrl = (platform: string, arch: string): string | undefined => {
     let downloadUrl: string | undefined;
@@ -40,7 +40,7 @@ const getCLIDownloadUrl = (platform: string, arch: string): string | undefined =
         }
     }
     return downloadUrl;
-}
+};
 
 const getDestinationDirForPlatform = (platform: string): string => {
     let destinationDir: string;
@@ -50,7 +50,7 @@ const getDestinationDirForPlatform = (platform: string): string => {
         destinationDir = path.join(os.homedir(), '.local', 'nightvision', 'bin');
     }
     return destinationDir;
-}
+};
 
 export const putCLIToVSCodePath = () => {
     const platform = os.platform();
@@ -59,7 +59,7 @@ export const putCLIToVSCodePath = () => {
         return;
     }
     process.env.PATH = `${process.env.PATH}${path.delimiter}${destinationDir}`;
-}
+};
 
 export const installNightvisionCLI = async (): Promise<boolean> => {
     const platform = os.platform();
@@ -115,7 +115,7 @@ export const installNightvisionCLI = async (): Promise<boolean> => {
         vscode.window.showErrorMessage(`Failed to install NightVision CLI. Error: ${message}`);
     }
     return false;
-}
+};
 
 const downloadFile = (url: string, dest: string): Promise<void> => {
     return new Promise((resolve, reject) => {
@@ -136,7 +136,7 @@ const downloadFile = (url: string, dest: string): Promise<void> => {
             fs.unlink(dest, () => reject(err));
         });
     });
-}
+};
 
 const addToPath = async (platform: string) => {
     const destinationDir = getDestinationDirForPlatform(os.platform());
@@ -159,7 +159,7 @@ const reloadWindow = (option: string | undefined) => {
     if (option === OK_RELOAD_WINDOW) {
         vscode.commands.executeCommand('workbench.action.reloadWindow');
     }
-}
+};
 
 const addToUserPathUnix = async (directory: string) => {
     try {
