@@ -55,10 +55,12 @@ const getDestinationDirForPlatform = (platform: string): string => {
 export const putCLIToVSCodePath = () => {
     const platform = os.platform();
     const destinationDir = getDestinationDirForPlatform(platform);
-    if (process.env.PATH && process.env.PATH.includes(destinationDir)) {
-        return;
+    if (fs.existsSync(destinationDir)) {
+        if (process.env.PATH && process.env.PATH.includes(destinationDir)) {
+            return;
+        }
+        process.env.PATH = `${process.env.PATH}${path.delimiter}${destinationDir}`;
     }
-    process.env.PATH = `${process.env.PATH}${path.delimiter}${destinationDir}`;
 };
 
 export const installNightvisionCLI = async (): Promise<boolean> => {
