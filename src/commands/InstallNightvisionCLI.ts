@@ -6,6 +6,8 @@ import * as https from 'https';
 import * as tar from 'tar';
 import * as child_process from 'child_process';
 
+const OK_RELOAD_WINDOW = 'Ok (reload window)';
+
 const getErrorMessage = (err: any) => {
     let message = 'Unknown Error';
     if (err instanceof Error) {
@@ -146,12 +148,18 @@ const addToPath = async (platform: string) => {
 
     if (addToPathResponse === 'Yes') {
         if (platform === 'win32') {
-            addToUserPathWindows(destinationDir);
+            await addToUserPathWindows(destinationDir);
         } else {
             await addToUserPathUnix(destinationDir);
         }
     }
 };
+
+const reloadWindow = (option: string | undefined) => {
+    if (option === OK_RELOAD_WINDOW) {
+        vscode.commands.executeCommand('workbench.action.reloadWindow');
+    }
+}
 
 const addToUserPathUnix = async (directory: string) => {
     try {
@@ -173,17 +181,19 @@ const addToUserPathUnix = async (directory: string) => {
             const fileContent = await fs.promises.readFile(rcFile, 'utf8');
             if (!fileContent.includes(directory)) {
                 await fs.promises.appendFile(rcFile, exportLine);
-                vscode.window.showInformationMessage(
+                const response = await vscode.window.showInformationMessage(
                     `Added NightVision CLI to PATH in ${rcFile}. You may need to reopen the terminal windows for changes to take effect.`,
-                    'Ok'
+                    OK_RELOAD_WINDOW
                 );
+                reloadWindow(response);
             }
         } else {
             await fs.promises.writeFile(rcFile, exportLine);
-            vscode.window.showInformationMessage(
+            const response = await vscode.window.showInformationMessage(
                 `Created ${rcFile} and added NightVision CLI to PATH. You may need to reopen the terminal windows for changes to take effect.`,
-                'Ok'
+                OK_RELOAD_WINDOW
             );
+            reloadWindow(response);
         }
     } catch (err) {
         console.error('Failed to update PATH:', err);
@@ -191,16 +201,17 @@ const addToUserPathUnix = async (directory: string) => {
     }
 };
 
-const addToUserPathWindows = (directory: string) => {
+const addToUserPathWindows = async (directory: string) => {
     try {
         const currentUserPath = process.env['PATH'] || '';
         if (!currentUserPath.includes(directory)) {
             // Using 'setx' to update the user environment variable
             child_process.execSync(`setx PATH "${currentUserPath}${path.delimiter}${directory}"`);
-            vscode.window.showInformationMessage(
+            const response = await vscode.window.showInformationMessage(
                 'Added NightVision CLI to PATH. You may need to reopen the terminal windows for changes to take effect.',
-                'Ok'
+                OK_RELOAD_WINDOW
             );
+            reloadWindow(response);
         }
     } catch (err) {
         console.error('Failed to update PATH:', err);
