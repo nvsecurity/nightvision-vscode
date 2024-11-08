@@ -346,12 +346,8 @@ export const App = () => {
 
     (async () => {
       try {
-        // By default isLoggedIn is true, need to add another extra check.
-        // Also, it's TODO: refactor ALL this page
-        if (!!currentUser) {
-          // Adding CLI executable to VSCode PATH
-          for await (const _ of messageHandler.requestGenerator(ADD_CLI_TO_VSCODE_PATH)) {}
-        }
+        // Adding CLI executable to VSCode PATH
+        for await (const _ of messageHandler.requestGenerator(ADD_CLI_TO_VSCODE_PATH)) {}
 
         const promises = await Promise.all([
           getCurrentProject(ignore),
