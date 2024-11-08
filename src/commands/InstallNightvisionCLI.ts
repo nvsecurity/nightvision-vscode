@@ -139,7 +139,7 @@ const downloadFile = (url: string, dest: string): Promise<void> => {
 const addToPath = async (platform: string) => {
     const destinationDir = getDestinationDirForPlatform(os.platform());
     const addToPathResponse = await vscode.window.showInformationMessage(
-        `The NightVision CLI has been installed. Would you like to automatically add it to the PATH? ('${destinationDir}')`,
+        `The NightVision CLI has been installed. Would you like to automatically add it to your PATH? ('${destinationDir}')`,
         'Yes',
         'No'
     );
