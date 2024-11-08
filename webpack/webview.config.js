@@ -57,7 +57,7 @@ const config = [
         process: 'process/browser',
       }),
       new webpack.DefinePlugin({
-        'process.env': { CLI_VERSION: JSON.stringify('0.6.7') },
+        'process.env': { CLI_VERSION: JSON.stringify('0.6.9') },
       }),
     ],
     devServer: {
