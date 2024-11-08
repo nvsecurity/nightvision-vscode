@@ -106,7 +106,6 @@ export const installNightvisionCLI = async (): Promise<boolean> => {
             await fs.promises.chmod(cliExecutable, 0o755);
         }
 
-        putCLIToVSCodePath();
         (async () => await addToPath(platform))();
         return true;
     } catch (err) {
@@ -205,6 +204,7 @@ const addToUserPathWindows = async (directory: string) => {
     try {
         const currentUserPath = process.env['PATH'] || '';
         if (!currentUserPath.includes(directory)) {
+            putCLIToVSCodePath();
             // Using 'setx' to update the user environment variable
             child_process.execSync(`setx PATH "${currentUserPath}${path.delimiter}${directory}"`);
             const response = await vscode.window.showInformationMessage(
