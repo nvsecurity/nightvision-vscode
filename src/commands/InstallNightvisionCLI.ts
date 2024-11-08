@@ -53,7 +53,6 @@ const getDestinationDirForPlatform = (platform: string): string => {
 export const putCLIToVSCodePath = () => {
     const platform = os.platform();
     const destinationDir = getDestinationDirForPlatform(platform);
-    (async () => await addToPath(platform))();
     if (process.env.PATH && process.env.PATH.includes(destinationDir)) {
         return;
     }
@@ -106,6 +105,7 @@ export const installNightvisionCLI = async (): Promise<boolean> => {
         }
 
         putCLIToVSCodePath();
+        (async () => await addToPath(platform))();
         return true;
     } catch (err) {
         const message = getErrorMessage(err);
@@ -136,30 +136,19 @@ const downloadFile = (url: string, dest: string): Promise<void> => {
     });
 }
 
-export const isCLIInPath = (): boolean => {
-    const destinationDir = getDestinationDirForPlatform(os.platform());
-    const currentUserPath = process.env['PATH'] || '';
-    if (currentUserPath.includes(destinationDir)) {
-        return true;
-    }
-    return false;
-}
-
 const addToPath = async (platform: string) => {
-    if (!isCLIInPath()) {
-        const destinationDir = getDestinationDirForPlatform(os.platform());
-        const addToPathResponse = await vscode.window.showInformationMessage(
-            `The NightVision CLI is not in your PATH. Would you like to automatically add? ('${destinationDir}')`,
-            'Yes',
-            'No'
-        );
+    const destinationDir = getDestinationDirForPlatform(os.platform());
+    const addToPathResponse = await vscode.window.showInformationMessage(
+        `The NightVision CLI has been installed. Would you like to automatically add it to the PATH? ('${destinationDir}')`,
+        'Yes',
+        'No'
+    );
 
-        if (addToPathResponse === 'Yes') {
-            if (platform === 'win32') {
-                addToUserPathWindows(destinationDir);
-            } else {
-                await addToUserPathUnix(destinationDir);
-            }
+    if (addToPathResponse === 'Yes') {
+        if (platform === 'win32') {
+            addToUserPathWindows(destinationDir);
+        } else {
+            await addToUserPathUnix(destinationDir);
         }
     }
 };
