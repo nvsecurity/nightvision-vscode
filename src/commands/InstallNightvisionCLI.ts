@@ -174,13 +174,15 @@ const addToUserPathUnix = async (directory: string) => {
             if (!fileContent.includes(directory)) {
                 await fs.promises.appendFile(rcFile, exportLine);
                 vscode.window.showInformationMessage(
-                    `Added NightVision CLI to PATH in ${rcFile}. You may need to reopen the terminal windows for changes to take effect.`
+                    `Added NightVision CLI to PATH in ${rcFile}. You may need to reopen the terminal windows for changes to take effect.`,
+                    'Ok'
                 );
             }
         } else {
             await fs.promises.writeFile(rcFile, exportLine);
             vscode.window.showInformationMessage(
-                `Created ${rcFile} and added NightVision CLI to PATH. You may need to reopen the terminal windows for changes to take effect.`
+                `Created ${rcFile} and added NightVision CLI to PATH. You may need to reopen the terminal windows for changes to take effect.`,
+                'Ok'
             );
         }
     } catch (err) {
@@ -196,7 +198,8 @@ const addToUserPathWindows = (directory: string) => {
             // Using 'setx' to update the user environment variable
             child_process.execSync(`setx PATH "${currentUserPath}${path.delimiter}${directory}"`);
             vscode.window.showInformationMessage(
-                'Added NightVision CLI to PATH. You may need to reopen the terminal windows for changes to take effect.'
+                'Added NightVision CLI to PATH. You may need to reopen the terminal windows for changes to take effect.',
+                'Ok'
             );
         }
     } catch (err) {
