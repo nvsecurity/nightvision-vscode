@@ -106,8 +106,12 @@ export const installNightvisionCLI = async (): Promise<boolean> => {
             await fs.promises.chmod(cliExecutable, 0o755);
         }
 
+
+        const pathIncludesDestinationDir = havePathAlreadySet(platform, destinationDir);
+        if (!pathIncludesDestinationDir) {
+            (async () => await addToPath(platform))();    
+        }
         putCLIToVSCodePath();
-        (async () => await addToPath(platform))();
         return true;
     } catch (err) {
         const message = getErrorMessage(err);
@@ -115,6 +119,41 @@ export const installNightvisionCLI = async (): Promise<boolean> => {
         vscode.window.showErrorMessage(`Failed to install NightVision CLI. Error: ${message}`);
     }
     return false;
+};
+
+const havePathAlreadySet = (platform: string, destinationDir: string): boolean => {
+    switch (platform) {
+        case 'win32':
+            return havePathAlreadySetWindows(destinationDir);
+        default:
+            return havePathAlreadySetUnix(destinationDir);
+    }
+};
+
+const havePathAlreadySetUnix = (destinationDir: string): boolean => {
+    const homeDir = os.homedir();
+    const shell = process.env['SHELL'] || '';
+    let rcFile = '';
+
+    if (shell.includes('bash')) {
+        rcFile = path.join(homeDir, '.bashrc');
+    } else if (shell.includes('zsh')) {
+        rcFile = path.join(homeDir, '.zshrc');
+    } else {
+        rcFile = path.join(homeDir, '.profile');
+    }
+
+    if (fs.existsSync(rcFile)) {
+        const fileContent = fs.readFileSync(rcFile, 'utf8');
+        return fileContent.includes(destinationDir);
+    }
+
+    return false;
+};
+
+const havePathAlreadySetWindows = (destinationDir: string): boolean => {
+    const currentUserPath = process.env['PATH'] || '';
+    return currentUserPath.includes(destinationDir);
 };
 
 const downloadFile = (url: string, dest: string): Promise<void> => {
@@ -204,7 +243,7 @@ const addToUserPathUnix = async (directory: string) => {
 const addToUserPathWindows = async (directory: string) => {
     try {
         const currentUserPath = process.env['PATH'] || '';
-        if (!currentUserPath.includes(directory)) {
+        if (currentUserPath) {
             // Using 'setx' to update the user environment variable
             child_process.execSync(`setx PATH "${currentUserPath}${path.delimiter}${directory}"`);
             const response = await vscode.window.showInformationMessage(
