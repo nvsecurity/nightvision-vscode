@@ -1,3 +1,4 @@
+export const ADD_CLI_TO_VSCODE_PATH = 'add-cli-to-vscode-path';
 export const AUTH_MISSING_HEADERS = 'auth-missing-headers';
 export const AUTH_DESCRIPTION_LENGTH = 'auth-description-length';
 export const CLI_INSTALL = 'cli-install';
