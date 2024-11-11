@@ -181,6 +181,15 @@ const downloadFile = (url: string, dest: string): Promise<void> => {
 
 const addToPath = async (platform: string) => {
     const destinationDir = getDestinationDirForPlatform(os.platform());
+
+    if (platform === 'win32') {
+        await vscode.window.showInformationMessage(
+            `The NightVision CLI has been installed. Please manually add it to your PATH: ${destinationDir}`,
+            'Ok'
+        );
+        return;
+    }
+
     const addToPathResponse = await vscode.window.showInformationMessage(
         `The NightVision CLI has been installed. Would you like to automatically add it to your PATH? ('${destinationDir}')`,
         'Yes',
@@ -188,11 +197,11 @@ const addToPath = async (platform: string) => {
     );
 
     if (addToPathResponse === 'Yes') {
-        if (platform === 'win32') {
-            await addToUserPathWindows(destinationDir);
-        } else {
+        // if (platform === 'win32') {
+            // await addToUserPathWindows(destinationDir);
+        // } else {
             await addToUserPathUnix(destinationDir);
-        }
+        // }
     }
 };
 
@@ -242,6 +251,7 @@ const addToUserPathUnix = async (directory: string) => {
     }
 };
 
+// Deprecated: setx truncates PATH to 1024 chars. Let's disable it for now.
 const addToUserPathWindows = async (directory: string) => {
     try {
         const currentUserPath = process.env['PATH'] || '';
