@@ -59,7 +59,7 @@ export const putCLIToVSCodePath = () => {
         if (process.env.PATH && process.env.PATH.includes(destinationDir)) {
             return;
         }
-        process.env.PATH = `${process.env.PATH}${path.delimiter}${destinationDir}`;
+        process.env.PATH = `${destinationDir}${path.delimiter}${process.env.PATH}`;
     }
 };
 
