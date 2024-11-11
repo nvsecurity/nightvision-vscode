@@ -187,7 +187,7 @@ const addToPath = async (platform: string) => {
             `The NightVision CLI has been installed. Please manually add it to your PATH: ${destinationDir}`,
             'Ok'
         );
-        return;
+        return; // For Windows, let's not automatically set
     }
 
     const addToPathResponse = await vscode.window.showInformationMessage(
@@ -197,11 +197,7 @@ const addToPath = async (platform: string) => {
     );
 
     if (addToPathResponse === 'Yes') {
-        // if (platform === 'win32') {
-            // await addToUserPathWindows(destinationDir);
-        // } else {
-            await addToUserPathUnix(destinationDir);
-        // }
+        await addToUserPathUnix(destinationDir);
     }
 };
 
