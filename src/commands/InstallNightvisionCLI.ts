@@ -56,7 +56,7 @@ export const putCLIToVSCodePath = () => {
     const platform = os.platform();
     const destinationDir = getDestinationDirForPlatform(platform);
     if (fs.existsSync(destinationDir)) {
-        if (process.env.PATH && process.env.PATH.includes(destinationDir)) {
+        if (process.env.PATH && process.env.PATH.startsWith(destinationDir)) {
             return;
         }
         process.env.PATH = `${destinationDir}${path.delimiter}${process.env.PATH}`;
