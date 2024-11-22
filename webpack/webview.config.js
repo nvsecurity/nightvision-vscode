@@ -5,6 +5,7 @@
 const path = require('path');
 const webpack = require('webpack');
 const dotenv = require('dotenv');
+const CLI_VERSION = '0.7.1';
 
 dotenv.config();
 
@@ -57,7 +58,7 @@ const config = [
         process: 'process/browser',
       }),
       new webpack.DefinePlugin({
-        'process.env': { CLI_VERSION: JSON.stringify('0.6.9') },
+        'process.env': { CLI_VERSION: JSON.stringify(CLI_VERSION) },
       }),
     ],
     devServer: {
