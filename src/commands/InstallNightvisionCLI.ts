@@ -111,7 +111,7 @@ export const installNightvisionCLI = async (): Promise<boolean> => {
 
         const pathIncludesDestinationDir = havePathAlreadySet(platform, destinationDir);
         if (!pathIncludesDestinationDir) {
-            await addToPath(platform);
+            (async () => await addToPath(platform))();
         }
         putCLIToVSCodePath();
         return true;
