@@ -35,7 +35,7 @@ const getIssues = async (
   try {
     const response = await messageHandler.api({
       method: 'get',
-      url: `https://api.nightvision.net/api/v1/issues/kind/?scan=${scanId}`,
+      url: `${API_URL}/api/v1/issues/kind/?scan=${scanId}`,
       setIsLoggedIn: setIsLoggedIn,
     });
     return response.results;

@@ -94,7 +94,7 @@ export default class Command {
   }
 
   handleError(err: NodeJS.ErrnoException) {
-    if (err.code === 'ENOENT') {
+    if (err.code === 'ENOENT' || err.code === 'EACCES') {
       this.webview.postMessage({
         command: CLI_MISSING,
         requestId: this.requestId,
