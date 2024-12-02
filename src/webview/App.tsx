@@ -1,3 +1,4 @@
+import { DASTOptionsContext } from '@contexts/DASTOptionsContext';
 import { ProjectContext } from '@contexts/ProjectContext';
 import { TargetContext } from '@contexts/TargetContext';
 import { UserContext } from '@contexts/UserContext';
@@ -119,6 +120,7 @@ const router = createMemoryRouter(
 );
 
 export const App = () => {
+  const [isShowDASTOptions, setIsShowDASTOptions] = useState<Boolean>();
   const [currentProject, setCurrentProject] = useState<Project>();
   const [currentTarget, setCurrentTarget] = useState<Target>();
   const [currentUser, setCurrentUser] = useState<User>();
@@ -410,21 +412,28 @@ export const App = () => {
             setIsCliInstalled,
           }}
         >
-          <ProjectContext.Provider
+          <DASTOptionsContext.Provider
             value={{
-              currentProject,
-              setCurrentProject: handleProjectChange,
+              isShowDASTOptions: isShowDASTOptions ? true : false,
+              setIsShowDASTOptions: setIsShowDASTOptions,
             }}
           >
-            <TargetContext.Provider
+            <ProjectContext.Provider
               value={{
-                currentTarget,
-                setCurrentTarget: handleTargetChange,
+                currentProject,
+                setCurrentProject: handleProjectChange,
               }}
             >
-              <RouterProvider router={router} />
-            </TargetContext.Provider>
-          </ProjectContext.Provider>
+              <TargetContext.Provider
+                value={{
+                  currentTarget,
+                  setCurrentTarget: handleTargetChange,
+                }}
+              >
+                <RouterProvider router={router} />
+              </TargetContext.Provider>
+            </ProjectContext.Provider>
+          </DASTOptionsContext.Provider>
         </UserContext.Provider>
       </Layout>
     </React.StrictMode>

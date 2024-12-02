@@ -46,6 +46,10 @@ body {
   --input-padding-horizontal: 4px;
   --input-margin-vertical: 4px;
   --input-margin-horizontal: 0;
+  --light-active-bg-color: #bdb;
+  --light-tooltip-background-color: #f1f1f1;
+  --dark-active-bg-color: #1d4c1d;
+  --dark-tooltip-background-color: #4a4a4a;
 }
 
 body {
@@ -156,4 +160,87 @@ button.unstyled {
   width: initial;
   text-align: initial;
   background: initial;
+}
+
+.dast-options {
+  width: 100%;
+  padding: 2%;
+  border-radius: 0.5em;
+  border: 1px solid #aaa;
+  position: relative;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.dast-options.visible {
+  visibility: visible;
+  opacity: 1;
+}
+
+
+.tooltip {
+  position: relative;
+  display: inline-block;
+}
+
+.tooltip .tooltiptext {
+  visibility: hidden;
+  width: 80%;
+  background-color: var(--light-tooltip-background-color);
+  text-align: center;
+  padding: 5px 0;
+  padding: 0.5em;
+  border-radius: 0.5em;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+
+  /* Position the tooltip text */
+  position: absolute;
+  z-index: 1;
+  top: 90%;
+  left: 50%;
+  margin-left: -40%;
+
+  /* Fade in tooltip */
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.tooltip .tooltiptext::before {
+  content: "";
+  position: absolute;
+  top: -10px; /* Position above the box */
+  left: 10px; /* Position it near the left edge */
+  width: 0;
+  height: 0;
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  border-bottom: 10px solid var(--light-tooltip-background-color);
+}
+
+.vscode-high-contrast:not(.vscode-high-contrast-light) .tooltip .tooltiptext,
+.vscode-dark .tooltip .tooltiptext {
+  background-color: var(--dark-tooltip-background-color);
+}
+
+.vscode-high-contrast:not(.vscode-high-contrast-light) .tooltip .tooltiptext::before,
+.vscode-dark .tooltip .tooltiptext::before {
+  border-bottom: 10px solid var(--dark-tooltip-background-color);
+}
+
+.tooltip .tooltip-trigger:hover + .tooltiptext {
+  visibility: visible;
+  opacity: 1;
+}
+
+.tooltip .tooltiptext {
+  pointer-events: none;
+}
+
+.active {
+  background-color: var(--light-active-bg-color);
+}
+
+.vscode-high-contrast:not(.vscode-high-contrast-light) .active,
+.vscode-dark .active {
+  background-color: var(--dark-active-bg-color);
 }
