@@ -4,17 +4,13 @@ import { Project } from '@types_/project';
 import { ScanType, Severity, normalizedSeverity } from '@types_/scan';
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Dropdown } from '@components/Dropdown';
 import { Loading } from '@components/Loading';
-import { getProjects } from '@pages/Projects';
 import { messageHandler } from '@utils/MessageHandler';
-import formatDuration from '@utils/formatDuration';
 import { PageHeader } from '@components/PageHeader';
 import { API_URL } from '@constants/GlobalConstants';
 import useItemSelection from '@hooks/use-item-selection';
-import { Checkbox } from '@components/checkbox';
-import { BulkDeleteModal } from './components';
-import { TrashIcon } from '../scan/assets';
+import { BulkDeleteModal, ScansTable } from './components';
+import { ProjectDropdown } from '@components/project-dropdown';
 
 const ALL_PROJECTS_FILTER_OPTION: Project = { id: "<Internal-All>", name: "All" };
 
@@ -37,46 +33,37 @@ const getIssues = async (
   scanId: string
 ) => {
   try {
-    const response = await messageHandler.api(
-      'get',
-      `${API_URL}/api/v1/issues/kind/?scan=${scanId}`
-    );
-
+    const response = await messageHandler.api({
+      method: 'get',
+      url: `${API_URL}/api/v1/issues/kind/?scan=${scanId}`,
+      setIsLoggedIn: setIsLoggedIn,
+    });
     return response.results;
   } catch (err: any) {
-    if (
-      err?.type === 'client_error' ||
-      err?.type === 'validation_error' ||
-      err?.type === 'server_error'
-    ) {
-      for (const error of err.errors) {
-        switch (error.code) {
-          case 'not_authenticated':
-          case 'authentication_failed': {
-            setIsLoggedIn(false);
-          }
-        }
-      }
-    } else {
-      console.error(err);
-    }
+    console.error(err);
     return [];
   }
 };
 
 const getScans = async (
-  setScans: React.Dispatch<React.SetStateAction<ScanType[] | undefined>>,
-  setIsLoggedIn: React.Dispatch<React.SetStateAction<boolean>>
+  setIsLoggedIn: React.Dispatch<React.SetStateAction<boolean>>,
+  page: number,
+  project?: string,
 ) => {
   try {
+    const projectFilter = project ? `&project=${project}` : '';
     const response = (
-      await messageHandler.api(
-        'get',
-        `${API_URL}/api/v1/scans/?order=-created_at&page_size=24`
-      )
-    ).results;
+      await messageHandler.api({
+        method: 'get',
+        url: `${API_URL}/api/v1/scans/?order=-created_at&page=${page}${projectFilter}`,
+        setIsLoggedIn: setIsLoggedIn,
+      })
+    );
 
-    const scansPromises: Promise<ScanType>[] = response.map(
+    const nextPage = response.next && new URL(response.next).searchParams.get('page');
+    const totalCount = response.count;
+
+    const scansPromises: Promise<ScanType>[] = response.results.map(
       async (scan: any): Promise<ScanType> => {
         let vulnPathsStatistics = {};
         if (!scan.vulnerable_paths_statistics) {
@@ -103,51 +90,31 @@ const getScans = async (
     );
 
     const scans = await Promise.all(scansPromises);
-    setScans(scans);
+    return {
+      scans: scans,
+      nextPage: nextPage,
+      totalCount: totalCount,
+    };
   } catch (err: any) {
-    if (
-      err?.type === 'client_error' ||
-      err?.type === 'validation_error' ||
-      err?.type === 'server_error'
-    ) {
-      for (const error of err.errors) {
-        switch (error.code) {
-          case 'not_authenticated':
-          case 'authentication_failed': {
-            setIsLoggedIn(false);
-          }
-        }
-      }
-    } else {
-      console.error(err);
-    }
+    console.error(err);
   }
+  return {
+    scans: [],
+  };
 };
 
 export const Scans = () => {
   const { currentProject, setCurrentProject } = useProject();
   const { setIsLoggedIn } = useUser();
   const [scans, setScans] = useState<ScanType[]>();
-  const [currentTime, setCurrentTime] = useState(new Date());
-  const [projects, setProjects] = useState<Project[]>();
   const [projectFilter, setProjectFilter] = useState<Project>(currentProject);
   const [deleteModalOpen, setDeleteModalOpen] = React.useState(false);
-
-  const filteredScans = scans?.filter(
-    (scan) => scan.project.id === projectFilter?.id || projectFilter?.id === ALL_PROJECTS_FILTER_OPTION.id
-  );
-
-  useEffect(() => {
-    let interval: NodeJS.Timeout | undefined;
-    clearInterval(interval);
-    interval = setInterval(() => {
-      setCurrentTime(new Date());
-    }, 500);
-
-    return () => clearInterval(interval);
-  }, [currentTime]);
+  const [scansLoading, setScansLoading] = React.useState(false);
+  const [page, setPage] = React.useState(1);
+  const [totalCount, setTotalCount] = React.useState(0);
 
   useEffect(() => {
+    setPage(1);
     if (projectFilter && projectFilter?.id !== ALL_PROJECTS_FILTER_OPTION.id) {
       setCurrentProject(projectFilter);
     }
@@ -158,19 +125,27 @@ export const Scans = () => {
     let interval: NodeJS.Timeout | undefined;
     clearInterval(interval);
 
-    const fetchApi = async () => {
-      await getScans(setScans, setIsLoggedIn);
-      await getProjects(setProjects, setIsLoggedIn);
+    const fetchApiWrapper = async () => {
+      setScansLoading(true);
+      await fetchApi();
+      setScansLoading(false);
     };
 
-    fetchApi();
+    const fetchApi = async () => {
+      const project = projectFilter.id === ALL_PROJECTS_FILTER_OPTION.id ? undefined : projectFilter.id;
+      const res = await getScans(setIsLoggedIn, page, project);
+      setScans(res?.scans);
+      setTotalCount(res?.totalCount);
+    };
+
+    fetchApiWrapper();
 
     interval = setInterval(async () => {
       await fetchApi();
     }, 20000);
 
     return () => clearInterval(interval);
-  }, [deleteModalOpen]);
+  }, [deleteModalOpen, page, projectFilter]);
 
   // Get issues for scans that are still running
   useEffect(() => {
@@ -178,42 +153,23 @@ export const Scans = () => {
     clearInterval(interval);
 
     interval = setInterval(async () => {
-      try {
-        for (const scan of scans ?? []) {
-          if (!scan.isScanning) {
-            return;
-          }
-
-          const issues = await getIssues(setIsLoggedIn, scan.id);
-
-          setScans((prevState) =>
-            prevState?.map((oldScan) =>
-              oldScan.id === scan.id
-                ? {
-                  ...oldScan,
-                  vulnPathsStatistics: countIssues(issues),
-                }
-                : oldScan
-            )
-          );
+      for (const scan of scans ?? []) {
+        if (!scan.isScanning) {
+          return;
         }
-      } catch (err: any) {
-        if (
-          err?.type === 'client_error' ||
-          err?.type === 'validation_error' ||
-          err?.type === 'server_error'
-        ) {
-          for (const error of err.errors) {
-            switch (error.code) {
-              case 'not_authenticated':
-              case 'authentication_failed': {
-                setIsLoggedIn(false);
+
+        const issues = await getIssues(setIsLoggedIn, scan.id);
+
+        setScans((prevState) =>
+          prevState?.map((oldScan) =>
+            oldScan.id === scan.id
+              ? {
+                ...oldScan,
+                vulnPathsStatistics: countIssues(issues),
               }
-            }
-          }
-        } else {
-          console.error(err);
-        }
+              : oldScan
+          )
+        );
       }
     }, 5000);
 
@@ -221,24 +177,24 @@ export const Scans = () => {
   }, [scans]);
 
   const itemSelectionApi = useItemSelection<ScanType>({
-    data: filteredScans?.length ? filteredScans : [],
+    data: scans?.length ? scans : [],
     keyBy: item => item?.id || '',
     labelBy: item => item?.target.name || '',
   });
 
   React.useEffect(() => {
-    if (filteredScans) {
+    if (scans) {
       const selectedItems = new Map(itemSelectionApi.selectedItems);
-      itemSelectionApi.reinitializeData(filteredScans);
+      itemSelectionApi.reinitializeData(scans);
 
       itemSelectionApi.selectedItems.forEach((item) => {
-        if (selectedItems.has(item.id) && !filteredScans.find((issue) => issue.id === item.id)) {
+        if (selectedItems.has(item.id) && !scans.find((issue) => issue.id === item.id)) {
           selectedItems.delete(item.id);
         }
       });
       itemSelectionApi.reinitialize(selectedItems);
     }
-  }, [JSON.stringify(filteredScans)]);
+  }, [JSON.stringify(scans)]);
 
   return (
     <div className='flex flex-col space-y-4'>
@@ -299,165 +255,34 @@ export const Scans = () => {
         </Link>
       </div>
 
-      {filteredScans && projects && (
-        <>
-          <div className='!mb-2 !mt-6 flex items-end justify-between'>
-            <h2 className='truncate text-sm uppercase'>Previous Scans</h2>
-            <div className='w-[calc(50%-.375rem)]'>
-              <Dropdown
-                selectedItem={projectFilter}
-                items={[ALL_PROJECTS_FILTER_OPTION, ...projects]}
-                name='Project'
-                handleChange={setProjectFilter}
-                id='current-project'
-              />
-            </div>
-          </div>
-          {filteredScans.length === 0 ? (
-            <span className='!mt-10 w-full text-center'>No scans found</span>
-          ) : (
-            <div className='!mt-1'>
-              <div className='grid gap-3' style={{ gridTemplateColumns: '4rem repeat(3, minmax(0, 1fr))' }}>
-                {/* Table Headers */}
-                <div className='font-bold uppercase flex justify-start items-center px-4 gap-1 pl-4'>
-                  <Checkbox
-                    checked={itemSelectionApi.isAllSelected}
-                    onChange={() => itemSelectionApi.onToggleAll()}
-                    indeterminate={itemSelectionApi.isPartiallySelected}
-                    disabled={!filteredScans.length}
-                  />
-                  <button
-                    className='unstyled'
-                    title='Delete Selected Scans'
-                    disabled={!itemSelectionApi.selectedItems.size}
-                    onClick={() => setDeleteModalOpen(true)}
-                  >
-                    <TrashIcon color={!itemSelectionApi.selectedItems.size ? '#5A657C' : undefined} />
-                  </button>
-                </div>
-                <div className='font-bold uppercase flex justify-start items-center'>Target</div>
-                <div className='flex font-bold uppercase flex justify-start items-center'>Project</div>
-                <div className='font-bold uppercase flex justify-start items-center'>
-                  <span className='block s-400px:hidden'>Vuln.</span>
-                  <span className='hidden s-400px:block'>Vulnerabilities</span>
-                </div>
-              </div>
+      <div className='!mb-2 !mt-6 flex items-end justify-between'>
+        <h2 className='truncate text-sm uppercase'>Previous Scans</h2>
+        <div className='w-[calc(50%-.375rem)]'>
+          <ProjectDropdown
+            project={projectFilter}
+            onProjectChange={setProjectFilter}
+            includeAllOption
+          />
+        </div>
+      </div>
 
-              {filteredScans.map((scan) => (
-                <Link
-                  to={`/scans/${scan.id}`}
-                  key={scan.id}
-                  className='!mt-2 relative flex h-24 flex-col justify-center items-center overflow-hidden px-4 py-2 text-[--vscode-foreground] before:absolute before:inset-0 before:-z-10 before:rounded before:bg-[--vscode-input-background] hover:cursor-pointer hover:text-[--vscode-foreground] before:hover:brightness-75'
-                >
-                  <div className='grid gap-3 w-full h-full' style={{ gridTemplateColumns: '3rem repeat(3, minmax(0, 1fr))' }}>
-                    {/* Checkbox Column */}
-                    <div className='truncate flex flex-col justify-center'>
-                      <div className='flex w-fit' onClick={(e) => e.stopPropagation()}>
-                        <Checkbox
-                          checked={itemSelectionApi.selectedItems.has(scan.id)}
-                          onChange={() => itemSelectionApi?.onToggleItem(scan)}
-                        />
-                      </div>
-                    </div>
-
-                    {/* Target Column */}
-                    <div className='truncate flex flex-col justify-center'>
-                      <span className='truncate font-bold'>
-                        {scan.target?.name ?? '-'}
-                      </span>
-                      <div className='flex items-center mt-1'>
-                        {scan.isScanning ? (
-                          <svg
-                            xmlns='http://www.w3.org/2000/svg'
-                            viewBox='0 0 100 100'
-                            className='mr-2 h-5 w-5 animate-spin stroke-[--vscode-foreground]'
-                          >
-                            <circle
-                              cx='50'
-                              cy='50'
-                              fill='none'
-                              strokeWidth='8'
-                              r='35'
-                              strokeDasharray='164.93361431346415 56.97787143782138'
-                            />
-                          </svg>
-                        ) : scan.disrupted ? (
-                          <svg
-                            width='16'
-                            height='16'
-                            viewBox='0 0 16 16'
-                            xmlns='http://www.w3.org/2000/svg'
-                            fill='currentColor'
-                            className='mr-2 h-5 w-5 stroke-red-600'
-                          >
-                            <path
-                              fillRule='evenodd'
-                              clipRule='evenodd'
-                              d='M7.56 1h.88l6.54 12.26-.44.74H1.44L1 13.26 7.56 1zM8 2.28L2.28 13H13.7L8 2.28zM8.625 12v-1h-1.25v1h1.25zm-1.25-2V6h1.25v4h-1.25z'
-                            />
-                          </svg>
-                        ) : scan.aborted && (
-                          <svg
-                            xmlns='http://www.w3.org/2000/svg'
-                            width='18'
-                            height='18'
-                            viewBox='0 0 256 256'
-                            fill='#F07F23'
-                            className={`mt-0 mr-2 fill-#F07F23`}
-                          >
-                            <path d='M176,128a8,8,0,0,1-8,8H88a8,8,0,0,1,0-16h80A8,8,0,0,1,176,128Zm56,0A104,104,0,1,1,128,24,104.11,104.11,0,0,1,232,128Zm-16,0a88,88,0,1,0-88,88A88.1,88.1,0,0,0,216,128Z'></path>
-                          </svg>
-                        )}
-                        <span className='text-sm font-bold'>
-                          {formatDuration(
-                            (scan.endedAt ? scan.endedAt.getTime() : currentTime.getTime()) - scan.createdAt.getTime()
-                          )}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Project Column */}
-                    <div className='flex truncate flex flex-col justify-center items-center'>
-                      <span className='truncate font-bold'>
-                        {scan.project?.name ?? '-'}
-                      </span>
-                    </div>
-
-                    {/* Vulnerabilities Column */}
-                    <div className='flex flex-wrap space-x-3 justify-center'>
-                      {!!scan.vulnPathsStatistics?.Critical && (
-                        <div className='flex items-center space-x-0.5'>
-                          <div className='mt-0.5 h-2 w-2 rounded-full bg-red-600' />
-                          <span>{scan.vulnPathsStatistics.Critical}</span>
-                        </div>
-                      )}
-                      {!!scan.vulnPathsStatistics?.High && (
-                        <div className='flex items-center space-x-0.5'>
-                          <div className='mt-0.5 h-2 w-2 rounded-full bg-orange-600' />
-                          <span>{scan.vulnPathsStatistics.High}</span>
-                        </div>
-                      )}
-                      {!!scan.vulnPathsStatistics?.Medium && (
-                        <div className='flex items-center space-x-0.5'>
-                          <div className='mt-0.5 h-2 w-2 rounded-full bg-yellow-600' />
-                          <span>{scan.vulnPathsStatistics.Medium}</span>
-                        </div>
-                      )}
-                      {!!scan.vulnPathsStatistics?.Low && (
-                        <div className='flex items-center space-x-0.5'>
-                          <div className='mt-0.5 h-2 w-2 rounded-full bg-green-600' />
-                          <span>{scan.vulnPathsStatistics.Low}</span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          )}
-        </>
+      {scansLoading ? (
+        <Loading />
+      ) : (
+        scans?.length ? (
+          <ScansTable
+            scans={scans}
+            itemSelectionApi={itemSelectionApi}
+            page={page}
+            setPage={setPage}
+            totalScansCount={totalCount}
+            setDeleteModalOpen={setDeleteModalOpen}
+          />
+        ) : (
+          <span className='!mt-10 w-full text-center'>No scans found</span>
+        )
       )}
-      {(!filteredScans || !projects) && <Loading />}
+
       {deleteModalOpen && (
         <BulkDeleteModal
           scans={Array.from(itemSelectionApi.selectedItems.values()).map(scan => scan.id)}

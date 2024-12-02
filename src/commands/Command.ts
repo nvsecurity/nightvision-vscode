@@ -55,9 +55,7 @@ export default class Command {
 
     const flags = this.flags?.reduce<string[]>((acc, item) => {
       acc.push(item.flag);
-      if (item.value) {
-        acc.push(item.value.trim());
-      }
+      acc.push(item.value?.trim() || '');
       return acc;
     }, []);
 
@@ -96,7 +94,7 @@ export default class Command {
   }
 
   handleError(err: NodeJS.ErrnoException) {
-    if (err.code === 'ENOENT') {
+    if (err.code === 'ENOENT' || err.code === 'EACCES') {
       this.webview.postMessage({
         command: CLI_MISSING,
         requestId: this.requestId,

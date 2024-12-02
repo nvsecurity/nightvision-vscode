@@ -32,7 +32,7 @@ import { SecondaryButton } from '@components/SecondaryButton';
 import { TextInput } from '@components/TextInput';
 import { messageHandler } from '@utils/MessageHandler';
 import { PageHeader } from '@components/PageHeader';
-import { API_URL } from '@constants/GlobalConstants';
+import { API_ERROR_TYPES, API_URL } from '@constants/GlobalConstants';
 
 SyntaxHighlighter.registerLanguage('python', python);
 
@@ -47,10 +47,11 @@ export const getAuth = async (
   }
 
   try {
-    const auth = await messageHandler.api(
-      'get',
-      `${API_URL}/api/v1/credentials/${authId}/`
-    );
+    const auth = await messageHandler.api({
+      method: 'get',
+      url: `${API_URL}/api/v1/credentials/${authId}/`,
+      setIsLoggedIn: setIsLoggedIn,
+    });
 
     if (ignore) {
       return;
@@ -72,22 +73,7 @@ export const getAuth = async (
       scriptContent: auth.script_content,
     });
   } catch (err: any) {
-    if (
-      err?.type === 'client_error' ||
-      err?.type === 'validation_error' ||
-      err?.type === 'server_error'
-    ) {
-      for (const error of err.errors) {
-        switch (error.code) {
-          case 'not_authenticated':
-          case 'authentication_failed': {
-            setIsLoggedIn(false);
-          }
-        }
-      }
-    } else {
-      console.error(err);
-    }
+    console.error(err);
   }
 };
 
@@ -295,12 +281,12 @@ export const AuthenticationPage = () => {
           case UPDATE_AUTH:
           case NO_UPDATED_FIELD: {
             if (!rerecord) {
-              await messageHandler.api(
-                'PUT',
-                `${API_URL}/api/v1/credentials/${auth.id}/`,
-
-                { description: updateDescription }
-              );
+              await messageHandler.api({
+                method: 'PUT',
+                url: `${API_URL}/api/v1/credentials/${auth.id}/`,
+                body: { description: updateDescription },
+                setIsLoggedIn: setIsLoggedIn,
+              });
             }
             await getAuth(setAuth, setIsLoggedIn, authId);
             setShowUpdateModal(false);
@@ -360,17 +346,9 @@ export const AuthenticationPage = () => {
         }
       }
     } catch (err: any) {
-      if (
-        err?.type === 'client_error' ||
-        err?.type === 'validation_error' ||
-        err?.type === 'server_error'
-      ) {
+      if (API_ERROR_TYPES.includes(err?.type)) {
         for (const error of err.errors) {
           switch (error.code) {
-            case 'not_authenticated':
-            case 'authentication_failed': {
-              setIsLoggedIn(false);
-            }
             case 'invalid':
             case 'max_length': {
               setAuthDescriptionErrors((prevState) => [

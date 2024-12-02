@@ -3,7 +3,7 @@
   "displayName": "NightVision",
   "publisher": "nvsecurity",
   "description": "Test and exploit REST APIs and Web apps from your IDE.",
-  "version": "0.0.26",
+  "version": "0.0.40",
   "license": "Apache-2.0",
   "icon": "docs/icon.png",
   "engines": {
@@ -115,6 +115,7 @@
   "dependencies": {
     "react-syntax-highlighter": "^15.5.0",
     "sudo-prompt": "^9.2.1",
+    "tar": "^7.4.3",
     "use-debounce": "^10.0.2"
   }
 }

@@ -1,3 +1,4 @@
+export const ADD_CLI_TO_VSCODE_PATH = 'add-cli-to-vscode-path';
 export const AUTH_MISSING_HEADERS = 'auth-missing-headers';
 export const AUTH_DESCRIPTION_LENGTH = 'auth-description-length';
 export const CLI_INSTALL = 'cli-install';
@@ -43,3 +44,5 @@ export const UNAUTHORIZED_ACCESS = 'unauthorized-access';
 export const OPEN_FILE_DIALOG = 'open-file-dialog';
 export const SWAGGER_EXTRACT = 'swagger-extract';
 export const SWAGGER_EXTRACT_ERROR = 'swagger-extract-error';
+export const VALIDATE_FILE_PATH = 'validate-file-path';
+export const CHECK_HEALTH = 'check-health';

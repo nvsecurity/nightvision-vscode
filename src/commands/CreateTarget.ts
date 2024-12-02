@@ -1,5 +1,5 @@
 import { Project } from '@types_/project';
-import { ApiSpec, TargetType } from '@types_/target';
+import { ApiSpec, TargetType, TargetTypeEnum } from '@types_/target';
 import * as vscode from 'vscode';
 import Command, { Flag } from '@commands/Command';
 import {
@@ -20,6 +20,8 @@ export interface CreateTargetParams {
   apiSpecType: ApiSpec;
   openApiUrl?: string;
   swaggerFilePath?: string | null;
+  excludedUrlPatterns?: string[];
+  excludedXPaths?: string[];
 }
 
 export default class CreateTarget extends Command {
@@ -37,18 +39,32 @@ export default class CreateTarget extends Command {
       apiSpecType,
       openApiUrl,
       swaggerFilePath,
+      excludedUrlPatterns,
+      excludedXPaths,
     }: CreateTargetParams
   ) {
     const flags: Flag[] = [
       { flag: '-P', value: project.id },
-      { flag: '-t', value: type === 'URL' ? 'WEB' : 'API' },
+      { flag: '-t', value: type === TargetTypeEnum.URL ? 'WEB' : 'API' },
     ];
 
-    if (type === 'OPENAPI') {
+    if (type === TargetTypeEnum.OPENAPI) {
       flags.push({
         flag: apiSpecType === 'FILE' ? '-f' : '-s',
         value: (apiSpecType === 'FILE' ? swaggerFilePath : openApiUrl) ?? '',
       });
+    }
+
+    excludedUrlPatterns?.forEach(urlPattern => flags.push({
+      flag: '--exclude-url',
+      value: urlPattern,
+    }));
+
+    if (type === TargetTypeEnum.URL) {
+      excludedXPaths?.forEach(xPath => flags.push({
+        flag: '--exclude-xpath',
+        value: xPath,
+      }));
     }
 
     super({

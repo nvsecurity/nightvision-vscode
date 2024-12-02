@@ -11,6 +11,7 @@ import { PageHeader } from '@components/PageHeader';
 import { API_URL } from '@constants/GlobalConstants';
 import { AbortModal, DeleteModal, IssueCard } from './components';
 import { ErrorIcon, ExtraLinkIcon, LoadingIcon, StopIcon, TrashIcon } from './assets';
+import { TargetTypeEnum } from '@types_/target';
 
 export const Scan = () => {
   const { scanId } = useParams();
@@ -52,16 +53,18 @@ export const Scan = () => {
 
     const getAndSetScan = async () => {
       try {
-        const response = await messageHandler.api(
-          'get',
-          `${API_URL}/api/v1/scans/${scanId}`
-        );
+        const response = await messageHandler.api({
+          method: 'get',
+          url: `${API_URL}/api/v1/scans/${scanId}`,
+          setIsLoggedIn: setIsLoggedIn,
+        });
 
         const issues = (
-          await messageHandler.api(
-            'get',
-            `${API_URL}/api/v1/issues/kind/?scan=${scanId}`
-          )
+          await messageHandler.api({
+            method: 'get',
+            url: `${API_URL}/api/v1/issues/kind/?scan=${scanId}`,
+            setIsLoggedIn: setIsLoggedIn,
+          })
         ).results;
 
         if (!ignore) {
@@ -87,22 +90,7 @@ export const Scan = () => {
           });
         }
       } catch (err: any) {
-        if (
-          err?.type === 'client_error' ||
-          err?.type === 'validation_error' ||
-          err?.type === 'server_error'
-        ) {
-          for (const error of err.errors) {
-            switch (error.code) {
-              case 'not_authenticated':
-              case 'authentication_failed': {
-                setIsLoggedIn(false);
-              }
-            }
-          }
-        } else {
-          console.error(err);
-        }
+        console.error(err);
       }
     };
 
@@ -137,7 +125,7 @@ export const Scan = () => {
           <div className='flex flex-col space-y-1'>
             <div>
               <Label htmlFor='target-name'>
-                Target ({scan.target.type === 'URL' ? 'WEB' : 'API'})
+                Target ({scan.target.type === TargetTypeEnum.URL ? 'WEB' : 'API'})
               </Label>
               <select
                 className='w-full bg-[--vscode-settings-dropdownBackground] px-0.5 py-1.5'

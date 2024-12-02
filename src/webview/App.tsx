@@ -15,6 +15,7 @@ import {
   useRouteError,
 } from 'react-router-dom';
 import {
+  ADD_CLI_TO_VSCODE_PATH,
   CLI_MISSING,
   CLI_VERSION,
   CREATE_TOKEN,
@@ -31,17 +32,17 @@ import { InstallButton } from '@components/InstallButton';
 import { Layout } from '@components/Layout';
 import { Loading } from '@components/Loading';
 import { AuthenticationPage } from '@pages/Authentication';
-import { Authentications } from '@pages/Authentications';
+import { Authentications } from '@pages/authentications';
 import { NewScan } from '@pages/NewScan';
 import { Overview } from '@pages/Overview';
 import { ProjectPage } from '@pages/Project';
-import { Projects } from '@pages/Projects';
+import { Projects } from '@pages/projects';
 import { Reload } from '@pages/Reload';
 import { Scan } from '@pages/scan';
 import { Scans } from '@pages/scans';
 import { Settings } from '@pages/Settings';
 import { TargetPage } from '@pages/Target';
-import { Targets } from '@pages/Targets';
+import { Targets } from '@pages/targets';
 import { messageHandler } from '@utils/MessageHandler';
 import { ApiDiscoveryPage } from '@pages/ApiDiscovery';
 import { API_URL } from '@constants/GlobalConstants';
@@ -276,7 +277,10 @@ export const App = () => {
       let url = `${API_URL}/api/v1/auth/cli/token/`;
 
       while (true) {
-        const response = await messageHandler.api('GET', url);
+        const response = await messageHandler.api({
+          method: 'GET',
+          url: url,
+        });
         apiTokens = [...apiTokens, ...response.results];
 
         if (response.next) {
@@ -299,10 +303,10 @@ export const App = () => {
         ) {
           continue;
         }
-        await messageHandler.api(
-          'DELETE',
-          `${API_URL}/api/v1/auth/cli/token/${token.digest}/`
-        );
+        await messageHandler.api({
+          method: 'DELETE',
+          url: `${API_URL}/api/v1/auth/cli/token/${token.digest}/`,
+        });
         await messageHandler.request(DELETE_TOKENS, [token.token_key]);
       }
     } catch (err) {
@@ -313,10 +317,11 @@ export const App = () => {
   const getUser = async () => {
     try {
       const user = (
-        await messageHandler.api(
-          'get',
-          `${API_URL}/api/v1/user/me/`
-        )
+        await messageHandler.api({
+          method: 'get',
+          url: `${API_URL}/api/v1/user/me/`,
+          setIsLoggedIn: setIsLoggedIn,
+        })
       ).user;
 
       setCurrentUser({
@@ -343,6 +348,9 @@ export const App = () => {
 
     (async () => {
       try {
+        // Adding CLI executable to VSCode PATH
+        for await (const _ of messageHandler.requestGenerator(ADD_CLI_TO_VSCODE_PATH)) {}
+
         const promises = await Promise.all([
           getCurrentProject(ignore),
           getCurrentTarget(ignore),
@@ -371,7 +379,12 @@ export const App = () => {
         <InstallButton
           installText='Install NightVison CLI'
           installingText='Installing...'
-          setIsCliInstalled={setIsCliInstalled}
+          setIsCliInstalled={(installed) => {
+            setIsCliInstalled(installed);
+            if (installed) {
+              setCliVersion(process.env.CLI_VERSION);
+            }
+          }}
         />
       </Layout>
     );

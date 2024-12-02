@@ -9,6 +9,8 @@ export const TextInput = ({
   isLoading,
   errors,
   touched = false,
+  style,
+  ...props
 }: {
   value?: string | null;
   handleOnChange: (e: string) => void;
@@ -17,11 +19,12 @@ export const TextInput = ({
   isLoading?: boolean;
   errors?: string[];
   touched?: boolean;
-}) => {
+  style?: React.CSSProperties;
+} & React.DetailedHTMLProps<React.InputHTMLAttributes<HTMLInputElement>, HTMLInputElement>) => {
   const [isTouched, setIsTouched] = useState(false);
 
   return (
-    <div>
+    <div style={style}>
       <Label htmlFor={id}>{label}</Label>
       <div className='relative'>
         <input
@@ -32,6 +35,8 @@ export const TextInput = ({
           value={value ?? ''}
           id={id}
           onBlur={() => setIsTouched(true)}
+          style={{boxSizing: 'border-box'}}
+          {...props}
         />
         {isLoading && (
           <svg

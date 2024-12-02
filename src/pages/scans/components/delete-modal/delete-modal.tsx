@@ -22,35 +22,17 @@ export const BulkDeleteModal: React.FC<BulkDeleteProps> = ({
   const onDeleteScan = async () => {
     try {
       setScanDeleteInProgress(true);
-      await messageHandler.api(
-        'POST',
-        `${API_URL}/api/v1/scans/drop/`,
-        { ids: scans }
-      );
+      await messageHandler.api({
+        method: 'POST',
+        url: `${API_URL}/api/v1/scans/drop/`,
+        body: { ids: scans },
+        setIsLoggedIn: setIsLoggedIn,
+    });
       setDeleteModalOpen(false);
     }
     catch (error: any) {
-      const err = JSON.parse(error);
-      if (
-        err?.type === 'client_error' ||
-        err?.type === 'validation_error' ||
-        err?.type === 'server_error'
-      ) {
-        for (const error of err.errors) {
-          switch (error.code) {
-            case 'not_authenticated':
-            case 'authentication_failed': {
-              setIsLoggedIn(false);
-              break;
-            }
-            default: {
-              setDeleteError(`Failed to delete selected Scans`);
-            }
-          }
-        }
-      } else {
-        console.error(err);
-      }
+      setDeleteError(`Failed to delete selected Scans`);
+      console.error(error);
     }
     finally {
       setScanDeleteInProgress(false);
@@ -79,7 +61,7 @@ export const BulkDeleteModal: React.FC<BulkDeleteProps> = ({
       title={'Delete selected Scans?'}
       body={body}
       action={onDeleteScan}
-      buttonText={scanDeleteInProgress ? 'Deleteing...' : 'Delete'}
+      buttonText={scanDeleteInProgress ? 'Deleting...' : 'Delete'}
       isSubmitting={scanDeleteInProgress}
     />
   );

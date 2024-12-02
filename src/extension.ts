@@ -7,6 +7,8 @@ import * as vscode from 'vscode';
 import { ExtensionContext, ExtensionMode, Uri } from 'vscode';
 import CliVersion from '@commands/CliVersion';
 import {
+  CHECK_HEALTH,
+  ADD_CLI_TO_VSCODE_PATH,
   CLI_INSTALL,
   CLI_INSTALL_FAILED,
   CLI_VERSION,
@@ -31,6 +33,7 @@ import {
   UPDATE_AUTH,
   UPDATE_PROJECT,
   UPDATE_TARGET,
+  VALIDATE_FILE_PATH,
 } from '@commands/CommandConstants';
 import CreateAuth from '@commands/CreateAuth';
 import CreateProject from '@commands/CreateProject';
@@ -50,6 +53,9 @@ import UpdateTarget from '@commands/UpdateTarget';
 import fs from 'fs/promises';
 import { openFileDialog } from '@commands/OpenFileDialog';
 import SwaggerExtract from '@commands/SwaggerExtract';
+import FilePathValidator from '@commands/FilePathValidator';
+import GetTokensList from '@commands/GetTokensList';
+import { installNightvisionCLI, putCLIToVSCodePath } from '@commands/InstallNightvisionCLI';
 
 export async function activate(context: vscode.ExtensionContext) {
   const sidebarProvider = new SidebarProvider(context);
@@ -149,109 +155,35 @@ class SidebarProvider implements vscode.WebviewViewProvider {
       try {
         switch (command) {
           case CLI_INSTALL: {
-            const platform = os.platform();
-            const arch = os.arch();
-
-            let command: string | undefined;
-            let filePath = '/usr/local/bin/nightvision';
-            let stop = false;
-
-            if (platform === 'win32') {
-              command = `${path.join(this._extensionContext.extensionPath, 'install_nightvision.bat')}`;
-              filePath = 'C:/Program Files/Nightvision/bin/nightvision.exe';
-            } else if (platform === 'darwin') {
-              if (arch === 'x64') {
-                command =
-                  'cd ~; curl -L https://downloads.nightvision.net/binaries/latest/nightvision_latest_darwin_amd64.tar.gz | tar -xz; sudo mkdir -p /usr/local/bin/; sudo mv nightvision /usr/local/bin/';
-              } else if (arch === 'arm64') {
-                command =
-                  'cd ~; curl -L https://downloads.nightvision.net/binaries/latest/nightvision_latest_darwin_arm64.tar.gz -q | tar -xz; sudo mkdir -p /usr/local/bin/; sudo mv nightvision /usr/local/bin/';
-              }
-            } else if (platform === 'linux') {
-              if (arch === 'x64') {
-                command =
-                  'cd ~; curl -L https://downloads.nightvision.net/binaries/latest/nightvision_latest_linux_amd64.tar.gz -q | tar -xz; sudo mkdir -p /usr/local/bin/; sudo mv nightvision /usr/local/bin/';
-              } else if (arch === 'arm64') {
-                command =
-                  'cd ~; curl -L https://downloads.nightvision.net/binaries/latest/nightvision_latest_linux_arm64.tar.gz -q | tar -xz; sudo mkdir -p /usr/local/bin/; sudo mv nightvision /usr/local/bin/';
-              }
-            }
-
-            if (!command) {
+            const readyToProceed = await installNightvisionCLI();
+            if (readyToProceed) {
+              webviewView.webview.postMessage({
+                command: CLI_INSTALL,
+                requestId,
+                isFinal: true,
+              });
+            } else {
               webviewView.webview.postMessage({
                 command: CLI_INSTALL_FAILED,
                 requestId,
                 isFinal: true,
               });
-              return;
             }
-
-            let lastModifiedTime: Date;
-            try {
-              const stats = await fs.stat(filePath);
-              lastModifiedTime = stats.mtime;
-            } catch (err) {
-              console.error(err);
-            }
-
-            sudo.exec(
-              command,
-              { name: 'NightVision' },
-              (error, stdout, stderr) => {
-                if (error) {
-                  console.error(error?.name, error?.message);
-                  webviewView.webview.postMessage({
-                    command: CLI_INSTALL_FAILED,
-                    requestId,
-                    isFinal: true,
-                  });
-                  stop = true;
-                  return;
-                }
-                webviewView.webview.postMessage({
-                  command: CLI_INSTALL,
-                  requestId,
-                  isFinal: true,
-                });
-              }
-            );
-
-            let tries = 0;
-            const interval = setInterval(async () => {
-              if (tries > 11 || stop) {
-                clearInterval(interval);
-                webviewView.webview.postMessage({
-                  command: CLI_INSTALL_FAILED,
-                  requestId,
-                  isFinal: true,
-                });
-                return;
-              }
-
-              try {
-                const stats = await fs.stat(filePath);
-                if (
-                  !lastModifiedTime ||
-                  stats.mtime.getTime() !== lastModifiedTime.getTime()
-                ) {
-                  webviewView.webview.postMessage({
-                    command: CLI_INSTALL,
-                    requestId,
-                    isFinal: true,
-                  });
-                  stop = true;
-                }
-              } catch (err) {
-                console.error(err);
-              }
-              tries += 1;
-            }, 2500);
             break;
           }
           case CLI_VERSION: {
             const command = new CliVersion(webviewView.webview, requestId);
 
             this._children[requestId] = command.execute();
+            break;
+          }
+          case ADD_CLI_TO_VSCODE_PATH: {
+            putCLIToVSCodePath();
+            webviewView.webview.postMessage({
+              command: ADD_CLI_TO_VSCODE_PATH,
+              requestId,
+              isFinal: true,
+            });
             break;
           }
           case KILL: {
@@ -451,6 +383,17 @@ class SidebarProvider implements vscode.WebviewViewProvider {
             });
             break;
           }
+          case CHECK_HEALTH: {
+            const command = new GetTokensList(
+              webviewView.webview,
+              requestId,
+              this._extensionContext,
+              this.nightvisionToken
+            );
+
+            this._children[requestId] = command.execute();
+            break;
+          }
           case OPEN_FILE_DIALOG: {
             const selectedPaths = await openFileDialog(payload);
 
@@ -470,6 +413,20 @@ class SidebarProvider implements vscode.WebviewViewProvider {
             );
 
             this._children[requestId] = command.execute();
+            break;
+          }
+          case VALIDATE_FILE_PATH: {
+            const validator = new FilePathValidator(
+              payload
+            );
+
+            const result = validator.validate();
+            webviewView.webview.postMessage({
+              command: VALIDATE_FILE_PATH,
+              requestId,
+              payload: result,
+              isFinal: true,
+            });
             break;
           }
         }

@@ -1,10 +1,10 @@
-import { TargetType } from '@types_/target';
+import { TargetType, TargetTypeEnum } from '@types_/target';
 import React from 'react';
 
 export const TargetTypeLabel = ({ targetType }: { targetType: TargetType }) => {
   return (
     <span>
-      {targetType === 'URL' && (
+      {targetType === TargetTypeEnum.URL && (
         <div className='flex items-center space-x-2'>
           <span>Web</span>
           <svg
@@ -23,7 +23,7 @@ export const TargetTypeLabel = ({ targetType }: { targetType: TargetType }) => {
           </svg>
         </div>
       )}
-      {targetType === 'OPENAPI' && (
+      {targetType === TargetTypeEnum.OPENAPI && (
         <div className='flex items-center space-x-2'>
           <span>Open API</span>
           <svg
