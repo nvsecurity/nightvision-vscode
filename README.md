@@ -32,7 +32,7 @@ The process is straightforward:
 If successful, a new window in your VSCode will open with your API information and you can save it at your convenience.
 
 As an example, we can use the [javaspringvulny repository](https://github.com/vulnerable-apps/javaspringvulny):
-1. Clone the repo: `git clone https://github.com/vulnerable-apps/javaspringvulny.git`;
+1. Clone the repo: `git clone https://github.com/vulnerable-apps/javaspringvulny.git`
 2. Copy the filepath or select the parent folder;
 3. Select the **Java** language.
 
@@ -48,21 +48,60 @@ The image below shows the available options for us to configure our scans. In or
 
 <img style="width: 300px;" alt="API Security Testing" src="docs/api_security_testing_main_page.png" />
 
-### Usage example
+#### Configuring a project
 
-For this example, we'll be using the `HTML5 Vulnweb` website from the [public vulnerable websites](https://docs.nightvision.net/docs/public-vulnerable-websites).
+1. Click in **Create Project**:
 
-#### Projects
+    <img style="width: 300px;" alt="Projects page" src="docs/project_1.png" />
 
-Create a new project called `HTML5-Vulnweb`.
+2. Type your project name, e.g. **Tutorial_test_project**
+    
+    <img style="width: 300px;" alt="Projects page - Creating a project" src="docs/project_2.png" />
 
-![project.gif](https://raw.githubusercontent.com/spatiag/nv-images/main/project.gif)
+3. Select the project:
 
-#### Targets
+    <img style="width: 300px;" alt="Projects page - Selecting the project" src="docs/project_3.png" />
 
-Create a new target called `HTML5-Vulnweb-Target` and set the URL to `http://testhtml5.vulnweb.com`.
+4. (Optional) Select your project from the list to see its information and see options to edit, delete or share your project with other users:
 
-![target.gif](https://raw.githubusercontent.com/spatiag/nv-images/main/target.gif)
+    <img style="width: 300px;" alt="Projects page - Project options" src="docs/project_4.png" />
+
+#### Configuring a target
+
+Let's use the [javaspringvulny repository](https://github.com/vulnerable-apps/javaspringvulny) for this example. The application can be started through Docker: `docker-compose up -d; sleep 10`.
+
+Now, let's create our target.
+
+1. Click in **Create Target**:
+
+    <img style="width: 300px;" alt="Targets page" src="docs/target_1.png" />
+
+2. Select **API Target**, fill in the data, select the Swagger / OpenAPI file (see [API Discovery section](#api-discovery)) and press the **Create** button:
+
+    <img style="width: 300px;" alt="Targets page - API Target" src="docs/target_2.png" />
+
+3. After created, you may see it in the list of targets. You can click on a target to see its details:
+
+    <img style="width: 300px;" alt="Targets page - API Target" src="docs/target_3.png" />
+
+4. You can see the target details. By default, if no excluded URL patterns are provided, some default ones are applied:
+
+    <img style="width: 300px;" alt="Targets page - API Target" src="docs/target_4.png" />
+
+#### Configuring an authentication
+
+TODO
+
+#### Configuring a scan
+
+TODO
+
+#### Monitoring scans
+
+TODO
+
+
+
 
 #### Authentications
 
