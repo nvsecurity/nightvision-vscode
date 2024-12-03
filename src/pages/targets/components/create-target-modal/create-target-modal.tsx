@@ -178,7 +178,7 @@ export const CreateTargetModal: React.FC<CreateTargetModalProps> = ({
     if (!swaggerFile) {
       errors.push('Swagger file is required');
     }
-debugger;
+
     if (
       !swaggerFile?.name?.endsWith('.yml') &&
       !swaggerFile?.name?.endsWith('.yaml') &&
