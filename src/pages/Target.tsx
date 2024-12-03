@@ -292,9 +292,9 @@ export const TargetPage = () => {
     }
 
     if (
-      !updateSwaggerFile?.path?.endsWith('.yml') &&
-      !updateSwaggerFile?.path?.endsWith('.yaml') &&
-      !updateSwaggerFile?.path?.endsWith('.json')
+      !updateSwaggerFile?.name?.endsWith('.yml') &&
+      !updateSwaggerFile?.name?.endsWith('.yaml') &&
+      !updateSwaggerFile?.name?.endsWith('.json')
     ) {
       errors.push(
         'The swagger specification file must have a .yml, .yaml, or .json extension'
