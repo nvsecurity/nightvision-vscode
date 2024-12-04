@@ -15,11 +15,32 @@ In order to use this extension you must have a **NightVision account**. Addition
 
 ### Main page
 
-If you have installed the NightVision CLI and logged in, you'll come to the main page, where you'll be presented with two options:
-- [API Discovery](#api-discovery)
-- [API Security Testing](#api-security-testing)
+If you have installed the NightVision CLI and logged in, you'll come to the main page, where you'll be presented with these options:
 
-<img style="width: 300px;" alt="Main page" src="docs/main_page.png" />
+<table>
+  <tr>
+    <td style="vertical-align: top; padding-right: 20px;">
+      <div style="text-align:center">
+        <img style="width: 200px;" alt="Main page" src="docs/main_page.png" />
+      </div>
+    </td>
+    <td style="vertical-align: top;">
+      <ol>
+        <li style="margin-bottom: 10px;"><a href="#api-discovery">API Discovery</a></li>
+        <li style="margin-bottom: 10px;"><a href="#api-security-testing">API Security Testing</a>
+          <ul>
+            <li style="margin-bottom: 5px;"><a href="#configuring-a-project">Configuring a project</a></li>
+            <li style="margin-bottom: 5px;"><a href="#configuring-a-target">Configuring a target</a></li>
+            <li style="margin-bottom: 5px;"><a href="#configuring-an-authentication">Configuring an authentication</a></li>
+            <li style="margin-bottom: 5px;"><a href="#configuring-a-scan">Configuring a scan</a></li>
+          </ul>
+        </li>
+      </ol>
+    </td>
+  </tr>
+</table>
+
+
 
 ### API Discovery
 
@@ -44,9 +65,7 @@ When generating the OpenAPI specification, you should see something similar to t
 
 Here you'll be able to configure and run DAST scans, discovering vulnerabilities in your system.
 
-The image below shows the available options for us to configure our scans. In order to execute a DAST scan, we must first have in place a **project** and a **target**. If you have authentication in your system, you may have to configure an **authentication** method.
-
-<img style="width: 300px;" alt="API Security Testing" src="docs/api_security_testing_main_page.png" />
+In order to execute a DAST scan, we must first have in place a **project** and a **target**. If you have authentication in your system, you may have to configure an **authentication** method as well.
 
 #### Configuring a project
 
@@ -130,25 +149,14 @@ If your website or API is protected by an authentication, we can configure it so
 
     <img style="width: 300px;" alt="Scans page" src="docs/scan_2.png" />
 
-#### Monitoring scans
+3. Your scan will start and it may take a few minutes to start showing discovered vulnerabilities:
 
-TODO
+    <img style="width: 300px;" alt="Scans page" src="docs/scan_3.png" />
 
+4. You can also check the existing scans' statuses in the main *Scans* page:
 
+    <img style="width: 300px;" alt="Scans page" src="docs/scan_4.png" />
 
+5. Once it is done, you may check the discovered vulnerabilities:
 
-#### Authentications
-
-Create a new Playwright authentication named `HTML5-Vulnweb-Auth` and set the URL to `http://testhtml5.vulnweb.com`. This will open a Chrome window at the specified URL. Log in using the username `admin` and password `admin`. This authentication enables comprehensive testing of the website, revealing issues behind login screens and other authentication barriers.
-
-![authentication.gif](https://raw.githubusercontent.com/spatiag/nv-images/main/authentication.gif)
-
-#### Scans
-
-Initiate a new scan using the target and authentication we just set up. NightVision will begin analyzing the website for any vulnerabilities.
-
-![scan.gif](https://raw.githubusercontent.com/spatiag/nv-images/main/scan.gif)
-
-You can monitor the scan in progress or review it after completion to see the vulnerabilities the program has identified on the website.
-
-![scan2.gif](https://raw.githubusercontent.com/spatiag/nv-images/main/scan2.gif)
+    <img style="width: 300px;" alt="Scans page" src="docs/scan_5.png" />
