@@ -25,7 +25,7 @@ If you have installed the NightVision CLI and logged in, you'll come to the main
     <td style="vertical-align: top; border: none;">
       <ol>
         <li style="margin-bottom: 10px;"><a href="#api-discovery">API Discovery</a></li>
-        <li style="margin-bottom: 10px;"><a href="#api-security-testing">API Security Testing</a>
+        <li style="margin-bottom: 10px;"><a href="#api-and-web-security-testing">API and Web Security Testing</a>
           <ul>
             <li style="margin-bottom: 5px;"><a href="#configuring-a-project">Configuring a project</a></li>
             <li style="margin-bottom: 5px;"><a href="#configuring-a-target">Configuring a target</a></li>
@@ -59,7 +59,7 @@ When generating the OpenAPI specification, you should see something similar to t
 
 <img style="width: 400px;" alt="API Discovery Example" src="https://github.com/api-extraction-examples/nv-images/raw/refs/heads/main/docs/api_discovery_example.png" />
 
-### API Security Testing
+### API and Web Security Testing
 
 Here you'll be able to configure and run DAST scans, discovering vulnerabilities in your system.
 
