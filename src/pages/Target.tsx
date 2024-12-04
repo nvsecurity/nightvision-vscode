@@ -6,6 +6,7 @@ import { v4 } from 'uuid';
 import React, { useEffect, useRef } from 'react';
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { OpenFileDialogParams } from '@commands/OpenFileDialog';
 import {
   CLI_MISSING,
   DELETE_TARGET,
@@ -16,8 +17,10 @@ import {
   INVALID_TARGET,
   INVALID_URL,
   INVALID_UUID,
+  OPEN_FILE_DIALOG,
   UNAUTHORIZED_ACCESS,
   UPDATE_TARGET,
+  VALIDATE_FILE_PATH,
 } from '@commands/CommandConstants';
 import { DeleteTargetParams } from '@commands/DeleteTarget';
 import { UpdateTargetParams } from '@commands/UpdateTarget';
@@ -32,6 +35,7 @@ import { PageHeader } from '@components/PageHeader';
 import { API_URL } from '@constants/GlobalConstants';
 import { Exclusion } from '@components/exclusion';
 import { Chip } from '@components/chip';
+import { FilePathValidatorParams, ValidationResult } from '@commands/FilePathValidator';
 
 export const getTarget = async (
   setTarget: React.Dispatch<React.SetStateAction<TargetInfo | undefined>>,
@@ -119,13 +123,15 @@ export const TargetPage = () => {
 
   const [target, setTarget] = useState<TargetInfo>();
 
+  const [filePath, setFilePath] = React.useState('');
+  const [pathError, setPathError] = React.useState(''); // TODO: Use this
   const [_updateName, setUpdateName] = useState('');
   const [updateName] = useDebounce(_updateName, 500);
   const [_updateLocation, setUpdateLocation] = useState<string>('');
   const [updateLocation] = useDebounce(_updateLocation, 500);
   const [_updateOpenApiUrl, setUpdateOpenApiUrl] = useState<string>('');
   const [updateOpenApiUrl] = useDebounce(_updateOpenApiUrl, 500);
-  const [updateSwaggerFile, setUpdateSwaggerFile] = useState<File | null>();
+  // const [updateSwaggerFile, setUpdateSwaggerFile] = useState<File | null>();
   const [oldSwaggerFileName, setOldSwaggerFileName] = useState<string | null>();
   const [urlPatterns, setUrlPatterns] = useState<string[]>([]);
   const [xPaths, setXPaths] = useState<string[]>([]);
@@ -154,7 +160,8 @@ export const TargetPage = () => {
     (target?.type === TargetTypeEnum.OPENAPI &&
       ((selectedApiSpec.type === 'URL' && !updateOpenApiUrl) ||
         (selectedApiSpec.type === 'FILE' &&
-          !updateSwaggerFile &&
+          !filePath &&
+          // !updateSwaggerFile &&
           !oldSwaggerFileName)));
 
   const hasErrors =
@@ -172,10 +179,52 @@ export const TargetPage = () => {
       ((selectedApiSpec.type === 'URL' && updateOpenApiUrl) ||
         (selectedApiSpec.type === 'FILE' && !oldSwaggerFileName)));
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = event.target.files?.[0] || null;
-    setUpdateSwaggerFile(selectedFile);
+  const handleFileChange = async () => {
+    const result = messageHandler.requestGenerator<OpenFileDialogParams>(
+      OPEN_FILE_DIALOG,
+      v4(),
+      {
+        canSelectFiles: true,
+        canSelectFolders: false,
+        canSelectMany: false,
+        openLabel: 'Select file'
+      }
+    );
+
+    try {
+      for await (const response of result) {
+        if (response.command === OPEN_FILE_DIALOG && response.payload.selectedPaths[0]) {
+          setFilePath(response.payload.selectedPaths[0]);
+          validateDirPath(response.payload.selectedPaths[0]);
+        }
+      }
+    } catch (err) {
+      console.error(err);
+    }
+    // const selectedFile = event.target.files?.[0] || null;
+    // setUpdateSwaggerFile(selectedFile);
   };
+
+  const validateDirPath = async (filePath: string): Promise<boolean> => {
+    const result = messageHandler.requestGenerator<FilePathValidatorParams>(
+      VALIDATE_FILE_PATH,
+      v4(),
+      { filePath, mustBeDirectory: false }
+    )
+
+    try {
+      for await (const response of result) {
+        if (response.command === VALIDATE_FILE_PATH) {
+          response.payload.error && setPathError(response.payload.error);
+          return response.payload.valid;
+        }
+      }
+    } catch (err) {
+      console.error(err);
+    }
+
+    return false;
+  }
 
   useEffect(() => {
     let ignore = false;
@@ -204,7 +253,9 @@ export const TargetPage = () => {
     setUpdateName(target?.name ?? '');
     setUpdateLocation(target?.location ?? '');
     setUpdateOpenApiUrl('');
-    setUpdateSwaggerFile(null);
+    // setUpdateSwaggerFile(null);
+    setFilePath('');
+    setPathError('');
     setOldSwaggerFileName(target?.swaggerFileName);
     setUrlPatterns(target?.configuration?.excludedUrlPatterns || []);
     setXPaths(target?.configuration?.excludedXPaths || []);
@@ -287,14 +338,14 @@ export const TargetPage = () => {
 
     const errors: string[] = [];
 
-    if (!updateSwaggerFile) {
+    if (!filePath) {
       errors.push('Swagger file is required');
     }
 
     if (
-      !updateSwaggerFile?.name?.endsWith('.yml') &&
-      !updateSwaggerFile?.name?.endsWith('.yaml') &&
-      !updateSwaggerFile?.name?.endsWith('.json')
+      !filePath.endsWith('.yml') &&
+      !filePath.endsWith('.yaml') &&
+      !filePath.endsWith('.json')
     ) {
       errors.push(
         'The swagger specification file must have a .yml, .yaml, or .json extension'
@@ -303,7 +354,7 @@ export const TargetPage = () => {
 
     setSwaggerFileErrors(errors);
     setIsValidatingInput(false);
-  }, [updateSwaggerFile, oldSwaggerFileName]);
+  }, [filePath, oldSwaggerFileName]);
 
   const handleUpdate = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
@@ -318,7 +369,8 @@ export const TargetPage = () => {
       }
       if (
         selectedApiSpec.type === 'FILE' &&
-        !updateSwaggerFile &&
+        // !updateSwaggerFile &&
+        !filePath &&
         !oldSwaggerFileName
       ) {
         return;
@@ -337,8 +389,8 @@ export const TargetPage = () => {
         apiSpecType: selectedApiSpec.type,
         openApiUrl:
           selectedApiSpec.type === 'URL' ? updateOpenApiUrl : undefined,
-        swaggerFilePath:
-          selectedApiSpec.type === 'FILE' ? updateSwaggerFile?.path : undefined,
+        swaggerFilePath: (selectedApiSpec.type === 'FILE' && filePath.length > 0) ? filePath : undefined,
+          // selectedApiSpec.type === 'FILE' ? updateSwaggerFile?.path : undefined,
         excludedUrlPatterns: urlPatterns,
         excludedXPaths: target.type === 'URL' ? xPaths : undefined,
       });
@@ -738,7 +790,7 @@ export const TargetPage = () => {
 
                   {selectedApiSpec.type === 'FILE' && (
                     <>
-                      {!oldSwaggerFileName && !updateSwaggerFile && (
+                      {!oldSwaggerFileName && !filePath && (
                         <label
                           htmlFor='swagger-file'
                           className='relative !mt-4 inline-flex h-32 w-full flex-col flex-nowrap items-center justify-center truncate rounded border border-dashed border-[--vscode-foreground]'
@@ -750,24 +802,25 @@ export const TargetPage = () => {
                             (.YML, .YAML, .JSON)
                           </span>
                           <input
-                            type='file'
+                            type='text'
                             accept='.yml,.yaml,.json'
-                            onChange={handleFileChange}
+                            onClick={handleFileChange}
                             id='swagger-file'
                             className='absolute inset-0 z-10 cursor-pointer opacity-0'
                           />
                         </label>
                       )}
-                      {(oldSwaggerFileName || updateSwaggerFile) && (
+                      {(oldSwaggerFileName || filePath) && (
                         <div className='!mb-4 !mt-8 flex items-center justify-center space-x-4'>
                           <span className='truncate text-center'>
-                            {updateSwaggerFile?.name ?? oldSwaggerFileName}
+                            {(filePath.length > 0) ? filePath.split('/').pop() : oldSwaggerFileName}
                           </span>
                           <button
                             className='unstyled'
                             title='Remove file'
                             onClick={() => {
-                              setUpdateSwaggerFile(null);
+                              // setUpdateSwaggerFile(null);
+                              setFilePath('');
                               setOldSwaggerFileName(null);
                             }}
                           >

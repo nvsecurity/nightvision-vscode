@@ -1,100 +1,160 @@
 # NightVision Visual Studio Code Extension
 
+<p align="center">
+    <img style="width: 150px;" src="docs/nvlogo.png" />
+</p>
+
+Leverage [NightVision](https://www.nightvision.net/) to document APIs, run [DAST](https://www.nightvision.net/blog/the-essential-role-of-dynamic-application-security-testing-dast-in-complementing-static-application-security-testing-sast) scans, and uncover vulnerabilities in both known and unknown endpoints!
+
 [![VSCode Extension](https://img.shields.io/badge/VSCode_Extension-Install-blue)](https://marketplace.visualstudio.com/items?itemName=nvsecurity.nightvision)
-
 [![Installs-count](https://vsmarketplacebadges.dev/installs-short/nvsecurity.nightvision.png)](https://marketplace.visualstudio.com/items?itemName=nvsecurity.nightvision)
-
-A VSCode extension for the NightVision CLI.
 
 ## Getting Started
 
-### Install
+In order to use this extension you must have a **NightVision account**. Additionally, it will be required to install the NightVision CLI, that can be done either through this extension or [manually](https://docs.nightvision.net/docs/installing-the-cli). It is available for all platforms: Windows, Linux and MacOS.
 
-Open the NightVision Extension for Visual Studio Code in the [Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=nvsecurity.nightvision).
+### Main page
 
-### Dependencies
+If you have installed the NightVision CLI and logged in, you'll come to the main page, where you'll be presented with these options:
 
-- [NightVision CLI](https://docs.nightvision.net/docs/installing-the-cli)
+<table style="border: none; border-collapse: collapse;">
+  <tr>
+    <td style="vertical-align: top; padding-right: 20px; border: none;">
+        <img style="width: 200px; display: block; margin: 0 auto;" alt="Main page" src="docs/main_page.png" />
+    </td>
+    <td style="vertical-align: top; border: none;">
+      <ol>
+        <li style="margin-bottom: 10px;"><a href="#api-discovery">API Discovery</a></li>
+        <li style="margin-bottom: 10px;"><a href="#api-security-testing">API Security Testing</a>
+          <ul>
+            <li style="margin-bottom: 5px;"><a href="#configuring-a-project">Configuring a project</a></li>
+            <li style="margin-bottom: 5px;"><a href="#configuring-a-target">Configuring a target</a></li>
+            <li style="margin-bottom: 5px;"><a href="#configuring-an-authentication">Configuring an authentication</a></li>
+            <li style="margin-bottom: 5px;"><a href="#configuring-a-scan">Configuring a scan</a></li>
+          </ul>
+        </li>
+      </ol>
+    </td>
+  </tr>
+</table>
 
-### Usage
 
-For this example, we'll be using the `HTML5 Vulnweb` website from the [public vulnerable websites](https://docs.nightvision.net/docs/public-vulnerable-websites).
 
-#### Projects
+### API Discovery
 
-Create a new project called `HTML5-Vulnweb`.
+The **API Discovery** helps you document and discover hidden endpoints in your APIs for a set of different languages such as Java, C# (.net), Python, JavaScript / TypeScript and Ruby.
+The process is straightforward:
+1. Provide the filepath to the root directory of your project to be scanned;
+2. Choose the language in which your API is written;
+3. Press the button to generate the OpenAPI specification for your project.
 
-![project.gif](https://raw.githubusercontent.com/spatiag/nv-images/main/project.gif)
+If successful, a new window in your VSCode will open with your API information and you can save it at your convenience.
 
-#### Targets
+As an example, we can use the [javaspringvulny repository](https://github.com/vulnerable-apps/javaspringvulny):
+1. Clone the repo: `git clone https://github.com/vulnerable-apps/javaspringvulny.git`
+2. Copy the filepath or select the parent folder;
+3. Select the **Java** language.
 
-Create a new target called `HTML5-Vulnweb-Target` and set the URL to `http://testhtml5.vulnweb.com`.
+When generating the OpenAPI specification, you should see something similar to the image below:
 
-![target.gif](https://raw.githubusercontent.com/spatiag/nv-images/main/target.gif)
+<img style="width: 400px;" alt="API Discovery Example" src="docs/api_discovery_example.png" />
 
-#### Authentications
+### API Security Testing
 
-Create a new Playwright authentication named `HTML5-Vulnweb-Auth` and set the URL to `http://testhtml5.vulnweb.com`. This will open a Chrome window at the specified URL. Log in using the username `admin` and password `admin`. This authentication enables comprehensive testing of the website, revealing issues behind login screens and other authentication barriers.
+Here you'll be able to configure and run DAST scans, discovering vulnerabilities in your system.
 
-![authentication.gif](https://raw.githubusercontent.com/spatiag/nv-images/main/authentication.gif)
+In order to execute a DAST scan, we must first have in place a **project** and a **target**. If you have authentication in your system, you may have to configure an **authentication** method as well.
 
-#### Scans
+#### Configuring a project
 
-Initiate a new scan using the target and authentication we just set up. NightVision will begin analyzing the website for any vulnerabilities.
+1. Click in **Create Project**:
 
-![scan.gif](https://raw.githubusercontent.com/spatiag/nv-images/main/scan.gif)
+    <img style="width: 300px;" alt="Projects page" src="docs/project_1.png" />
 
-You can monitor the scan in progress or review it after completion to see the vulnerabilities the program has identified on the website.
+2. Type your project name, e.g. **Tutorial_test_project**
+    
+    <img style="width: 300px;" alt="Projects page - Creating a project" src="docs/project_2.png" />
 
-![scan2.gif](https://raw.githubusercontent.com/spatiag/nv-images/main/scan2.gif)
+3. Select the project:
 
-## Contributing
+    <img style="width: 300px;" alt="Projects page - Selecting the project" src="docs/project_3.png" />
 
-### Prerequisites
+4. (Optional) Select your project from the list to see its information and see options to edit, delete or share your project with other users:
 
-- [NightVision CLI](https://docs.nightvision.net/docs/installing-the-cli)
-- Visual Studio Code (VSCode) version 1.75.0 or greater
+    <img style="width: 300px;" alt="Projects page - Project options" src="docs/project_4.png" />
 
-### Installation
+#### Configuring a target
 
-1. Clone the repo
+Let's use the [javaspringvulny repository](https://github.com/vulnerable-apps/javaspringvulny) for this example. The application can be started through Docker: `docker-compose up -d; sleep 10`.
 
-```sh
-git clone https://github.com/nvsecurity/vscode-extension.git
-```
+Now, let's create our target.
 
-2. Change directory
+1. Click in **Create Target**:
 
-```sh
-cd nightvision
-```
+    <img style="width: 300px;" alt="Targets page" src="docs/target_1.png" />
 
-3. Install NPM packages
+2. Select **API Target**, fill in the data, select the Swagger / OpenAPI file (see [API Discovery section](#api-discovery)) and press the **Create** button:
 
-```sh
-npm install
-```
+    <img style="width: 300px;" alt="Targets page - API Target" src="docs/target_2.png" />
 
-4. Make a copy of `.env.example` and name it `.env`
+3. After created, you may see it in the list of targets. You can click on a target to see its details:
 
-5. Edit `.env` and choose a port
+    <img style="width: 300px;" alt="Targets page - list targets" src="docs/target_3.png" />
 
-```env
-PORT=8080
-```
+4. You can see the target details. By default, if no excluded URL patterns are provided, some default ones are applied:
 
-### Running the extension
+    <img style="width: 300px;" alt="Targets page - details" src="docs/target_4.png" />
 
-1. Start the server
+#### Configuring an authentication
 
-```sh
-npm run watch
-```
+If your website or API is protected by an authentication, we can configure it so the security scan is able to access and reveal issues behind protected endpoints.
 
-2. Open the repo in VSCode
+1. Click in **Create Authentication**:
 
-3. Run and Debug (Press `F5`) to open a new window with the extension loaded
+    <img style="width: 300px;" alt="Authentications page" src="docs/authentication_1.png" />
 
-## Disclaimer
+2. Select **Playwright** authentication and fill in the information as shown below. Make sure your app is running in the provided URL and press **Create**:
 
-To use this plugin, you will need a NightVision account. The plugin uses NightVision's API and command line to scan the code, scan the running application, and enrich the results provided into the IDE.
+    <img style="width: 300px;" alt="Authentications page" src="docs/authentication_2.png" />
+
+3. The browser and Playwright Inspector will show up. In the browser we perform actions, and Playwright will take notes of them to record our authentication. In the main page that shows up, let's click in **Form Auth**:
+
+    <img style="width: 500px;" alt="Authentications page" src="docs/authentication_3.png" />
+
+4. Provide the user `user` and the password `password`, and then click **Submit**:
+
+    <img style="width: 500px;" alt="Authentications page" src="docs/authentication_4.png" />
+
+5. After submiting, you'll see our authentication has been recorded:
+
+    <img style="width: 300px;" alt="Authentications page" src="docs/authentication_5.png" />
+
+6. Close the browser where the application is running to save the recordings. You should be able to see your new authentication being listed:
+
+    <img style="width: 300px;" alt="Authentications page" src="docs/authentication_6.png" />
+
+7. By clicking on it you can check its information:
+
+    <img style="width: 300px;" alt="Authentications page" src="docs/authentication_7.png" />
+
+#### Configuring a scan
+
+1. Click in **Scan APIs**
+
+    <img style="width: 300px;" alt="Scans page" src="docs/scan_1.png" />
+
+2. Configure your scan by selecting the project, target and authentication we created before, and press **Start Scan**:
+
+    <img style="width: 300px;" alt="Scans page" src="docs/scan_2.png" />
+
+3. Your scan will start and it may take a few minutes to start showing discovered vulnerabilities:
+
+    <img style="width: 300px;" alt="Scans page" src="docs/scan_3.png" />
+
+4. You can also check the existing scans' statuses in the main *Scans* page:
+
+    <img style="width: 300px;" alt="Scans page" src="docs/scan_4.png" />
+
+5. Once it is done, you may check the discovered vulnerabilities:
+
+    <img style="width: 300px;" alt="Scans page" src="docs/scan_5.png" />
