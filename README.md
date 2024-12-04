@@ -1,8 +1,6 @@
 # NightVision Visual Studio Code Extension
 
-<div style="text-align:center">
-    <img style="width: 150px;" src="docs/nvlogo.png" />
-</div>
+<img style="width: 150px; display: block; margin: 0 auto;" src="docs/nvlogo.png" />
 
 Leverage [NightVision](https://www.nightvision.net/) to document APIs, run [DAST](https://www.nightvision.net/blog/the-essential-role-of-dynamic-application-security-testing-dast-in-complementing-static-application-security-testing-sast) scans, and uncover vulnerabilities in both known and unknown endpoints!
 
@@ -17,14 +15,12 @@ In order to use this extension you must have a **NightVision account**. Addition
 
 If you have installed the NightVision CLI and logged in, you'll come to the main page, where you'll be presented with these options:
 
-<table>
+<table style="border: none; border-collapse: collapse;">
   <tr>
-    <td style="vertical-align: top; padding-right: 20px;">
-      <div style="text-align:center">
-        <img style="width: 200px;" alt="Main page" src="docs/main_page.png" />
-      </div>
+    <td style="vertical-align: top; padding-right: 20px; border: none;">
+        <img style="width: 200px; display: block; margin: 0 auto;" alt="Main page" src="docs/main_page.png" />
     </td>
-    <td style="vertical-align: top;">
+    <td style="vertical-align: top; border: none;">
       <ol>
         <li style="margin-bottom: 10px;"><a href="#api-discovery">API Discovery</a></li>
         <li style="margin-bottom: 10px;"><a href="#api-security-testing">API Security Testing</a>
