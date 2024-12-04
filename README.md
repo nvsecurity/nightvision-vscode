@@ -82,19 +82,53 @@ Now, let's create our target.
 
 3. After created, you may see it in the list of targets. You can click on a target to see its details:
 
-    <img style="width: 300px;" alt="Targets page - API Target" src="docs/target_3.png" />
+    <img style="width: 300px;" alt="Targets page - list targets" src="docs/target_3.png" />
 
 4. You can see the target details. By default, if no excluded URL patterns are provided, some default ones are applied:
 
-    <img style="width: 300px;" alt="Targets page - API Target" src="docs/target_4.png" />
+    <img style="width: 300px;" alt="Targets page - details" src="docs/target_4.png" />
 
 #### Configuring an authentication
 
-TODO
+If your website or API is protected by an authentication, we can configure it so the security scan is able to access and reveal issues behind protected endpoints.
+
+1. Click in **Create Authentication**:
+
+    <img style="width: 300px;" alt="Authentications page" src="docs/authentication_1.png" />
+
+2. Select **Playwright** authentication and fill in the information as shown below. Make sure your app is running in the provided URL and press **Create**:
+
+    <img style="width: 300px;" alt="Authentications page" src="docs/authentication_2.png" />
+
+3. The browser and Playwright Inspector will show up. In the browser we perform actions, and Playwright will take notes of them to record our authentication. In the main page that shows up, let's click in **Form Auth**:
+
+    <img style="width: 500px;" alt="Authentications page" src="docs/authentication_3.png" />
+
+4. Provide the user `user` and the password `password`, and then click **Submit**:
+
+    <img style="width: 500px;" alt="Authentications page" src="docs/authentication_4.png" />
+
+5. After submiting, you'll see our authentication has been recorded:
+
+    <img style="width: 300px;" alt="Authentications page" src="docs/authentication_5.png" />
+
+6. Close the browser where the application is running to save the recordings. You should be able to see your new authentication being listed:
+
+    <img style="width: 300px;" alt="Authentications page" src="docs/authentication_6.png" />
+
+7. By clicking on it you can check its information:
+
+    <img style="width: 300px;" alt="Authentications page" src="docs/authentication_7.png" />
 
 #### Configuring a scan
 
-TODO
+1. Click in **Scan APIs**
+
+    <img style="width: 300px;" alt="Scans page" src="docs/scan_1.png" />
+
+2. Configure your scan by selecting the project, target and authentication we created before, and press **Start Scan**:
+
+    <img style="width: 300px;" alt="Scans page" src="docs/scan_2.png" />
 
 #### Monitoring scans
 
