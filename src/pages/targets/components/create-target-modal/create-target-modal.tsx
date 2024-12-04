@@ -180,9 +180,9 @@ export const CreateTargetModal: React.FC<CreateTargetModalProps> = ({
     }
 
     if (
-      !swaggerFile?.path?.endsWith('.yml') &&
-      !swaggerFile?.path?.endsWith('.yaml') &&
-      !swaggerFile?.path?.endsWith('.json')
+      !swaggerFile?.name?.endsWith('.yml') &&
+      !swaggerFile?.name?.endsWith('.yaml') &&
+      !swaggerFile?.name?.endsWith('.json')
     ) {
       errors.push(
         'The swagger specification file must have a .yml, .yaml, or .json extension'
