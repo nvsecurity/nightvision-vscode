@@ -20,7 +20,7 @@ If you have installed the NightVision CLI and logged in, you'll come to the main
 <table style="border: none; border-collapse: collapse;">
   <tr>
     <td style="vertical-align: top; padding-right: 20px; border: none;">
-        <img style="width: 200px; display: block; margin: 0 auto;" alt="Main page" src="https://github.com/api-extraction-examples/nv-images/raw/refs/heads/main/docs/main_page.png" />
+        <img style="width: 150px; display: block; margin: 0 auto;" alt="Main page" src="https://github.com/api-extraction-examples/nv-images/raw/refs/heads/main/docs/main_page.png" />
     </td>
     <td style="vertical-align: top; border: none;">
       <ol>
