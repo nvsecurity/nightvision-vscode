@@ -422,7 +422,7 @@ export const CreateTargetModal: React.FC<CreateTargetModalProps> = ({
                   {filePath && (
                     <div className='!mb-4 !mt-8 flex items-center justify-center space-x-4'>
                       <span className='truncate text-center'>
-                        {filePath}
+                        {filePath.split('/').pop()}
                       </span>
                       <button
                         className='unstyled'

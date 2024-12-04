@@ -813,7 +813,7 @@ export const TargetPage = () => {
                       {(oldSwaggerFileName || filePath) && (
                         <div className='!mb-4 !mt-8 flex items-center justify-center space-x-4'>
                           <span className='truncate text-center'>
-                            {(filePath.length > 0) ? filePath : oldSwaggerFileName}
+                            {(filePath.length > 0) ? filePath.split('/').pop() : oldSwaggerFileName}
                           </span>
                           <button
                             className='unstyled'
