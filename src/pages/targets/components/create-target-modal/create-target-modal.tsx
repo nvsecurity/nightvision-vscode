@@ -5,6 +5,7 @@ import { useDebounce } from 'use-debounce';
 import { v4 } from 'uuid';
 import React, { useEffect } from 'react';
 import { useState } from 'react';
+import { OpenFileDialogParams } from '@commands/OpenFileDialog';
 import {
   CLI_MISSING,
   CREATE_TARGET,
@@ -13,7 +14,9 @@ import {
   INVALID_OPENAPI_EXT,
   INVALID_OPENAPI_FILE,
   INVALID_URL,
+  OPEN_FILE_DIALOG,
   UNAUTHORIZED_ACCESS,
+  VALIDATE_FILE_PATH,
 } from '@commands/CommandConstants';
 import { CreateTargetParams } from '@commands/CreateTarget';
 import { Modal } from '@components/Modal';
@@ -23,6 +26,7 @@ import { TextInput } from '@components/TextInput';
 import { messageHandler } from '@utils/MessageHandler';
 import { Project } from '@types_/project';
 import { Exclusion } from '@components/exclusion';
+import { FilePathValidatorParams, ValidationResult } from '@commands/FilePathValidator';
 
 const types: { type: TargetType; name: string }[] = [
   { type: TargetTypeEnum.URL, name: 'Web Target' },
@@ -61,13 +65,15 @@ export const CreateTargetModal: React.FC<CreateTargetModalProps> = ({
     }
   }, [showModal]);
 
+  const [filePath, setFilePath] = React.useState('');
+  const [pathError, setPathError] = React.useState('');
   const [_targetName, setTargetName] = useState('');
   const [targetName] = useDebounce(_targetName, 500);
   const [_targetUrl, setTargetUrl] = useState('');
   const [targetUrl] = useDebounce(_targetUrl, 500);
   const [_openApiUrl, setOpenApiUrl] = useState('');
   const [openApiUrl] = useDebounce(_openApiUrl, 500);
-  const [swaggerFile, setSwaggerFile] = useState<File | null>();
+  // const [swaggerFile, setSwaggerFile] = useState<File | null>();
   const [urlPatterns, setUrlPatterns] = useState<string[]>([]);
   const [xPaths, setXPaths] = useState<string[]>([]);
 
@@ -87,7 +93,7 @@ export const CreateTargetModal: React.FC<CreateTargetModalProps> = ({
     !targetUrl ||
     (selectedType.type === TargetTypeEnum.OPENAPI &&
       ((selectedApiSpec.type === 'URL' && !openApiUrl) ||
-        (selectedApiSpec.type === 'FILE' && !swaggerFile)));
+        (selectedApiSpec.type === 'FILE' && !filePath)));
 
   const hasErrors =
     targetNameErrors.length > 0 ||
@@ -96,10 +102,52 @@ export const CreateTargetModal: React.FC<CreateTargetModalProps> = ({
       ((selectedApiSpec.type === 'URL' && openApiUrlErrors.length > 0) ||
         (selectedApiSpec.type === 'FILE' && swaggerFileErrors.length > 0)));
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = event.target.files?.[0] || null;
-    setSwaggerFile(selectedFile);
-  };
+        const handleFileChange = async () => {
+          const result = messageHandler.requestGenerator<OpenFileDialogParams>(
+            OPEN_FILE_DIALOG,
+            v4(),
+            {
+              canSelectFiles: true,
+              canSelectFolders: false,
+              canSelectMany: false,
+              openLabel: 'Select file'
+            }
+          );
+      
+          try {
+            for await (const response of result) {
+              if (response.command === OPEN_FILE_DIALOG && response.payload.selectedPaths[0]) {
+                setFilePath(response.payload.selectedPaths[0]);
+                validateDirPath(response.payload.selectedPaths[0]);
+              }
+            }
+          } catch (err) {
+            console.error(err);
+          }
+          // const selectedFile = event.target.files?.[0] || null;
+          // setUpdateSwaggerFile(selectedFile);
+        };
+      
+        const validateDirPath = async (filePath: string): Promise<boolean> => {
+          const result = messageHandler.requestGenerator<FilePathValidatorParams>(
+            VALIDATE_FILE_PATH,
+            v4(),
+            { filePath, mustBeDirectory: false }
+          )
+      
+          try {
+            for await (const response of result) {
+              if (response.command === VALIDATE_FILE_PATH) {
+                response.payload.error && setPathError(response.payload.error);
+                return response.payload.valid;
+              }
+            }
+          } catch (err) {
+            console.error(err);
+          }
+      
+          return false;
+        }
 
   useEffect(() => {
     setIsValidatingInput(true);
@@ -175,14 +223,14 @@ export const CreateTargetModal: React.FC<CreateTargetModalProps> = ({
 
     const errors: string[] = [];
 
-    if (!swaggerFile) {
+    if (!filePath) {
       errors.push('Swagger file is required');
     }
 
     if (
-      !swaggerFile?.name?.endsWith('.yml') &&
-      !swaggerFile?.name?.endsWith('.yaml') &&
-      !swaggerFile?.name?.endsWith('.json')
+      !filePath.endsWith('.yml') &&
+      !filePath.endsWith('.yaml') &&
+      !filePath.endsWith('.json')
     ) {
       errors.push(
         'The swagger specification file must have a .yml, .yaml, or .json extension'
@@ -191,7 +239,7 @@ export const CreateTargetModal: React.FC<CreateTargetModalProps> = ({
 
     setSwaggerFileErrors(errors);
     setIsValidatingInput(false);
-  }, [swaggerFile]);
+  }, [filePath]);
 
   const handleCreateTarget = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
@@ -200,7 +248,7 @@ export const CreateTargetModal: React.FC<CreateTargetModalProps> = ({
       if (selectedApiSpec.type === 'URL' && !openApiUrl.trim()) {
         return;
       }
-      if (selectedApiSpec.type === 'FILE' && !swaggerFile) {
+      if (!filePath) {
         return;
       }
     }
@@ -213,8 +261,8 @@ export const CreateTargetModal: React.FC<CreateTargetModalProps> = ({
         type: selectedType.type,
         apiSpecType: selectedApiSpec.type,
         openApiUrl: selectedApiSpec.type === TargetTypeEnum.URL ? openApiUrl : undefined,
-        swaggerFilePath:
-          selectedApiSpec.type === 'FILE' ? swaggerFile?.path : undefined,
+        swaggerFilePath: (selectedApiSpec.type === 'FILE' && filePath.length > 0) ? filePath : undefined,
+          // selectedApiSpec.type === 'FILE' ? swaggerFile?.path : undefined,
         excludedUrlPatterns: urlPatterns,
         excludedXPaths: selectedType.type === TargetTypeEnum.URL ? xPaths : undefined,
       });
@@ -351,7 +399,7 @@ export const CreateTargetModal: React.FC<CreateTargetModalProps> = ({
 
               {selectedApiSpec.type === 'FILE' && (
                 <>
-                  {!swaggerFile && (
+                  {!filePath && (
                     <label
                       htmlFor='swagger-file'
                       className='relative !mt-4 inline-flex h-32 w-full flex-col flex-nowrap items-center justify-center truncate rounded border border-dashed border-[--vscode-foreground]'
@@ -363,22 +411,22 @@ export const CreateTargetModal: React.FC<CreateTargetModalProps> = ({
                         (.YML, .YAML, .JSON)
                       </span>
                       <input
-                        type='file'
+                        type='text'
                         accept='.yml,.yaml,.json'
-                        onChange={handleFileChange}
+                        onClick={handleFileChange}
                         id='swagger-file'
                         className='absolute inset-0 z-10 cursor-pointer opacity-0'
                       />
                     </label>
                   )}
-                  {swaggerFile && (
+                  {filePath && (
                     <div className='!mb-4 !mt-8 flex items-center justify-center space-x-4'>
                       <span className='truncate text-center'>
-                        {swaggerFile.name}
+                        {filePath}
                       </span>
                       <button
                         className='unstyled'
-                        onClick={() => setSwaggerFile(null)}
+                        onClick={() => setFilePath('')}
                       >
                         <svg
                           viewBox='0 0 16 16'
