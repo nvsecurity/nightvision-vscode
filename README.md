@@ -1,6 +1,8 @@
 # NightVision Visual Studio Code Extension
 
-<img style="width: 150px; display: block; margin: 0 auto;" src="docs/nvlogo.png" />
+<p align="center">
+    <img style="width: 150px;" src="docs/nvlogo.png" />
+</p>
 
 Leverage [NightVision](https://www.nightvision.net/) to document APIs, run [DAST](https://www.nightvision.net/blog/the-essential-role-of-dynamic-application-security-testing-dast-in-complementing-static-application-security-testing-sast) scans, and uncover vulnerabilities in both known and unknown endpoints!
 
