@@ -77,7 +77,7 @@ export default class SwaggerExtract extends Command {
       let filePath = path.join(this.dirPath, this.fileName);
 
       filePath = makeFilePathAbsolute(filePath);
-      
+
       await fs.access(filePath);
       await this.processFile(filePath);
 

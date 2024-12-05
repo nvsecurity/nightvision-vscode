@@ -113,7 +113,7 @@ export const CreateTargetModal: React.FC<CreateTargetModalProps> = ({
               openLabel: 'Select file'
             }
           );
-      
+
           try {
             for await (const response of result) {
               if (response.command === OPEN_FILE_DIALOG && response.payload.selectedPaths[0]) {
@@ -127,14 +127,14 @@ export const CreateTargetModal: React.FC<CreateTargetModalProps> = ({
           // const selectedFile = event.target.files?.[0] || null;
           // setUpdateSwaggerFile(selectedFile);
         };
-      
+
         const validateDirPath = async (filePath: string): Promise<boolean> => {
           const result = messageHandler.requestGenerator<FilePathValidatorParams>(
             VALIDATE_FILE_PATH,
             v4(),
             { filePath, mustBeDirectory: false }
-          )
-      
+          );
+
           try {
             for await (const response of result) {
               if (response.command === VALIDATE_FILE_PATH) {
@@ -145,9 +145,9 @@ export const CreateTargetModal: React.FC<CreateTargetModalProps> = ({
           } catch (err) {
             console.error(err);
           }
-      
+
           return false;
-        }
+        };
 
   useEffect(() => {
     setIsValidatingInput(true);

@@ -6,7 +6,7 @@ import { EditList } from '@components/EditList';
 import { Label } from '@components/Label';
 import { Loading } from '@components/Loading';
 import { messageHandler } from '@utils/MessageHandler';
-import formatDuration from '@utils/formatDuration';
+import { formatDuration } from '@utils/globalUtils';
 import { PageHeader } from '@components/PageHeader';
 import { API_URL } from '@constants/GlobalConstants';
 import { AbortModal, DeleteModal, IssueCard } from './components';

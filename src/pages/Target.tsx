@@ -210,7 +210,7 @@ export const TargetPage = () => {
       VALIDATE_FILE_PATH,
       v4(),
       { filePath, mustBeDirectory: false }
-    )
+    );
 
     try {
       for await (const response of result) {
@@ -224,7 +224,7 @@ export const TargetPage = () => {
     }
 
     return false;
-  }
+  };
 
   useEffect(() => {
     let ignore = false;
