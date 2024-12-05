@@ -33,6 +33,8 @@ import { TextInput } from '@components/TextInput';
 import { messageHandler } from '@utils/MessageHandler';
 import { PageHeader } from '@components/PageHeader';
 import { API_ERROR_TYPES, API_URL } from '@constants/GlobalConstants';
+import { checkPublicUrl } from '@queries/targetQueries';
+import { validateUrls } from '@utils/globalUtils';
 
 SyntaxHighlighter.registerLanguage('python', python);
 
@@ -122,6 +124,7 @@ export const AuthenticationPage = () => {
     []
   );
 
+  const [isValidatingUrl, setIsValidatingUrl] = useState(false);
   const [isValidatingInput, setIsValidatingInput] = useState(true);
   const [isUpdateLoading, setIsUpdateLoading] = useState(false);
   const [isDeleteLoading, setIsDeleteLoading] = useState(false);
@@ -231,16 +234,37 @@ export const AuthenticationPage = () => {
   }, [updateHeaders]);
 
   useEffect(() => {
-    setIsValidatingInput(true);
+    const validateUrl = async () => {
+      setIsValidatingUrl(true);
 
-    const errors: string[] = [];
+      const errors: string[] = [];
 
-    if (!updateUrl) {
-      errors.push('URL is required');
-    }
+      if (!updateUrl) {
+        errors.push('URL is required');
+      }
 
-    setAuthUrlErrors(errors);
-    setIsValidatingInput(false);
+      const isValid = validateUrls([updateUrl]);
+      if (!isValid) {
+        errors.push('Invalid format');
+      }
+
+      const result = await checkPublicUrl({
+        setIsLoggedIn: setIsLoggedIn,
+        url: updateUrl,
+      });
+
+      if (result.status === 400) {
+        errors.push('Invalid format: URL schema required');
+      }
+      else {
+        setUpdateUrl(result.requested_url);
+      }
+
+      setAuthUrlErrors(errors);
+      setIsValidatingUrl(false);
+    };
+
+    validateUrl();
   }, [updateUrl]);
 
   const handleUpdate = async (
@@ -661,6 +685,7 @@ export const AuthenticationPage = () => {
                     id='auth-url'
                     errors={authUrlErrors}
                     touched={true}
+                    isLoading={isValidatingUrl}
                   />
                 )}
 
@@ -811,6 +836,7 @@ export const AuthenticationPage = () => {
                 disabled={
                   isUpdateLoading ||
                   isValidatingInput ||
+                  isValidatingUrl ||
                   hasEmptyRequiredInputs ||
                   hasErrors ||
                   !hasChanges
