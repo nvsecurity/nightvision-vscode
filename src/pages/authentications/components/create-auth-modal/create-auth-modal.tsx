@@ -13,6 +13,8 @@ import { useUser } from '@hooks/useUser';
 import { TabSelector } from '@components/TabSelector';
 import { SecondaryButton } from '@components/SecondaryButton';
 import { Headers } from './components';
+import { validateUrls } from '@utils/globalUtils';
+import { checkPublicUrl } from '@queries/targetQueries';
 
 const types: { type: AuthType; name: string }[] = [
   { type: 'COOKIE', name: 'Cookie' },
@@ -74,6 +76,9 @@ export const CreateAuthModal: React.FC<CreateAuthModalProps> = ({
     []
   );
 
+  const [isAuthUrlTested, setIsAuthUrlTested] = React.useState(false);
+
+  const [isValidatingUrl, setIsValidatingUrl] = React.useState(false);
   const [isValidatingInput, setIsValidatingInput] = React.useState(true);
   const [isLoading, setIsLoading] = React.useState(false);
   const [isFetching, setIsFetching] = React.useState(false);
@@ -89,6 +94,12 @@ export const CreateAuthModal: React.FC<CreateAuthModalProps> = ({
     (selectedType.type === 'COOKIE' && authCookieErrors.length > 0) ||
     (selectedType.type === 'HEADER' && authHeaderErrors.length > 0) ||
     (selectedType.type === 'SCRIPT' && authUrlErrors.length > 0);
+
+  const handleAuthUrlChange = (newUrl: string) => {
+    setAuthUrlErrors([]);
+    setAuthUrl(newUrl);
+    setIsAuthUrlTested(false);
+  };
 
   React.useEffect(() => {
     setIsValidatingInput(true);
@@ -147,16 +158,42 @@ export const CreateAuthModal: React.FC<CreateAuthModalProps> = ({
   }, [authHeaders]);
 
   React.useEffect(() => {
-    setIsValidatingInput(true);
+    const validateUrl = async () => {
+      setIsValidatingUrl(true);
 
-    const errors: string[] = [];
+      const errors: string[] = [];
 
-    if (!authUrl) {
-      errors.push('URL is required');
+      if (!authUrl) {
+        errors.push('URL is required');
+      }
+      else {
+        const isValid = validateUrls([authUrl]);
+        if (!isValid) {
+          errors.push('Invalid format');
+        }
+        else {
+          const result = await checkPublicUrl({
+            setIsLoggedIn: setIsLoggedIn,
+            url: authUrl,
+          });
+
+          if (result.status === 400) {
+            errors.push('Invalid format: URL schema required');
+          }
+          else {
+            setAuthUrl(result.requested_url);
+          }
+        }
+      }
+
+      setAuthUrlErrors(errors);
+      setIsValidatingUrl(false);
+      setIsAuthUrlTested(true);
+    };
+
+    if (!isAuthUrlTested) {
+      validateUrl();
     }
-
-    setAuthUrlErrors(errors);
-    setIsValidatingInput(false);
   }, [authUrl]);
 
   const handleCreateAuth = async (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -328,10 +365,11 @@ export const CreateAuthModal: React.FC<CreateAuthModalProps> = ({
           >
             <TextInput
               value={_authUrl}
-              handleOnChange={setAuthUrl}
+              handleOnChange={handleAuthUrlChange}
               label='Authentication URL'
               id='auth-url'
               errors={authUrlErrors}
+              isLoading={isValidatingUrl}
             />
 
             <p className='!mt-6'>
@@ -455,6 +493,7 @@ export const CreateAuthModal: React.FC<CreateAuthModalProps> = ({
             disabled={
               isLoading ||
               isValidatingInput ||
+              isValidatingUrl ||
               hasEmptyRequiredInputs ||
               hasErrors
             }

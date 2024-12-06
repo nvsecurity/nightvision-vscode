@@ -38,6 +38,9 @@
       "@constants/*": [
         "./src/constants/*"
       ],
+      "@queries/*": [
+        "./src/queries/*"
+      ],
       "@utils/*": [
         "./src/utils/*"
       ],

@@ -33,6 +33,8 @@ import { TextInput } from '@components/TextInput';
 import { messageHandler } from '@utils/MessageHandler';
 import { PageHeader } from '@components/PageHeader';
 import { API_ERROR_TYPES, API_URL } from '@constants/GlobalConstants';
+import { checkPublicUrl } from '@queries/targetQueries';
+import { validateUrls } from '@utils/globalUtils';
 
 SyntaxHighlighter.registerLanguage('python', python);
 
@@ -122,12 +124,14 @@ export const AuthenticationPage = () => {
     []
   );
 
+  const [isValidatingUrl, setIsValidatingUrl] = useState(false);
   const [isValidatingInput, setIsValidatingInput] = useState(true);
   const [isUpdateLoading, setIsUpdateLoading] = useState(false);
   const [isDeleteLoading, setIsDeleteLoading] = useState(false);
   const [isFetching, setIsFetching] = useState(false);
   const [isRerecording, setIsRerecording] = useState(false);
 
+  const [isAuthUrlTested, setIsAuthUrlTested] = React.useState(true);
   const [isAuthIdCopied, setIsAuthIdCopied] = useState(false);
   const [isScriptCopied, setIsScriptCopied] = useState(false);
   const authIdCopyTimer = useRef<NodeJS.Timeout>();
@@ -148,6 +152,12 @@ export const AuthenticationPage = () => {
     (auth?.type !== 'SCRIPT' &&
       JSON.stringify(auth?.headers) !== JSON.stringify(updateHeaders)) ||
     (auth?.type === 'SCRIPT' && updateUrl !== auth?.url);
+
+  const handleUpdateUrlChange = (newUrl: string) => {
+    setAuthUrlErrors([]);
+    setUpdateUrl(newUrl);
+    setIsAuthUrlTested(false);
+  };
 
   useEffect(() => {
     let ignore = false;
@@ -231,16 +241,42 @@ export const AuthenticationPage = () => {
   }, [updateHeaders]);
 
   useEffect(() => {
-    setIsValidatingInput(true);
+    const validateUrl = async () => {
+      setIsValidatingUrl(true);
 
-    const errors: string[] = [];
+      const errors: string[] = [];
 
-    if (!updateUrl) {
-      errors.push('URL is required');
+      if (!updateUrl) {
+        errors.push('URL is required');
+      }
+      else {
+        const isValid = validateUrls([updateUrl]);
+        if (!isValid) {
+          errors.push('Invalid format');
+        }
+        else {
+          const result = await checkPublicUrl({
+            setIsLoggedIn: setIsLoggedIn,
+            url: updateUrl,
+          });
+
+          if (result.status === 400) {
+            errors.push('Invalid format: URL schema required');
+          }
+          else {
+            setUpdateUrl(result.requested_url);
+          }
+        }
+      }
+
+      setAuthUrlErrors(errors);
+      setIsValidatingUrl(false);
+      setIsAuthUrlTested(true);
+    };
+
+    if (!isAuthUrlTested) {
+      validateUrl();
     }
-
-    setAuthUrlErrors(errors);
-    setIsValidatingInput(false);
   }, [updateUrl]);
 
   const handleUpdate = async (
@@ -656,11 +692,12 @@ export const AuthenticationPage = () => {
                 {!isRerecording && (
                   <TextInput
                     value={_updateUrl}
-                    handleOnChange={setUpdateUrl}
+                    handleOnChange={handleUpdateUrlChange}
                     label='Authentication URL'
                     id='auth-url'
                     errors={authUrlErrors}
                     touched={true}
+                    isLoading={isValidatingUrl}
                   />
                 )}
 
@@ -811,6 +848,7 @@ export const AuthenticationPage = () => {
                 disabled={
                   isUpdateLoading ||
                   isValidatingInput ||
+                  isValidatingUrl ||
                   hasEmptyRequiredInputs ||
                   hasErrors ||
                   !hasChanges

@@ -2,7 +2,7 @@ import { useUser } from '@hooks/useUser';
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { InstallButton } from '@components/InstallButton';
-import { isCliOutdated } from '@utils/isCliOutdated';
+import { isCliOutdated } from '@utils/globalUtils';
 import { useToggleDASTOptions } from '@hooks/useToggleDASTOptions';
 
 interface GeneralRouteParams {
@@ -33,8 +33,8 @@ const CustomLink = ({p, onClick, className}: {p: GeneralRouteParams, onClick?: (
       </Link>
       <span className="tooltiptext">{p.tip}</span>
     </div>
-  )
-}
+  );
+};
 
 export const Overview = () => {
   const { cliVersion, setCliVersion, setIsCliInstalled } = useUser();
@@ -212,4 +212,4 @@ const ApiDiscoverySvg = () => (
       strokeLinejoin='round'
     ></path>
   </svg>
-)
+);

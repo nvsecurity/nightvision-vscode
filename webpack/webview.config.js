@@ -5,7 +5,7 @@
 const path = require('path');
 const webpack = require('webpack');
 const dotenv = require('dotenv');
-const CLI_VERSION = '0.7.1';
+const CLI_VERSION = '0.7.2';
 
 dotenv.config();
 
@@ -29,6 +29,7 @@ const config = [
         '@pages': path.resolve(__dirname, '../src/pages/'),
         '@types_': path.resolve(__dirname, '../src/types/'),
         '@constants': path.resolve(__dirname, '../src/constants/'),
+        '@queries': path.resolve(__dirname, '../src/queries/'),
         '@utils': path.resolve(__dirname, '../src/utils/'),
         '@styles': path.resolve(__dirname, '../src/styles/'),
       },

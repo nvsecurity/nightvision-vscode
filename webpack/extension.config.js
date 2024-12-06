@@ -38,6 +38,7 @@ const extensionConfig = {
       '@pages': path.resolve(__dirname, '../src/pages/'),
       '@types_': path.resolve(__dirname, '../src/types/'),
       '@constants': path.resolve(__dirname, '../src/constants/'),
+      '@queries': path.resolve(__dirname, '../src/queries/'),
       '@utils': path.resolve(__dirname, '../src/utils/'),
       '@styles': path.resolve(__dirname, '../src/styles/'),
     },

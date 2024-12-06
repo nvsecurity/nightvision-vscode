@@ -5,7 +5,7 @@ import { ItemSelectionApi } from '@hooks/use-item-selection';
 import { TrashIcon } from '@pages/scan/assets';
 import { ScanType } from '@types_/scan';
 import { Link } from 'react-router-dom';
-import formatDuration from '@utils/formatDuration';
+import { formatDuration } from '@utils/globalUtils';
 
 interface ScansTableProps {
   scans: ScanType[];

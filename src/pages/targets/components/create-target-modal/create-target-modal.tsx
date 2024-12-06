@@ -27,6 +27,8 @@ import { messageHandler } from '@utils/MessageHandler';
 import { Project } from '@types_/project';
 import { Exclusion } from '@components/exclusion';
 import { FilePathValidatorParams, ValidationResult } from '@commands/FilePathValidator';
+import { validateUrls } from '@utils/globalUtils';
+import { checkPublicUrl } from '@queries/targetQueries';
 
 const types: { type: TargetType; name: string }[] = [
   { type: TargetTypeEnum.URL, name: 'Web Target' },
@@ -82,8 +84,11 @@ export const CreateTargetModal: React.FC<CreateTargetModalProps> = ({
   const [openApiUrlErrors, setOpenApiUrlErrors] = useState<string[]>([]);
   const [swaggerFileErrors, setSwaggerFileErrors] = useState<string[]>([]);
 
+  const [isValidatingUrl, setIsValidatingUrl] = useState(false);
   const [isValidatingInput, setIsValidatingInput] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
+
+  const [isTargetUrlTested, setIsTargetUrlTested] = React.useState(false);
 
   const [selectedType, setSelectedType] = useState(types[0]);
   const [selectedApiSpec, setSelectedApiSpec] = useState(apiSpecs[0]);
@@ -113,7 +118,7 @@ export const CreateTargetModal: React.FC<CreateTargetModalProps> = ({
               openLabel: 'Select file'
             }
           );
-      
+
           try {
             for await (const response of result) {
               if (response.command === OPEN_FILE_DIALOG && response.payload.selectedPaths[0]) {
@@ -127,14 +132,14 @@ export const CreateTargetModal: React.FC<CreateTargetModalProps> = ({
           // const selectedFile = event.target.files?.[0] || null;
           // setUpdateSwaggerFile(selectedFile);
         };
-      
+
         const validateDirPath = async (filePath: string): Promise<boolean> => {
           const result = messageHandler.requestGenerator<FilePathValidatorParams>(
             VALIDATE_FILE_PATH,
             v4(),
             { filePath, mustBeDirectory: false }
-          )
-      
+          );
+
           try {
             for await (const response of result) {
               if (response.command === VALIDATE_FILE_PATH) {
@@ -145,9 +150,15 @@ export const CreateTargetModal: React.FC<CreateTargetModalProps> = ({
           } catch (err) {
             console.error(err);
           }
-      
+
           return false;
-        }
+        };
+
+  const handleTargetUrlChange = (newUrl: string) => {
+    setTargetUrlErrors([]);
+    setTargetUrl(newUrl);
+    setIsTargetUrlTested(false);
+  };
 
   useEffect(() => {
     setIsValidatingInput(true);
@@ -183,16 +194,42 @@ export const CreateTargetModal: React.FC<CreateTargetModalProps> = ({
   }, [targetName]);
 
   useEffect(() => {
-    setIsValidatingInput(true);
+    const validateUrl = async () => {
+      setIsValidatingUrl(true);
 
-    const errors: string[] = [];
+      const errors: string[] = [];
 
-    if (!targetUrl) {
-      errors.push('URL is required');
+      if (!targetUrl) {
+        errors.push('URL is required');
+      }
+      else {
+        const isValid = validateUrls([targetUrl]);
+        if (!isValid) {
+          errors.push('Invalid format');
+        }
+        else {
+          const result = await checkPublicUrl({
+            setIsLoggedIn: setIsLoggedIn,
+            url: targetUrl,
+          });
+
+          if (result.status === 400) {
+            errors.push('Invalid format: URL schema required');
+          }
+          else {
+            setTargetUrl(result.requested_url);
+          }
+        }
+      }
+
+      setTargetUrlErrors(errors);
+      setIsValidatingUrl(false);
+      setIsTargetUrlTested(true);
+    };
+
+    if (!isTargetUrlTested) {
+      validateUrl();
     }
-
-    setTargetUrlErrors(errors);
-    setIsValidatingInput(false);
   }, [targetUrl]);
 
   useEffect(() => {
@@ -204,15 +241,7 @@ export const CreateTargetModal: React.FC<CreateTargetModalProps> = ({
       errors.push('URL is required');
     }
 
-    if (
-      !openApiUrl.endsWith('.yml') &&
-      !openApiUrl.endsWith('.yaml') &&
-      !openApiUrl.endsWith('.json')
-    ) {
-      errors.push(
-        'The swagger specification url must have a .yml, .yaml, or .json extension'
-      );
-    }
+    // TODO: Add swagger spec url validation (ticket: [NV-3292])
 
     setOpenApiUrlErrors(errors);
     setIsValidatingInput(false);
@@ -295,13 +324,8 @@ export const CreateTargetModal: React.FC<CreateTargetModalProps> = ({
             break;
           }
           case INVALID_OPENAPI_EXT: {
-            if (selectedApiSpec.type === TargetTypeEnum.URL) {
+            if (selectedApiSpec.type === 'FILE') {
               setOpenApiUrlErrors((prevState) => [
-                ...prevState,
-                'The swagger specification url must have a .yml, .yaml, or .json extension',
-              ]);
-            } else {
-              setSwaggerFileErrors((prevState) => [
                 ...prevState,
                 'The swagger specification file must have a .yml, .yaml, or .json extension',
               ]);
@@ -371,10 +395,11 @@ export const CreateTargetModal: React.FC<CreateTargetModalProps> = ({
           />
           <TextInput
             value={_targetUrl}
-            handleOnChange={setTargetUrl}
+            handleOnChange={handleTargetUrlChange}
             label='Target URL'
             id='target-url'
             errors={targetUrlErrors}
+            isLoading={isValidatingUrl}
           />
           {selectedType.type === TargetTypeEnum.OPENAPI && (
             <>
@@ -502,6 +527,7 @@ export const CreateTargetModal: React.FC<CreateTargetModalProps> = ({
             disabled={
               isLoading ||
               isValidatingInput ||
+              isValidatingUrl ||
               hasEmptyRequiredInputs ||
               hasErrors
             }
