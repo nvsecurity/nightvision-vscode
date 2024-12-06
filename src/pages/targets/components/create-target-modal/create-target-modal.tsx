@@ -88,6 +88,8 @@ export const CreateTargetModal: React.FC<CreateTargetModalProps> = ({
   const [isValidatingInput, setIsValidatingInput] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
 
+  const [isTargetUrlTested, setIsTargetUrlTested] = React.useState(false);
+
   const [selectedType, setSelectedType] = useState(types[0]);
   const [selectedApiSpec, setSelectedApiSpec] = useState(apiSpecs[0]);
 
@@ -151,6 +153,12 @@ export const CreateTargetModal: React.FC<CreateTargetModalProps> = ({
 
           return false;
         };
+
+  const handleTargetUrlChange = (newUrl: string) => {
+    setTargetUrlErrors([]);
+    setTargetUrl(newUrl);
+    setIsTargetUrlTested(false);
+  };
 
   useEffect(() => {
     setIsValidatingInput(true);
@@ -216,9 +224,12 @@ export const CreateTargetModal: React.FC<CreateTargetModalProps> = ({
 
       setTargetUrlErrors(errors);
       setIsValidatingUrl(false);
+      setIsTargetUrlTested(true);
     };
 
-    validateUrl();
+    if (!isTargetUrlTested) {
+      validateUrl();
+    }
   }, [targetUrl]);
 
   useEffect(() => {
@@ -384,7 +395,7 @@ export const CreateTargetModal: React.FC<CreateTargetModalProps> = ({
           />
           <TextInput
             value={_targetUrl}
-            handleOnChange={setTargetUrl}
+            handleOnChange={handleTargetUrlChange}
             label='Target URL'
             id='target-url'
             errors={targetUrlErrors}

@@ -131,6 +131,7 @@ export const AuthenticationPage = () => {
   const [isFetching, setIsFetching] = useState(false);
   const [isRerecording, setIsRerecording] = useState(false);
 
+  const [isAuthUrlTested, setIsAuthUrlTested] = React.useState(true);
   const [isAuthIdCopied, setIsAuthIdCopied] = useState(false);
   const [isScriptCopied, setIsScriptCopied] = useState(false);
   const authIdCopyTimer = useRef<NodeJS.Timeout>();
@@ -151,6 +152,12 @@ export const AuthenticationPage = () => {
     (auth?.type !== 'SCRIPT' &&
       JSON.stringify(auth?.headers) !== JSON.stringify(updateHeaders)) ||
     (auth?.type === 'SCRIPT' && updateUrl !== auth?.url);
+
+  const handleUpdateUrlChange = (newUrl: string) => {
+    setAuthUrlErrors([]);
+    setUpdateUrl(newUrl);
+    setIsAuthUrlTested(false);
+  };
 
   useEffect(() => {
     let ignore = false;
@@ -264,9 +271,12 @@ export const AuthenticationPage = () => {
 
       setAuthUrlErrors(errors);
       setIsValidatingUrl(false);
+      setIsAuthUrlTested(true);
     };
 
-    validateUrl();
+    if (!isAuthUrlTested) {
+      validateUrl();
+    }
   }, [updateUrl]);
 
   const handleUpdate = async (
@@ -682,7 +692,7 @@ export const AuthenticationPage = () => {
                 {!isRerecording && (
                   <TextInput
                     value={_updateUrl}
-                    handleOnChange={setUpdateUrl}
+                    handleOnChange={handleUpdateUrlChange}
                     label='Authentication URL'
                     id='auth-url'
                     errors={authUrlErrors}

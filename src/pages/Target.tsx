@@ -151,6 +151,8 @@ export const TargetPage = () => {
 
   const [selectedApiSpec, setSelectedApiSpec] = useState(apiSpecs[1]);
 
+  const [isTargetUrlTested, setIsTargetUrlTested] = React.useState(true);
+
   const [isTargetIdCopied, setIsTargetIdCopied] = useState(false);
   const targetIdCopyTimer = useRef<NodeJS.Timeout>();
 
@@ -206,6 +208,12 @@ export const TargetPage = () => {
     }
     // const selectedFile = event.target.files?.[0] || null;
     // setUpdateSwaggerFile(selectedFile);
+  };
+
+  const handleUpdateUrlChange = (newUrl: string) => {
+    setTargetUrlErrors([]);
+    setUpdateLocation(newUrl);
+    setIsTargetUrlTested(false);
   };
 
   const validateDirPath = async (filePath: string): Promise<boolean> => {
@@ -327,9 +335,12 @@ export const TargetPage = () => {
 
       setTargetUrlErrors(errors);
       setIsValidatingUrl(false);
+      setIsTargetUrlTested(true);
     };
 
-    validateUrl();
+    if (!isTargetUrlTested) {
+      validateUrl();
+    }
   }, [updateLocation]);
 
   useEffect(() => {
@@ -774,7 +785,7 @@ export const TargetPage = () => {
               />
               <TextInput
                 value={_updateLocation}
-                handleOnChange={setUpdateLocation}
+                handleOnChange={handleUpdateUrlChange}
                 label='Target URL'
                 id='update-target-url'
                 errors={targetUrlErrors}

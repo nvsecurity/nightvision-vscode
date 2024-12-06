@@ -76,6 +76,8 @@ export const CreateAuthModal: React.FC<CreateAuthModalProps> = ({
     []
   );
 
+  const [isAuthUrlTested, setIsAuthUrlTested] = React.useState(false);
+
   const [isValidatingUrl, setIsValidatingUrl] = React.useState(false);
   const [isValidatingInput, setIsValidatingInput] = React.useState(true);
   const [isLoading, setIsLoading] = React.useState(false);
@@ -92,6 +94,12 @@ export const CreateAuthModal: React.FC<CreateAuthModalProps> = ({
     (selectedType.type === 'COOKIE' && authCookieErrors.length > 0) ||
     (selectedType.type === 'HEADER' && authHeaderErrors.length > 0) ||
     (selectedType.type === 'SCRIPT' && authUrlErrors.length > 0);
+
+  const handleAuthUrlChange = (newUrl: string) => {
+    setAuthUrlErrors([]);
+    setAuthUrl(newUrl);
+    setIsAuthUrlTested(false);
+  };
 
   React.useEffect(() => {
     setIsValidatingInput(true);
@@ -180,9 +188,12 @@ export const CreateAuthModal: React.FC<CreateAuthModalProps> = ({
 
       setAuthUrlErrors(errors);
       setIsValidatingUrl(false);
+      setIsAuthUrlTested(true);
     };
 
-    validateUrl();
+    if (!isAuthUrlTested) {
+      validateUrl();
+    }
   }, [authUrl]);
 
   const handleCreateAuth = async (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -354,7 +365,7 @@ export const CreateAuthModal: React.FC<CreateAuthModalProps> = ({
           >
             <TextInput
               value={_authUrl}
-              handleOnChange={setAuthUrl}
+              handleOnChange={handleAuthUrlChange}
               label='Authentication URL'
               id='auth-url'
               errors={authUrlErrors}
