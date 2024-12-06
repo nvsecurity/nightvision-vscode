@@ -242,22 +242,24 @@ export const AuthenticationPage = () => {
       if (!updateUrl) {
         errors.push('URL is required');
       }
-
-      const isValid = validateUrls([updateUrl]);
-      if (!isValid) {
-        errors.push('Invalid format');
-      }
-
-      const result = await checkPublicUrl({
-        setIsLoggedIn: setIsLoggedIn,
-        url: updateUrl,
-      });
-
-      if (result.status === 400) {
-        errors.push('Invalid format: URL schema required');
-      }
       else {
-        setUpdateUrl(result.requested_url);
+        const isValid = validateUrls([updateUrl]);
+        if (!isValid) {
+          errors.push('Invalid format');
+        }
+        else {
+          const result = await checkPublicUrl({
+            setIsLoggedIn: setIsLoggedIn,
+            url: updateUrl,
+          });
+
+          if (result.status === 400) {
+            errors.push('Invalid format: URL schema required');
+          }
+          else {
+            setUpdateUrl(result.requested_url);
+          }
+        }
       }
 
       setAuthUrlErrors(errors);

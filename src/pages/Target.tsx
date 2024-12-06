@@ -36,6 +36,8 @@ import { API_URL } from '@constants/GlobalConstants';
 import { Exclusion } from '@components/exclusion';
 import { Chip } from '@components/chip';
 import { FilePathValidatorParams, ValidationResult } from '@commands/FilePathValidator';
+import { validateUrls } from '@utils/globalUtils';
+import { checkPublicUrl } from '@queries/targetQueries';
 
 export const getTarget = async (
   setTarget: React.Dispatch<React.SetStateAction<TargetInfo | undefined>>,
@@ -141,6 +143,7 @@ export const TargetPage = () => {
   const [openApiUrlErrors, setOpenApiUrlErrors] = useState<string[]>([]);
   const [swaggerFileErrors, setSwaggerFileErrors] = useState<string[]>([]);
 
+  const [isValidatingUrl, setIsValidatingUrl] = useState(false);
   const [isValidatingInput, setIsValidatingInput] = useState(true);
   const [isUpdateLoading, setIsUpdateLoading] = useState(false);
   const [isDeleteLoading, setIsDeleteLoading] = useState(false);
@@ -294,16 +297,39 @@ export const TargetPage = () => {
   }, [updateName]);
 
   useEffect(() => {
-    setIsValidatingInput(true);
+    const validateUrl = async () => {
+      setIsValidatingUrl(true);
 
-    const errors: string[] = [];
+      const errors: string[] = [];
 
-    if (!updateLocation) {
-      errors.push('URL is required');
-    }
+      if (!updateLocation) {
+        errors.push('URL is required');
+      }
+      else {
+        const isValid = validateUrls([updateLocation]);
+        if (!isValid) {
+          errors.push('Invalid format');
+        }
+        else {
+          const result = await checkPublicUrl({
+            setIsLoggedIn: setIsLoggedIn,
+            url: updateLocation,
+          });
 
-    setTargetUrlErrors(errors);
-    setIsValidatingInput(false);
+          if (result.status === 400) {
+            errors.push('Invalid format: URL schema required');
+          }
+          else {
+            setUpdateLocation(result.requested_url);
+          }
+        }
+      }
+
+      setTargetUrlErrors(errors);
+      setIsValidatingUrl(false);
+    };
+
+    validateUrl();
   }, [updateLocation]);
 
   useEffect(() => {
@@ -315,15 +341,7 @@ export const TargetPage = () => {
       errors.push('URL is required');
     }
 
-    if (
-      !updateOpenApiUrl.endsWith('.yml') &&
-      !updateOpenApiUrl.endsWith('.yaml') &&
-      !updateOpenApiUrl.endsWith('.json')
-    ) {
-      errors.push(
-        'The swagger specification url must have a .yml, .yaml, or .json extension'
-      );
-    }
+    // TODO: Add swagger spec url validation (ticket: [NV-3292])
 
     setOpenApiUrlErrors(errors);
     setIsValidatingInput(false);
@@ -420,13 +438,8 @@ export const TargetPage = () => {
             break;
           }
           case INVALID_OPENAPI_EXT: {
-            if (selectedApiSpec.type === 'URL') {
+            if (selectedApiSpec.type === 'FILE') {
               setOpenApiUrlErrors((prevState) => [
-                ...prevState,
-                'The swagger specification url must have a .yml, .yaml, or .json extension',
-              ]);
-            } else {
-              setSwaggerFileErrors((prevState) => [
                 ...prevState,
                 'The swagger specification file must have a .yml, .yaml, or .json extension',
               ]);
@@ -765,6 +778,7 @@ export const TargetPage = () => {
                 label='Target URL'
                 id='update-target-url'
                 errors={targetUrlErrors}
+                isLoading={isValidatingUrl}
               />
 
               {target?.type === TargetTypeEnum.OPENAPI && (
@@ -898,6 +912,7 @@ export const TargetPage = () => {
                 disabled={
                   isUpdateLoading ||
                   isValidatingInput ||
+                  isValidatingUrl ||
                   hasEmptyRequiredInputs ||
                   hasErrors ||
                   !hasChanges
