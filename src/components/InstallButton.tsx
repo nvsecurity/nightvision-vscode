@@ -7,11 +7,13 @@ export const InstallButton = ({
   installText,
   installingText,
   cliVersion,
+  isUpdateCLI,
   setIsCliInstalled,
 }: {
   installText: string;
   installingText: string;
   cliVersion?: string;
+  isUpdateCLI: boolean;
   setIsCliInstalled: (val: boolean) => void;
 }) => {
   const [isInstalling, setIsInstalling] = useState(false);
@@ -23,7 +25,10 @@ export const InstallButton = ({
     setIsInstalling(true);
     setInstallFailed(false);
 
-    const requestGenerator = messageHandler.requestGenerator(CLI_INSTALL, v4());
+    const requestGenerator = messageHandler.requestGenerator(CLI_INSTALL, v4(),
+      {
+        isUpdateCLI: isUpdateCLI,
+      });
 
     try {
       for await (const response of requestGenerator) {
