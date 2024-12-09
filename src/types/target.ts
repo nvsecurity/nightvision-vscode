@@ -12,7 +12,8 @@ export interface TargetInfo extends Target {
   lastScannedAt?: Date | null;
   internetAccessible: boolean;
   swaggerFileName?: string | null;
-  specUrl?: string | null;
+  swaggerFileUrl?: string | null;
+  specUrlForDownload?: string | null;
   lastSpecUploadedAt?: Date | null;
   configuration?: {
     excludedUrlPatterns: string[];

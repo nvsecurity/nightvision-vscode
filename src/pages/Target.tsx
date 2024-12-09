@@ -85,7 +85,8 @@ export const getTarget = async (
       type: targetType.toLocaleUpperCase() as TargetType,
       internetAccessible: target.internet_accessible,
       swaggerFileName: target.swaggerfile_name,
-      specUrl: specUrl,
+      swaggerFileUrl: target.swaggerfile_url,
+      specUrlForDownload: specUrl,
       lastSpecUploadedAt: target.last_spec_uploaded_at
         ? new Date(target.last_spec_uploaded_at)
         : null,
@@ -159,10 +160,16 @@ export const TargetPage = () => {
   const isUrlPatternsChanged = JSON.stringify(target?.configuration?.excludedUrlPatterns || []) !== JSON.stringify(urlPatterns);
   const isXPathsChanged = JSON.stringify(target?.configuration?.excludedXPaths || []) !== JSON.stringify(xPaths);
 
+  const isOpenAPITarget = target?.type === TargetTypeEnum.OPENAPI;
+  const isSpecUploaded = !!target?.swaggerFileUrl || !!target?.swaggerFileName;
+
+  const swaggerFileUrlName = target?.swaggerFileUrl?.substring(target?.swaggerFileUrl.lastIndexOf('/') + 1);
+  const swaggerFileName = target?.swaggerFileName || swaggerFileUrlName || 'openapi-swagger.yaml';
+
   const hasEmptyRequiredInputs =
     !updateName ||
     !updateLocation ||
-    (target?.type === TargetTypeEnum.OPENAPI &&
+    (isOpenAPITarget &&
       ((selectedApiSpec.type === 'URL' && !updateOpenApiUrl) ||
         (selectedApiSpec.type === 'FILE' &&
           !filePath &&
@@ -172,7 +179,7 @@ export const TargetPage = () => {
   const hasErrors =
     targetNameErrors.length > 0 ||
     targetUrlErrors.length > 0 ||
-    (target?.type === TargetTypeEnum.OPENAPI &&
+    (isOpenAPITarget &&
       ((selectedApiSpec.type === 'URL' && openApiUrlErrors.length > 0) ||
         (selectedApiSpec.type === 'FILE' && swaggerFileErrors.length > 0)));
 
@@ -180,7 +187,7 @@ export const TargetPage = () => {
     updateName !== target?.name ||
     updateLocation !== target.location ||
     isUrlPatternsChanged || isXPathsChanged ||
-    (target?.type === TargetTypeEnum.OPENAPI &&
+    (isOpenAPITarget &&
       ((selectedApiSpec.type === 'URL' && updateOpenApiUrl) ||
         (selectedApiSpec.type === 'FILE' && !oldSwaggerFileName)));
 
@@ -421,7 +428,7 @@ export const TargetPage = () => {
         swaggerFilePath: (selectedApiSpec.type === 'FILE' && filePath.length > 0) ? filePath : undefined,
         // selectedApiSpec.type === 'FILE' ? updateSwaggerFile?.path : undefined,
         excludedUrlPatterns: urlPatterns,
-        excludedXPaths: target.type === 'URL' ? xPaths : undefined,
+        excludedXPaths: !isOpenAPITarget ? xPaths : undefined,
       });
 
     try {
@@ -661,24 +668,17 @@ export const TargetPage = () => {
                   <span>Base URL:</span>
                   <span>{target.location}</span>
 
-                  {target.swaggerFileName && (
+                  {isOpenAPITarget && (
                     <>
                       <span>API Specs:</span>
-                      <div className='flex items-center space-x-2'>
-                        <span>{target.swaggerFileName}</span>
-                      </div>
-                    </>
-                  )}
-                  {target.specUrl && (
-                    <>
-                      <span>API Specs:</span>
+                      {isSpecUploaded ? (
                         <a
                           className='flex items-center space-x-2'
-                          href={target.specUrl ?? ''}
+                          href={target.specUrlForDownload ?? ''}
                           download
                           title={'Download swagger file'}
                         >
-                          <span>swagger</span>
+                          <span>{swaggerFileName}</span>
                           <svg
                             xmlns='http://www.w3.org/2000/svg'
                             fill='none'
@@ -693,26 +693,28 @@ export const TargetPage = () => {
                             />
                           </svg>
                         </a>
-                    </>
-                  )}
-
-                  {target.lastSpecUploadedAt && (
-                    <>
-                      <span>Latest update of API Specs:</span>
-                      <span>
-                        {new Date(target.lastSpecUploadedAt).toLocaleString(
-                          'en-US',
-                          {
-                            year: 'numeric',
-                            month: 'long',
-                            day: '2-digit',
-                            hour: '2-digit',
-                            minute: '2-digit',
-                            second: '2-digit',
-                            hour12: true,
-                          }
-                        )}
-                      </span>
+                      ) : (
+                        <span>N/A</span>
+                      )}
+                      {target.lastSpecUploadedAt && (
+                        <>
+                          <span>Latest update of API Specs:</span>
+                          <span>
+                            {new Date(target.lastSpecUploadedAt).toLocaleString(
+                              'en-US',
+                              {
+                                year: 'numeric',
+                                month: 'long',
+                                day: '2-digit',
+                                hour: '2-digit',
+                                minute: '2-digit',
+                                second: '2-digit',
+                                hour12: true,
+                              }
+                            )}
+                          </span>
+                        </>
+                      )}
                     </>
                   )}
 
@@ -732,7 +734,7 @@ export const TargetPage = () => {
                     </>
                   )}
 
-                  {target.type === 'URL' && (
+                  {!isOpenAPITarget && (
                     xPaths.length ? (
                       <details className='overflow-auto !ml-0 !font-bold'>
                         <summary>{`Excluded clicks based on XPath (${xPaths.length})`}</summary>
@@ -798,7 +800,7 @@ export const TargetPage = () => {
                 isLoading={isValidatingUrl}
               />
 
-              {target?.type === TargetTypeEnum.OPENAPI && (
+              {isOpenAPITarget && (
                 <>
                   <TabSelector
                     values={apiSpecs}
