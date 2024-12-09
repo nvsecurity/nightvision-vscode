@@ -1,6 +1,6 @@
 import useClickOutside from '@hooks/useClickOutside';
 import { useUser } from '@hooks/useUser';
-import { ApiSpec, TargetInfo, TargetType, TargetTypeEnum } from '@types_/target';
+import { ApiSpec, SpecStatusEnum, TargetInfo, TargetType, TargetTypeEnum } from '@types_/target';
 import { useDebounce } from 'use-debounce';
 import { v4 } from 'uuid';
 import React, { useEffect, useRef } from 'react';
@@ -32,12 +32,15 @@ import { TargetTypeLabel } from '@components/TargetTypeLabel';
 import { TextInput } from '@components/TextInput';
 import { messageHandler } from '@utils/MessageHandler';
 import { PageHeader } from '@components/PageHeader';
-import { API_URL } from '@constants/GlobalConstants';
+import { API_URL, COMPLETED_SPEC_STATUSES, ERROR_SPEC_STATUSES } from '@constants/GlobalConstants';
 import { Exclusion } from '@components/exclusion';
 import { Chip } from '@components/chip';
 import { FilePathValidatorParams, ValidationResult } from '@commands/FilePathValidator';
-import { validateUrls } from '@utils/globalUtils';
+import { specStatusToTextMessage, validateUrls } from '@utils/globalUtils';
 import { checkPublicUrl } from '@queries/targetQueries';
+import { Check } from '@icons/check';
+import { Cross } from '@icons/cross';
+import { LoadingAnimation } from '@icons/loading';
 
 export const getTarget = async (
   setTarget: React.Dispatch<React.SetStateAction<TargetInfo | undefined>>,
@@ -62,7 +65,7 @@ export const getTarget = async (
       specUrl = (
         await messageHandler.api({
           method: 'get',
-          url:  `${API_URL}/api/v1/targets/openapi/${targetId}/get-spec-url/`,
+          url: `${API_URL}/api/v1/targets/openapi/${targetId}/get-spec-url/`,
           setIsLoggedIn: setIsLoggedIn,
         })
       ).url;
@@ -85,7 +88,10 @@ export const getTarget = async (
       type: targetType.toLocaleUpperCase() as TargetType,
       internetAccessible: target.internet_accessible,
       swaggerFileName: target.swaggerfile_name,
-      specUrl: specUrl,
+      swaggerFileUrl: target.swaggerfile_url,
+      specUrlForDownload: specUrl,
+      specStatus: target.spec_status,
+      isReadyToScan: target.is_ready_to_scan,
       lastSpecUploadedAt: target.last_spec_uploaded_at
         ? new Date(target.last_spec_uploaded_at)
         : null,
@@ -159,10 +165,16 @@ export const TargetPage = () => {
   const isUrlPatternsChanged = JSON.stringify(target?.configuration?.excludedUrlPatterns || []) !== JSON.stringify(urlPatterns);
   const isXPathsChanged = JSON.stringify(target?.configuration?.excludedXPaths || []) !== JSON.stringify(xPaths);
 
+  const isOpenAPITarget = target?.type === TargetTypeEnum.OPENAPI;
+  const isSpecUploaded = !!target?.swaggerFileUrl || !!target?.swaggerFileName;
+
+  const swaggerFileUrlName = target?.swaggerFileUrl?.substring(target?.swaggerFileUrl.lastIndexOf('/') + 1);
+  const swaggerFileName = target?.swaggerFileName || swaggerFileUrlName || 'openapi-swagger.yaml';
+
   const hasEmptyRequiredInputs =
     !updateName ||
     !updateLocation ||
-    (target?.type === TargetTypeEnum.OPENAPI &&
+    (isOpenAPITarget &&
       ((selectedApiSpec.type === 'URL' && !updateOpenApiUrl) ||
         (selectedApiSpec.type === 'FILE' &&
           !filePath &&
@@ -172,7 +184,7 @@ export const TargetPage = () => {
   const hasErrors =
     targetNameErrors.length > 0 ||
     targetUrlErrors.length > 0 ||
-    (target?.type === TargetTypeEnum.OPENAPI &&
+    (isOpenAPITarget &&
       ((selectedApiSpec.type === 'URL' && openApiUrlErrors.length > 0) ||
         (selectedApiSpec.type === 'FILE' && swaggerFileErrors.length > 0)));
 
@@ -180,7 +192,7 @@ export const TargetPage = () => {
     updateName !== target?.name ||
     updateLocation !== target.location ||
     isUrlPatternsChanged || isXPathsChanged ||
-    (target?.type === TargetTypeEnum.OPENAPI &&
+    (isOpenAPITarget &&
       ((selectedApiSpec.type === 'URL' && updateOpenApiUrl) ||
         (selectedApiSpec.type === 'FILE' && !oldSwaggerFileName)));
 
@@ -237,6 +249,9 @@ export const TargetPage = () => {
     return false;
   };
 
+  const [currSpecStatus, setCurrSpecStatus] = React.useState<SpecStatusEnum>();
+  const stopPingTargetSpecStatuses = [...ERROR_SPEC_STATUSES, ...COMPLETED_SPEC_STATUSES];
+
   useEffect(() => {
     let ignore = false;
 
@@ -252,6 +267,18 @@ export const TargetPage = () => {
       ignore = true;
     };
   }, [targetType, targetId]);
+
+  useEffect(() => {
+    setCurrSpecStatus(target?.specStatus);
+  }, [target?.specStatus]);
+
+  useEffect(() => {
+    if (currSpecStatus && !stopPingTargetSpecStatuses.includes(currSpecStatus)) {
+      setTimeout(async () =>
+        await getTarget(setTarget, setIsLoggedIn, targetType, targetId)
+      , 2000);
+    }
+  }, [currSpecStatus]);
 
   useEffect(() => {
     return () => {
@@ -419,9 +446,9 @@ export const TargetPage = () => {
         openApiUrl:
           selectedApiSpec.type === 'URL' ? updateOpenApiUrl : undefined,
         swaggerFilePath: (selectedApiSpec.type === 'FILE' && filePath.length > 0) ? filePath : undefined,
-          // selectedApiSpec.type === 'FILE' ? updateSwaggerFile?.path : undefined,
+        // selectedApiSpec.type === 'FILE' ? updateSwaggerFile?.path : undefined,
         excludedUrlPatterns: urlPatterns,
-        excludedXPaths: target.type === 'URL' ? xPaths : undefined,
+        excludedXPaths: !isOpenAPITarget ? xPaths : undefined,
       });
 
     try {
@@ -530,7 +557,7 @@ export const TargetPage = () => {
   return (
     <>
       <div className='flex flex-col space-y-4'>
-        <PageHeader title='Target'/>
+        <PageHeader title='Target' />
 
         {!target && <Loading />}
         {target && (
@@ -647,31 +674,31 @@ export const TargetPage = () => {
                   <span>
                     {target.lastScannedAt
                       ? new Date(target.lastScannedAt).toLocaleString('en-US', {
-                          year: 'numeric',
-                          month: 'long',
-                          day: '2-digit',
-                          hour: '2-digit',
-                          minute: '2-digit',
-                          second: '2-digit',
-                          hour12: true,
-                        })
+                        year: 'numeric',
+                        month: 'long',
+                        day: '2-digit',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        second: '2-digit',
+                        hour12: true,
+                      })
                       : 'N/A'}
                   </span>
 
                   <span>Base URL:</span>
                   <span>{target.location}</span>
 
-                  {target.swaggerFileName && (
+                  {isOpenAPITarget && (
                     <>
                       <span>API Specs:</span>
-                      <div className='flex items-center space-x-2'>
-                        <span>{target.swaggerFileName}</span>
+                      {isSpecUploaded ? (
                         <a
-                          className='unstyled'
-                          href={target.specUrl ?? ''}
+                          className='flex items-center space-x-2'
+                          href={target.specUrlForDownload ?? ''}
                           download
-                          title={'Download ' + target.swaggerFileName}
+                          title={'Download swagger file'}
                         >
+                          <span>{swaggerFileName}</span>
                           <svg
                             xmlns='http://www.w3.org/2000/svg'
                             fill='none'
@@ -686,27 +713,57 @@ export const TargetPage = () => {
                             />
                           </svg>
                         </a>
-                      </div>
-                    </>
-                  )}
+                      ) : (
+                        <span>N/A</span>
+                      )}
 
-                  {target.lastSpecUploadedAt && (
-                    <>
-                      <span>Latest update of API Specs:</span>
-                      <span>
-                        {new Date(target.lastSpecUploadedAt).toLocaleString(
-                          'en-US',
-                          {
-                            year: 'numeric',
-                            month: 'long',
-                            day: '2-digit',
-                            hour: '2-digit',
-                            minute: '2-digit',
-                            second: '2-digit',
-                            hour12: true,
-                          }
+                      <span>API Spec status:</span>
+                      <span className='flex gap-2'>
+                        {currSpecStatus && (
+                          COMPLETED_SPEC_STATUSES.includes(currSpecStatus)
+                          ? <Check color='#006D23' />
+                          : ERROR_SPEC_STATUSES.includes(currSpecStatus)
+                            ? <Cross color='#BD002A' />
+                            :
+                            <LoadingAnimation />
+                        )}
+                        {specStatusToTextMessage(currSpecStatus)}
+                      </span>
+
+                      <span>Target is ready to scan:</span>
+                      <span className='flex gap-2'>
+                        {target?.isReadyToScan ? (
+                          <>
+                            <Check color='#006D23' />
+                            Yes
+                          </>
+                        ) : (
+                          <>
+                            <Cross color='#BD002A' />
+                            No
+                          </>
                         )}
                       </span>
+
+                      {target.lastSpecUploadedAt && (
+                        <>
+                          <span>Latest update of API Specs:</span>
+                          <span>
+                            {new Date(target.lastSpecUploadedAt).toLocaleString(
+                              'en-US',
+                              {
+                                year: 'numeric',
+                                month: 'long',
+                                day: '2-digit',
+                                hour: '2-digit',
+                                minute: '2-digit',
+                                second: '2-digit',
+                                hour12: true,
+                              }
+                            )}
+                          </span>
+                        </>
+                      )}
                     </>
                   )}
 
@@ -715,7 +772,7 @@ export const TargetPage = () => {
                       <summary>{`Excluded URL patterns (${urlPatterns.length})`}</summary>
                       <div className='flex flex-row flex-wrap gap-2 mt-2 font-normal'>
                         {urlPatterns.map((urlPattern, index) => (
-                          <Chip text={urlPattern} key={`url-pattern-${index}`}/>
+                          <Chip text={urlPattern} key={`url-pattern-${index}`} />
                         ))}
                       </div>
                     </details>
@@ -726,13 +783,13 @@ export const TargetPage = () => {
                     </>
                   )}
 
-                  {target.type === 'URL' && (
+                  {!isOpenAPITarget && (
                     xPaths.length ? (
                       <details className='overflow-auto !ml-0 !font-bold'>
                         <summary>{`Excluded clicks based on XPath (${xPaths.length})`}</summary>
                         <div className='flex flex-row flex-wrap gap-2 mt-2 font-normal'>
                           {xPaths.map((xPath, index) => (
-                            <Chip text={xPath} key={`url-pattern-${index}`}/>
+                            <Chip text={xPath} key={`url-pattern-${index}`} />
                           ))}
                         </div>
                       </details>
@@ -792,7 +849,7 @@ export const TargetPage = () => {
                 isLoading={isValidatingUrl}
               />
 
-              {target?.type === TargetTypeEnum.OPENAPI && (
+              {isOpenAPITarget && (
                 <>
                   <TabSelector
                     values={apiSpecs}
@@ -882,8 +939,8 @@ export const TargetPage = () => {
                   )}
                 </>
               )}
-              <details style={{marginTop: '1rem', overflow: 'auto'}}>
-                <summary style={{fontSize: '0.9rem', marginBottom: '0.25rem'}}>EXCLUSIONS</summary>
+              <details style={{ marginTop: '1rem', overflow: 'auto' }}>
+                <summary style={{ fontSize: '0.9rem', marginBottom: '0.25rem' }}>EXCLUSIONS</summary>
                 <div className='flex flex-col gap-2'>
                   <Exclusion
                     label='Exclude URL patterns'
@@ -895,7 +952,7 @@ export const TargetPage = () => {
                       return items;
                     })}
                   />
-                   {target?.type === 'URL' && (
+                  {target?.type === 'URL' && (
                     <Exclusion
                       label='Exclude clicks based on XPath'
                       onAddClick={value => setXPaths(old => [...old, value])}
