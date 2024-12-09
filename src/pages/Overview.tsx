@@ -77,6 +77,7 @@ export const Overview = () => {
           installText='Update NightVison CLI'
           installingText='Updating...'
           cliVersion={cliVersion}
+          isUpdateCLI={true}
           setIsCliInstalled={(installed) => {
             setIsCliInstalled(installed);
             if (installed) {
