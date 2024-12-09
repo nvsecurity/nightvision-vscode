@@ -379,6 +379,7 @@ export const App = () => {
         <InstallButton
           installText='Install NightVison CLI'
           installingText='Installing...'
+          isUpdateCLI={false}
           setIsCliInstalled={(installed) => {
             setIsCliInstalled(installed);
             if (installed) {

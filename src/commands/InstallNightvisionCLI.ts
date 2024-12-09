@@ -63,7 +63,7 @@ export const putCLIToVSCodePath = () => {
     }
 };
 
-export const installNightvisionCLI = async (): Promise<boolean> => {
+export const installNightvisionCLI = async (isUpdateCLI: boolean): Promise<boolean> => {
     const platform = os.platform();
     const arch = os.arch();
 
@@ -77,7 +77,7 @@ export const installNightvisionCLI = async (): Promise<boolean> => {
         cliExecutable = path.join(destinationDir, 'nightvision');
     }
 
-    if (fs.existsSync(cliExecutable)) {
+    if (fs.existsSync(cliExecutable) && !isUpdateCLI) {
         putCLIToVSCodePath();
         return true;
     }

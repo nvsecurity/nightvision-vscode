@@ -155,7 +155,7 @@ class SidebarProvider implements vscode.WebviewViewProvider {
       try {
         switch (command) {
           case CLI_INSTALL: {
-            const readyToProceed = await installNightvisionCLI();
+            const readyToProceed = await installNightvisionCLI(payload.isUpdateCLI);
             if (readyToProceed) {
               webviewView.webview.postMessage({
                 command: CLI_INSTALL,
