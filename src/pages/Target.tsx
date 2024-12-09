@@ -62,7 +62,7 @@ export const getTarget = async (
       specUrl = (
         await messageHandler.api({
           method: 'get',
-          url:  `${API_URL}/api/v1/targets/openapi/${targetId}/get-spec-url/`,
+          url: `${API_URL}/api/v1/targets/openapi/${targetId}/get-spec-url/`,
           setIsLoggedIn: setIsLoggedIn,
         })
       ).url;
@@ -419,7 +419,7 @@ export const TargetPage = () => {
         openApiUrl:
           selectedApiSpec.type === 'URL' ? updateOpenApiUrl : undefined,
         swaggerFilePath: (selectedApiSpec.type === 'FILE' && filePath.length > 0) ? filePath : undefined,
-          // selectedApiSpec.type === 'FILE' ? updateSwaggerFile?.path : undefined,
+        // selectedApiSpec.type === 'FILE' ? updateSwaggerFile?.path : undefined,
         excludedUrlPatterns: urlPatterns,
         excludedXPaths: target.type === 'URL' ? xPaths : undefined,
       });
@@ -530,7 +530,7 @@ export const TargetPage = () => {
   return (
     <>
       <div className='flex flex-col space-y-4'>
-        <PageHeader title='Target'/>
+        <PageHeader title='Target' />
 
         {!target && <Loading />}
         {target && (
@@ -647,14 +647,14 @@ export const TargetPage = () => {
                   <span>
                     {target.lastScannedAt
                       ? new Date(target.lastScannedAt).toLocaleString('en-US', {
-                          year: 'numeric',
-                          month: 'long',
-                          day: '2-digit',
-                          hour: '2-digit',
-                          minute: '2-digit',
-                          second: '2-digit',
-                          hour12: true,
-                        })
+                        year: 'numeric',
+                        month: 'long',
+                        day: '2-digit',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        second: '2-digit',
+                        hour12: true,
+                      })
                       : 'N/A'}
                   </span>
 
@@ -666,12 +666,19 @@ export const TargetPage = () => {
                       <span>API Specs:</span>
                       <div className='flex items-center space-x-2'>
                         <span>{target.swaggerFileName}</span>
+                      </div>
+                    </>
+                  )}
+                  {target.specUrl && (
+                    <>
+                      <span>API Specs:</span>
                         <a
-                          className='unstyled'
+                          className='flex items-center space-x-2'
                           href={target.specUrl ?? ''}
                           download
-                          title={'Download ' + target.swaggerFileName}
+                          title={'Download swagger file'}
                         >
+                          <span>swagger</span>
                           <svg
                             xmlns='http://www.w3.org/2000/svg'
                             fill='none'
@@ -686,7 +693,6 @@ export const TargetPage = () => {
                             />
                           </svg>
                         </a>
-                      </div>
                     </>
                   )}
 
@@ -715,7 +721,7 @@ export const TargetPage = () => {
                       <summary>{`Excluded URL patterns (${urlPatterns.length})`}</summary>
                       <div className='flex flex-row flex-wrap gap-2 mt-2 font-normal'>
                         {urlPatterns.map((urlPattern, index) => (
-                          <Chip text={urlPattern} key={`url-pattern-${index}`}/>
+                          <Chip text={urlPattern} key={`url-pattern-${index}`} />
                         ))}
                       </div>
                     </details>
@@ -732,7 +738,7 @@ export const TargetPage = () => {
                         <summary>{`Excluded clicks based on XPath (${xPaths.length})`}</summary>
                         <div className='flex flex-row flex-wrap gap-2 mt-2 font-normal'>
                           {xPaths.map((xPath, index) => (
-                            <Chip text={xPath} key={`url-pattern-${index}`}/>
+                            <Chip text={xPath} key={`url-pattern-${index}`} />
                           ))}
                         </div>
                       </details>
@@ -882,8 +888,8 @@ export const TargetPage = () => {
                   )}
                 </>
               )}
-              <details style={{marginTop: '1rem', overflow: 'auto'}}>
-                <summary style={{fontSize: '0.9rem', marginBottom: '0.25rem'}}>EXCLUSIONS</summary>
+              <details style={{ marginTop: '1rem', overflow: 'auto' }}>
+                <summary style={{ fontSize: '0.9rem', marginBottom: '0.25rem' }}>EXCLUSIONS</summary>
                 <div className='flex flex-col gap-2'>
                   <Exclusion
                     label='Exclude URL patterns'
@@ -895,7 +901,7 @@ export const TargetPage = () => {
                       return items;
                     })}
                   />
-                   {target?.type === 'URL' && (
+                  {target?.type === 'URL' && (
                     <Exclusion
                       label='Exclude clicks based on XPath'
                       onAddClick={value => setXPaths(old => [...old, value])}

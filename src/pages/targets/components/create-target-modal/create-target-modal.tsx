@@ -274,11 +274,14 @@ export const CreateTargetModal: React.FC<CreateTargetModalProps> = ({
     e.preventDefault();
 
     if (selectedType.type === TargetTypeEnum.OPENAPI) {
-      if (selectedApiSpec.type === 'URL' && !openApiUrl.trim()) {
-        return;
-      }
-      if (!filePath) {
-        return;
+      if (selectedApiSpec.type === 'URL') {
+        if(!openApiUrl.trim()) {
+          return;
+        }
+      } else {
+        if (!filePath) {
+          return;
+        }  
       }
     }
 
