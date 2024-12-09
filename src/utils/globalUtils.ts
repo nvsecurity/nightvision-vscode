@@ -63,5 +63,5 @@ const mapSpecStatusToTextMessage = new Map<SpecStatusEnum, string>([
 ]);
 
 export const specStatusToTextMessage = (status?: SpecStatusEnum): string => {
-  return status ? mapSpecStatusToTextMessage.get(status) || '' : 'Checking OpenAPI spec';
+  return status ? mapSpecStatusToTextMessage.get(status) || status : 'Checking OpenAPI spec';
 };
