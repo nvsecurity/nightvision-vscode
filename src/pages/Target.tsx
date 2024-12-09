@@ -155,6 +155,8 @@ export const TargetPage = () => {
   const [isDeleteLoading, setIsDeleteLoading] = useState(false);
   const [isFetching, setIsFetching] = useState(false);
 
+  const [urlChanges] = React.useState({ count: 0 });
+
   const [selectedApiSpec, setSelectedApiSpec] = useState(apiSpecs[1]);
 
   const [isTargetUrlTested, setIsTargetUrlTested] = React.useState(true);
@@ -224,6 +226,8 @@ export const TargetPage = () => {
 
   const handleUpdateUrlChange = (newUrl: string) => {
     setTargetUrlErrors([]);
+    setIsValidatingUrl(false);
+    urlChanges.count++;
     setUpdateLocation(newUrl);
     setIsTargetUrlTested(false);
   };
@@ -334,6 +338,7 @@ export const TargetPage = () => {
   useEffect(() => {
     const validateUrl = async () => {
       setIsValidatingUrl(true);
+      const currCounter = urlChanges.count;
 
       const errors: string[] = [];
 
@@ -351,18 +356,21 @@ export const TargetPage = () => {
             url: updateLocation,
           });
 
-          if (result.status === 400) {
-            errors.push('Invalid format: URL schema required');
-          }
-          else {
-            setUpdateLocation(result.requested_url);
+          // Check if url was changed before applying response
+          if (urlChanges.count === currCounter) {
+            if (result.status === 400) {
+              errors.push('Invalid format: URL schema required');
+            }
+            else {
+              setUpdateLocation(result.requested_url);
+            }
+            setIsTargetUrlTested(true);
           }
         }
       }
 
       setTargetUrlErrors(errors);
       setIsValidatingUrl(false);
-      setIsTargetUrlTested(true);
     };
 
     if (!isTargetUrlTested) {

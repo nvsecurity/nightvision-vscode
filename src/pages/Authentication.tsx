@@ -137,6 +137,8 @@ export const AuthenticationPage = () => {
   const authIdCopyTimer = useRef<NodeJS.Timeout>();
   const scriptCopyTimer = useRef<NodeJS.Timeout>();
 
+  const [urlChanges] = React.useState({ count: 0 });
+
   const hasEmptyRequiredInputs =
     !updateName || (auth?.type === 'SCRIPT' && !updateUrl);
 
@@ -155,6 +157,8 @@ export const AuthenticationPage = () => {
 
   const handleUpdateUrlChange = (newUrl: string) => {
     setAuthUrlErrors([]);
+    setIsValidatingUrl(false);
+    urlChanges.count++;
     setUpdateUrl(newUrl);
     setIsAuthUrlTested(false);
   };
@@ -243,7 +247,7 @@ export const AuthenticationPage = () => {
   useEffect(() => {
     const validateUrl = async () => {
       setIsValidatingUrl(true);
-
+      const currCounter = urlChanges.count;
       const errors: string[] = [];
 
       if (!updateUrl) {
@@ -260,18 +264,21 @@ export const AuthenticationPage = () => {
             url: updateUrl,
           });
 
-          if (result.status === 400) {
-            errors.push('Invalid format: URL schema required');
-          }
-          else {
-            setUpdateUrl(result.requested_url);
+          // Check if url was changed before applying response
+          if (urlChanges.count === currCounter) {
+            if (result.status === 400) {
+              errors.push('Invalid format: URL schema required');
+            }
+            else {
+              setUpdateUrl(result.requested_url);
+            }
+            setIsAuthUrlTested(true);
           }
         }
       }
 
       setAuthUrlErrors(errors);
       setIsValidatingUrl(false);
-      setIsAuthUrlTested(true);
     };
 
     if (!isAuthUrlTested) {
