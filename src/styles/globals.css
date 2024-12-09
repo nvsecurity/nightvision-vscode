@@ -168,7 +168,6 @@ button.unstyled {
   border-radius: 0.5em;
   border: 1px solid #aaa;
   position: relative;
-  opacity: 0;
   transition: opacity 0.3s;
 }
 

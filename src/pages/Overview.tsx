@@ -66,12 +66,14 @@ export const Overview = () => {
         <CustomLink p={{ path: '/api-discovery', title: 'API Discovery', tip: 'Document and discover hidden endpoints in your API', icon: <ApiDiscoverySvg /> }} />
         <CustomLink p={{ path: '.', title: 'API and Web Security Testing', tip: "Show options to configure and run API and Web security scans", icon: <DastSvg /> }} onClick={handleScanClick} className={`${isShowDASTOptions ? 'active' : ''}`} />
       </div>
-      <div className={`dast-options ${isShowDASTOptions ? 'visible' : ''} grid auto-cols-min grid-cols-1 gap-3 min-[360px]:grid-cols-2 md:grid-cols-2`}>
-        <CustomLink p={{ path: '/scans', title: 'Scans', tip: "List and run new scans", icon: <ScansSvg /> }} />
-        <CustomLink p={{ path: '/targets', title: 'Targets', tip: "List and manage targets", icon: <TargetsSvg /> }} />
-        <CustomLink p={{ path: '/authentications', title: 'Authentications', tip: "List and manage authentications", icon: <AuthenticationsSvg /> }} />
-        <CustomLink p={{ path: '/projects', title: 'Projects', tip: "List and manage projects", icon: <ProjectsSvg /> }} />
-      </div>
+      {isShowDASTOptions && (
+        <div className={`dast-options grid auto-cols-min grid-cols-1 gap-3 min-[360px]:grid-cols-2 md:grid-cols-2`}>
+          <CustomLink p={{ path: '/scans', title: 'Scans', tip: "List and run new scans", icon: <ScansSvg /> }} />
+          <CustomLink p={{ path: '/targets', title: 'Targets', tip: "List and manage targets", icon: <TargetsSvg /> }} />
+          <CustomLink p={{ path: '/authentications', title: 'Authentications', tip: "List and manage authentications", icon: <AuthenticationsSvg /> }} />
+          <CustomLink p={{ path: '/projects', title: 'Projects', tip: "List and manage projects", icon: <ProjectsSvg /> }} />
+        </div>
+      )}
       {cliVersion && isCliOutdated(cliVersion) && (
         <InstallButton
           installText='Update NightVison CLI'
