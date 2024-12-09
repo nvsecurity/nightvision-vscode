@@ -1,5 +1,17 @@
 import { IdAndName } from '@types_/idAndName';
 
+export const SpecStatusEnum = {
+  NoSpec: 'NO_SPEC',
+  Downloading: 'DOWNLOADING',
+  DownloadError: 'DOWNLOAD_ERROR',
+  WaitingForUpload: 'WAITING_FOR_UPLOAD',
+  Validating: 'VALIDATING',
+  Invalid: 'INVALID',
+  Valid: 'VALID'
+} as const;
+
+export type SpecStatusEnum = typeof SpecStatusEnum[keyof typeof SpecStatusEnum];
+
 export interface Target extends IdAndName {
   location: string;
   type: TargetType;
@@ -15,6 +27,8 @@ export interface TargetInfo extends Target {
   swaggerFileUrl?: string | null;
   specUrlForDownload?: string | null;
   lastSpecUploadedAt?: Date | null;
+  specStatus?: SpecStatusEnum;
+  isReadyToScan: boolean;
   configuration?: {
     excludedUrlPatterns: string[];
     excludedXPaths: string[];

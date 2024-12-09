@@ -1,3 +1,5 @@
+import { SpecStatusEnum } from "@types_/target";
+
 export const validateUrls = (urls: string[]): boolean => {
   const invalidUrls = urls?.map(url => url.trim()).filter(url => !url
     .match(/^(https?:\/\/)?(?![^#?/]*\.\.)[a-zA-Z0-9][-a-zA-Z0-9.]{1,255}(:\d+)?($|(#|\?|\/)[-a-zA-Z0-9@:%_+.~#?&/=]*)$/));
@@ -48,4 +50,18 @@ export const isCliOutdated = (cliVersion: string) => {
   }
 
   return false;
+};
+
+const mapSpecStatusToTextMessage = new Map<SpecStatusEnum, string>([
+  [SpecStatusEnum.NoSpec, 'OpenAPI spec is not specified'],
+  [SpecStatusEnum.Downloading, 'Downloading OpenAPI spec'],
+  [SpecStatusEnum.DownloadError, 'OpenAPI spec download failed'],
+  [SpecStatusEnum.Validating, 'Validating OpenAPI spec'],
+  [SpecStatusEnum.Invalid, 'Invalid OpenAPI definition'],
+  [SpecStatusEnum.Valid, 'OpenAPI spec is valid'],
+  [SpecStatusEnum.WaitingForUpload, 'Waiting for OpenAPI spec upload to complete'],
+]);
+
+export const specStatusToTextMessage = (status?: SpecStatusEnum): string => {
+  return status ? mapSpecStatusToTextMessage.get(status) || '' : 'Checking OpenAPI spec';
 };

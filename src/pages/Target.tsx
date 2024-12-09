@@ -1,6 +1,6 @@
 import useClickOutside from '@hooks/useClickOutside';
 import { useUser } from '@hooks/useUser';
-import { ApiSpec, TargetInfo, TargetType, TargetTypeEnum } from '@types_/target';
+import { ApiSpec, SpecStatusEnum, TargetInfo, TargetType, TargetTypeEnum } from '@types_/target';
 import { useDebounce } from 'use-debounce';
 import { v4 } from 'uuid';
 import React, { useEffect, useRef } from 'react';
@@ -32,12 +32,15 @@ import { TargetTypeLabel } from '@components/TargetTypeLabel';
 import { TextInput } from '@components/TextInput';
 import { messageHandler } from '@utils/MessageHandler';
 import { PageHeader } from '@components/PageHeader';
-import { API_URL } from '@constants/GlobalConstants';
+import { API_URL, COMPLETED_SPEC_STATUSES, ERROR_SPEC_STATUSES } from '@constants/GlobalConstants';
 import { Exclusion } from '@components/exclusion';
 import { Chip } from '@components/chip';
 import { FilePathValidatorParams, ValidationResult } from '@commands/FilePathValidator';
-import { validateUrls } from '@utils/globalUtils';
+import { specStatusToTextMessage, validateUrls } from '@utils/globalUtils';
 import { checkPublicUrl } from '@queries/targetQueries';
+import { Check } from '@icons/check';
+import { Cross } from '@icons/cross';
+import { LoadingAnimation } from '@icons/loading';
 
 export const getTarget = async (
   setTarget: React.Dispatch<React.SetStateAction<TargetInfo | undefined>>,
@@ -87,6 +90,8 @@ export const getTarget = async (
       swaggerFileName: target.swaggerfile_name,
       swaggerFileUrl: target.swaggerfile_url,
       specUrlForDownload: specUrl,
+      specStatus: target.spec_status,
+      isReadyToScan: target.is_ready_to_scan,
       lastSpecUploadedAt: target.last_spec_uploaded_at
         ? new Date(target.last_spec_uploaded_at)
         : null,
@@ -244,6 +249,9 @@ export const TargetPage = () => {
     return false;
   };
 
+  const [currSpecStatus, setCurrSpecStatus] = React.useState<SpecStatusEnum>();
+  const stopPingTargetSpecStatuses = [...ERROR_SPEC_STATUSES, ...COMPLETED_SPEC_STATUSES];
+
   useEffect(() => {
     let ignore = false;
 
@@ -259,6 +267,18 @@ export const TargetPage = () => {
       ignore = true;
     };
   }, [targetType, targetId]);
+
+  useEffect(() => {
+    setCurrSpecStatus(target?.specStatus);
+  }, [target?.specStatus]);
+
+  useEffect(() => {
+    if (currSpecStatus && !stopPingTargetSpecStatuses.includes(currSpecStatus)) {
+      setTimeout(async () =>
+        await getTarget(setTarget, setIsLoggedIn, targetType, targetId)
+      , 2000);
+    }
+  }, [currSpecStatus]);
 
   useEffect(() => {
     return () => {
@@ -696,6 +716,35 @@ export const TargetPage = () => {
                       ) : (
                         <span>N/A</span>
                       )}
+
+                      <span>API Spec status:</span>
+                      <span className='flex gap-2'>
+                        {currSpecStatus && (
+                          COMPLETED_SPEC_STATUSES.includes(currSpecStatus)
+                          ? <Check color='#006D23' />
+                          : ERROR_SPEC_STATUSES.includes(currSpecStatus)
+                            ? <Cross color='#BD002A' />
+                            :
+                            <LoadingAnimation />
+                        )}
+                        {specStatusToTextMessage(currSpecStatus)}
+                      </span>
+
+                      <span>Target is ready to scan:</span>
+                      <span className='flex gap-2'>
+                        {target?.isReadyToScan ? (
+                          <>
+                            <Check color='#006D23' />
+                            Yes
+                          </>
+                        ) : (
+                          <>
+                            <Cross color='#BD002A' />
+                            No
+                          </>
+                        )}
+                      </span>
+
                       {target.lastSpecUploadedAt && (
                         <>
                           <span>Latest update of API Specs:</span>
