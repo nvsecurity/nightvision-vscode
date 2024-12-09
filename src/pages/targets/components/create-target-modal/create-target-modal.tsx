@@ -90,6 +90,8 @@ export const CreateTargetModal: React.FC<CreateTargetModalProps> = ({
 
   const [isTargetUrlTested, setIsTargetUrlTested] = React.useState(false);
 
+  const [urlChanges] = React.useState({ count: 0 });
+
   const [selectedType, setSelectedType] = useState(types[0]);
   const [selectedApiSpec, setSelectedApiSpec] = useState(apiSpecs[0]);
 
@@ -156,6 +158,8 @@ export const CreateTargetModal: React.FC<CreateTargetModalProps> = ({
 
   const handleTargetUrlChange = (newUrl: string) => {
     setTargetUrlErrors([]);
+    setIsValidatingUrl(false);
+    urlChanges.count++;
     setTargetUrl(newUrl);
     setIsTargetUrlTested(false);
   };
@@ -196,6 +200,7 @@ export const CreateTargetModal: React.FC<CreateTargetModalProps> = ({
   useEffect(() => {
     const validateUrl = async () => {
       setIsValidatingUrl(true);
+      const currCounter = urlChanges.count;
 
       const errors: string[] = [];
 
@@ -213,18 +218,21 @@ export const CreateTargetModal: React.FC<CreateTargetModalProps> = ({
             url: targetUrl,
           });
 
-          if (result.status === 400) {
-            errors.push('Invalid format: URL schema required');
-          }
-          else {
-            setTargetUrl(result.requested_url);
+          // Check if url was changed before applying response
+          if (urlChanges.count === currCounter) {
+            if (result.status === 400) {
+              errors.push('Invalid format: URL schema required');
+            }
+            else {
+              setTargetUrl(result.requested_url);
+            }
+            setIsTargetUrlTested(true);
           }
         }
       }
 
       setTargetUrlErrors(errors);
       setIsValidatingUrl(false);
-      setIsTargetUrlTested(true);
     };
 
     if (!isTargetUrlTested) {
@@ -281,7 +289,7 @@ export const CreateTargetModal: React.FC<CreateTargetModalProps> = ({
       } else {
         if (!filePath) {
           return;
-        }  
+        }
       }
     }
 

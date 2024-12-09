@@ -76,6 +76,8 @@ export const CreateAuthModal: React.FC<CreateAuthModalProps> = ({
     []
   );
 
+  const [urlChanges] = React.useState({ count: 0 });
+
   const [isAuthUrlTested, setIsAuthUrlTested] = React.useState(false);
 
   const [isValidatingUrl, setIsValidatingUrl] = React.useState(false);
@@ -97,6 +99,8 @@ export const CreateAuthModal: React.FC<CreateAuthModalProps> = ({
 
   const handleAuthUrlChange = (newUrl: string) => {
     setAuthUrlErrors([]);
+    setIsValidatingUrl(false);
+    urlChanges.count++;
     setAuthUrl(newUrl);
     setIsAuthUrlTested(false);
   };
@@ -160,6 +164,7 @@ export const CreateAuthModal: React.FC<CreateAuthModalProps> = ({
   React.useEffect(() => {
     const validateUrl = async () => {
       setIsValidatingUrl(true);
+      const currCounter = urlChanges.count;
 
       const errors: string[] = [];
 
@@ -177,18 +182,21 @@ export const CreateAuthModal: React.FC<CreateAuthModalProps> = ({
             url: authUrl,
           });
 
-          if (result.status === 400) {
-            errors.push('Invalid format: URL schema required');
-          }
-          else {
-            setAuthUrl(result.requested_url);
+          // Check if url was changed before applying response
+          if (urlChanges.count === currCounter) {
+            if (result.status === 400) {
+              errors.push('Invalid format: URL schema required');
+            }
+            else {
+              setAuthUrl(result.requested_url);
+            }
+            setIsAuthUrlTested(true);
           }
         }
       }
 
       setAuthUrlErrors(errors);
       setIsValidatingUrl(false);
-      setIsAuthUrlTested(true);
     };
 
     if (!isAuthUrlTested) {
