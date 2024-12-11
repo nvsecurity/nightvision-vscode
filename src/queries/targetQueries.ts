@@ -1,5 +1,70 @@
 import { API_URL, HTTPS_PARTS_REGEX } from "@constants/GlobalConstants";
+import { Target, TargetInfo, TargetType } from "@types_/target";
 import { messageHandler } from "@utils/MessageHandler";
+
+// #region getTargetsList
+export interface GetTargetsListParams {
+  setIsLoggedIn: React.Dispatch<React.SetStateAction<boolean>>;
+  projectId: string;
+  page: number;
+  search?: string;
+  type?: TargetType,
+  ignore?: boolean;
+}
+
+export interface GetTargetsListResponse {
+  targets: Target[],
+  nextPage?: number,
+  totalCount: number,
+}
+
+export const getTargetsList = async ({
+  setIsLoggedIn,
+  projectId,
+  page,
+  search='',
+  type,
+  ignore = false,
+}: GetTargetsListParams): Promise<GetTargetsListResponse> => {
+  try {
+    const _type = type ? type.toLocaleLowerCase() + '/' : '';
+    const response = (
+      await messageHandler.api({
+        method: 'get',
+        url: `${API_URL}/api/v1/targets/${_type}?order=name&page=${page}&project=${projectId}${search ? `&filter=${search}` : ''}`,
+        setIsLoggedIn: setIsLoggedIn,
+      })
+    );
+
+    if (ignore) {
+      throw new Error('Aborted');
+    }
+
+    const nextPage = response.next && new URL(response.next).searchParams.get('page');
+    const totalCount = response.count;
+
+    const targets: Target[] = response.results.map(
+      (target: any): Target => ({
+        id: target.id,
+        name: target.name,
+        location: target.location,
+        type: target.type,
+      })
+    );
+    return {
+      targets: targets,
+      nextPage: nextPage,
+      totalCount: totalCount,
+    };
+  } catch (err: any) {
+    console.error(err);
+  }
+  return {
+    targets: [],
+    totalCount: 0,
+  };
+};
+// #endregion
 
 // #region checkPublicUrl
 export interface CheckPublicUrlParams {
