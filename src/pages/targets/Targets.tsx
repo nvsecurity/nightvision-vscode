@@ -1,63 +1,19 @@
 import { useProject } from '@hooks/useProject';
 import { useUser } from '@hooks/useUser';
-import {  Target, TargetType } from '@types_/target';
+import { Target } from '@types_/target';
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { EditList } from '@components/EditList';
 import { Label } from '@components/Label';
 import { Loading } from '@components/Loading';
 import { TargetTypeLabel } from '@components/TargetTypeLabel';
-import { messageHandler } from '@utils/MessageHandler';
 import { PageHeader } from '@components/PageHeader';
-import { API_URL } from '@constants/GlobalConstants';
 import { Pagination } from '@components/pagination';
 import { CreateTargetModal } from './components';
 import { ProjectDropdown } from '@components/project-dropdown';
-
-export const getTargets = async (
-  setIsLoggedIn: React.Dispatch<React.SetStateAction<boolean>>,
-  projectId: string,
-  page: number,
-  type?: TargetType,
-  ignore: boolean = false
-) => {
-  try {
-    const _type = type ? type.toLocaleLowerCase() + '/' : '';
-    const response = (
-      await messageHandler.api({
-        method: 'get',
-        url: `${API_URL}/api/v1/targets/${_type}?order=name&page=${page}&project=${projectId}`,
-        setIsLoggedIn: setIsLoggedIn,
-      })
-    );
-
-    if (ignore) {
-      return;
-    }
-
-    const nextPage = response.next && new URL(response.next).searchParams.get('page');
-    const totalCount = response.count;
-
-    const targets = response.results.map(
-      (target: any): Target => ({
-        id: target.id,
-        name: target.name,
-        location: target.location,
-        type: target.type,
-      })
-    );
-    return {
-      targets: targets,
-      nextPage: nextPage,
-      totalCount: totalCount,
-    };
-  } catch (err: any) {
-    console.error(err);
-  }
-  return {
-    targets: [],
-  };
-};
+import { TextInput } from '@components/TextInput';
+import { useDebounce } from 'use-debounce';
+import { getTargetsList } from '@queries/targetQueries';
 
 export const Targets = () => {
   const navigate = useNavigate();
@@ -71,20 +27,27 @@ export const Targets = () => {
   const [page, setPage] = React.useState(1);
   const [totalCount, setTotalCount] = React.useState(0);
 
+  const [_searchValue, setSearchValue] = React.useState('');
+  const [search] = useDebounce(_searchValue, 500);
+  const [searchChanges] = React.useState({ count: 0 });
+
   const fetchTargets = async (ignore: boolean) => {
     setIsTargetsLoading(true);
+    const currCounter = searchChanges.count;
 
-    const res = await getTargets(
+    const res = await getTargetsList({
       setIsLoggedIn,
-      currentProject.id,
+      projectId: currentProject.id,
       page,
-      undefined,
-      ignore
-    );
+      search,
+      ignore,
+    });
 
-    setTargets(res?.targets);
-    setTotalCount(res?.totalCount);
-    setIsTargetsLoading(false);
+    if (searchChanges.count === currCounter) {
+      setTargets(res.targets);
+      setTotalCount(res.totalCount);
+      setIsTargetsLoading(false);
+    }
   };
 
   React.useEffect(() => {
@@ -100,14 +63,15 @@ export const Targets = () => {
   React.useEffect(() => {
     let ignore = false;
 
-    if (invalidateTargetsList) {
+    if (invalidateTargetsList || search) {
       fetchTargets(ignore);
+      setInvalidateTargetsList(false);
     }
 
     return () => {
       ignore = true;
     };
-  }, [invalidateTargetsList]);
+  }, [invalidateTargetsList, search]);
 
   const onProjectChange = (value: any) => {
     setPage(1);
@@ -135,6 +99,16 @@ export const Targets = () => {
           Create Target
         </button>
 
+        <TextInput
+          value={_searchValue}
+          handleOnChange={val => {
+            setSearchValue(val);
+            searchChanges.count++;
+          }}
+          placeholder='Search...'
+          id='target-name-search'
+        />
+
         {isTargetsLoading ? (
           <Loading />
         ) : (
@@ -149,7 +123,10 @@ export const Targets = () => {
                 }}
                 renderItem={(listItem) => (
                   <div className='flex max-w-full flex-nowrap justify-between truncate'>
-                    <span className='mr-2 truncate'>{listItem.name}</span>
+                  <div className='flex flex-nowrap items-center gap-2 mr-2 truncate'>
+                    <span className='font-medium'>{listItem.name}</span>
+                    <span className='text-gray-400'>{`(${listItem.location})`}</span>
+                  </div>
                     <TargetTypeLabel targetType={listItem.type} />
                   </div>
                 )}

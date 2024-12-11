@@ -21,7 +21,7 @@ import { Label } from '@components/Label';
 import { Loading } from '@components/Loading';
 import { getAuths } from '@pages/authentications';
 import { getProjects } from '@pages/projects';
-import { getTargets } from '@pages/targets';
+import { getTargetsList } from '@queries/targetQueries';
 import { messageHandler } from '@utils/MessageHandler';
 import { PageHeader } from '@components/PageHeader';
 
@@ -90,13 +90,13 @@ export const NewScan = () => {
 
     let page: number | undefined = 1;
     do {
-      const result: any = await getTargets(
+      const result = await getTargetsList({
         setIsLoggedIn,
-        currentProject.id,
+        projectId: currentProject.id,
         page,
-        targetType === 'url' ? TargetTypeEnum.URL : TargetTypeEnum.OPENAPI,
-      );
-      targets.push(...result?.targets);
+        type: targetType === 'url' ? TargetTypeEnum.URL : TargetTypeEnum.OPENAPI,
+      });
+      targets.push(...result.targets);
       page = result?.nextPage;
     } while (!!page);
     setTargets(targets);
