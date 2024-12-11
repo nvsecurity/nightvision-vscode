@@ -81,9 +81,7 @@ export const CreateAuthModal: React.FC<CreateAuthModalProps> = ({
   const [isAuthUrlTested, setIsAuthUrlTested] = React.useState(false);
 
   const [isValidatingUrl, setIsValidatingUrl] = React.useState(false);
-  const [isValidatingInput, setIsValidatingInput] = React.useState(true);
   const [isLoading, setIsLoading] = React.useState(false);
-  const [isFetching, setIsFetching] = React.useState(false);
 
   const [selectedType, setSelectedType] = React.useState(types[0]);
 
@@ -106,12 +104,6 @@ export const CreateAuthModal: React.FC<CreateAuthModalProps> = ({
   };
 
   React.useEffect(() => {
-    setIsValidatingInput(true);
-  }, [_authName, _authDescription, _authCookies, _authHeaders, _authUrl]);
-
-  React.useEffect(() => {
-    setIsValidatingInput(true);
-
     const errors: string[] = [];
 
     if (!authName) {
@@ -135,12 +127,9 @@ export const CreateAuthModal: React.FC<CreateAuthModalProps> = ({
     }
 
     setAuthNameErrors(errors);
-    setIsValidatingInput(false);
   }, [authName]);
 
   React.useEffect(() => {
-    setIsValidatingInput(true);
-
     const errors: string[] = [];
 
     if (authDescription.length > 100) {
@@ -148,16 +137,13 @@ export const CreateAuthModal: React.FC<CreateAuthModalProps> = ({
     }
 
     setAuthDescriptionErrors(errors);
-    setIsValidatingInput(false);
   }, [authDescription]);
 
   React.useEffect(() => {
-    setIsValidatingInput(false);
     setAuthCookieErrors([]);
   }, [authCookies]);
 
   React.useEffect(() => {
-    setIsValidatingInput(false);
     setAuthHeaderErrors([]);
   }, [authHeaders]);
 
@@ -500,7 +486,6 @@ export const CreateAuthModal: React.FC<CreateAuthModalProps> = ({
             className='truncate rounded disabled:cursor-not-allowed disabled:opacity-75 disabled:hover:bg-[--vscode-button-background]'
             disabled={
               isLoading ||
-              isValidatingInput ||
               isValidatingUrl ||
               hasEmptyRequiredInputs ||
               hasErrors

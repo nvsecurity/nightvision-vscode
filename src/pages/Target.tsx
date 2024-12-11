@@ -150,7 +150,6 @@ export const TargetPage = () => {
   const [swaggerFileErrors, setSwaggerFileErrors] = useState<string[]>([]);
 
   const [isValidatingUrl, setIsValidatingUrl] = useState(false);
-  const [isValidatingInput, setIsValidatingInput] = useState(true);
   const [isUpdateLoading, setIsUpdateLoading] = useState(false);
   const [isDeleteLoading, setIsDeleteLoading] = useState(false);
   const [isFetching, setIsFetching] = useState(false);
@@ -309,12 +308,6 @@ export const TargetPage = () => {
   }, [target, showUpdateModal]);
 
   useEffect(() => {
-    setIsValidatingInput(true);
-  }, [_updateName, _updateLocation, _updateOpenApiUrl]);
-
-  useEffect(() => {
-    setIsValidatingInput(true);
-
     const errors: string[] = [];
 
     if (!updateName) {
@@ -332,7 +325,6 @@ export const TargetPage = () => {
     }
 
     setTargetNameErrors(errors);
-    setIsValidatingInput(false);
   }, [updateName]);
 
   useEffect(() => {
@@ -379,8 +371,6 @@ export const TargetPage = () => {
   }, [updateLocation]);
 
   useEffect(() => {
-    setIsValidatingInput(true);
-
     const errors: string[] = [];
 
     if (!updateOpenApiUrl) {
@@ -390,15 +380,12 @@ export const TargetPage = () => {
     // TODO: Add swagger spec url validation (ticket: [NV-3292])
 
     setOpenApiUrlErrors(errors);
-    setIsValidatingInput(false);
   }, [updateOpenApiUrl]);
 
   useEffect(() => {
     if (oldSwaggerFileName) {
       return;
     }
-
-    setIsValidatingInput(true);
 
     const errors: string[] = [];
 
@@ -417,7 +404,6 @@ export const TargetPage = () => {
     }
 
     setSwaggerFileErrors(errors);
-    setIsValidatingInput(false);
   }, [filePath, oldSwaggerFileName]);
 
   const handleUpdate = async (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -987,7 +973,6 @@ export const TargetPage = () => {
                 className='truncate rounded disabled:cursor-not-allowed disabled:opacity-75 disabled:hover:bg-[--vscode-button-background]'
                 disabled={
                   isUpdateLoading ||
-                  isValidatingInput ||
                   isValidatingUrl ||
                   hasEmptyRequiredInputs ||
                   hasErrors ||
