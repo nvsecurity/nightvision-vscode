@@ -43,9 +43,8 @@ export const NewScan = () => {
 
   const [isLoading, setIsLoading] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
-  const [isFetching, setIsFetching] = useState(false);
 
-  const [isAuthsLoading, setIsAuthsLoading] = React.useState(false);
+  const [isAuthsLoading, setIsAuthsLoading] = React.useState(true);
   const fetchAllAuthentications = async () => {
     setIsAuthsLoading(true);
     const auths = [];
@@ -65,7 +64,7 @@ export const NewScan = () => {
     setIsAuthsLoading(false);
   };
 
-  const [isProjectsLoading, setIsProjectsLoading] = React.useState(false);
+  const [isProjectsLoading, setIsProjectsLoading] = React.useState(true);
   const fetchAllProjects = async () => {
     setIsProjectsLoading(true);
     const projects = [];
@@ -84,7 +83,7 @@ export const NewScan = () => {
     setIsProjectsLoading(false);
   };
 
-  const [isTargetsLoading, setIsTargetsLoading] = React.useState(false);
+  const [isTargetsLoading, setIsTargetsLoading] = React.useState(true);
   const fetchAllTargets = async () => {
     setIsTargetsLoading(true);
     const targets = [];
@@ -105,8 +104,11 @@ export const NewScan = () => {
     setIsTargetsLoading(false);
   };
 
-  useEffect(() => {
+  React.useEffect(() => {
     fetchAllProjects();
+  }, []);
+
+  useEffect(() => {
     fetchAllTargets();
     fetchAllAuthentications();
     setTargetErrors([]);
@@ -260,7 +262,7 @@ export const NewScan = () => {
         <button
           onClick={handleScanClick}
           className='truncate rounded disabled:cursor-not-allowed disabled:opacity-75 disabled:hover:bg-[--vscode-button-background]'
-          disabled={isLoading}
+          disabled={isLoading || !currentTarget || !currentProject}
         >
           {isLoading ? 'Loading...' : 'Start Scan'}
         </button>
