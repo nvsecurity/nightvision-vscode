@@ -223,7 +223,6 @@ export const ProjectPage = () => {
   const [projectNameErrors, setProjectNameErrors] = useState<string[]>([]);
   const [deleteErrors, setDeleteErrors] = useState<string[]>([]);
 
-  const [isValidatingInput, setIsValidatingInput] = useState(true);
   const [isUpdateLoading, setIsUpdateLoading] = useState(false);
   const [isDeleteLoading, setIsDeleteLoading] = useState(false);
   const [isLeaveLoading, setIsLeaveLoading] = useState(false);
@@ -301,12 +300,6 @@ export const ProjectPage = () => {
   }, [project, showUpdateModal]);
 
   useEffect(() => {
-    setIsValidatingInput(true);
-  }, [_updateName]);
-
-  useEffect(() => {
-    setIsValidatingInput(true);
-
     const errors: string[] = [];
 
     if (!updateName) {
@@ -324,7 +317,6 @@ export const ProjectPage = () => {
     }
 
     setProjectNameErrors(errors);
-    setIsValidatingInput(false);
   }, [updateName]);
 
   const handleUpdate = async (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -775,7 +767,6 @@ export const ProjectPage = () => {
                 className='truncate rounded disabled:cursor-not-allowed disabled:opacity-75 disabled:hover:bg-[--vscode-button-background]'
                 disabled={
                   isUpdateLoading ||
-                  isValidatingInput ||
                   hasEmptyRequiredInputs ||
                   hasErrors ||
                   !hasChanges

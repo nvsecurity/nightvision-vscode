@@ -125,7 +125,6 @@ export const AuthenticationPage = () => {
   );
 
   const [isValidatingUrl, setIsValidatingUrl] = useState(false);
-  const [isValidatingInput, setIsValidatingInput] = useState(true);
   const [isUpdateLoading, setIsUpdateLoading] = useState(false);
   const [isDeleteLoading, setIsDeleteLoading] = useState(false);
   const [isFetching, setIsFetching] = useState(false);
@@ -200,12 +199,6 @@ export const AuthenticationPage = () => {
   }, [auth, showUpdateModal]);
 
   useEffect(() => {
-    setIsValidatingInput(true);
-  }, [_updateName, _updateDescription, _updateHeaders, _updateUrl]);
-
-  useEffect(() => {
-    setIsValidatingInput(true);
-
     const errors: string[] = [];
 
     if (!updateName) {
@@ -223,12 +216,9 @@ export const AuthenticationPage = () => {
     }
 
     setAuthNameErrors(errors);
-    setIsValidatingInput(false);
   }, [updateName]);
 
   useEffect(() => {
-    setIsValidatingInput(true);
-
     const errors: string[] = [];
 
     if (updateDescription.length > 100) {
@@ -236,11 +226,9 @@ export const AuthenticationPage = () => {
     }
 
     setAuthDescriptionErrors(errors);
-    setIsValidatingInput(false);
   }, [updateDescription]);
 
   useEffect(() => {
-    setIsValidatingInput(false);
     setAuthHeaderErrors([]);
   }, [updateHeaders]);
 
@@ -854,7 +842,6 @@ export const AuthenticationPage = () => {
                 className='!mt-4 truncate rounded disabled:cursor-not-allowed disabled:opacity-75 disabled:hover:bg-[--vscode-button-background]'
                 disabled={
                   isUpdateLoading ||
-                  isValidatingInput ||
                   isValidatingUrl ||
                   hasEmptyRequiredInputs ||
                   hasErrors ||

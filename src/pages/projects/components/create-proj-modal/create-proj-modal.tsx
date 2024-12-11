@@ -41,19 +41,12 @@ export const CreateProjModal: React.FC<CreateProjModalProps> = ({
 
   const [projectNameErrors, setProjectNameErrors] = React.useState<string[]>([]);
 
-  const [isValidatingInput, setIsValidatingInput] = React.useState(true);
   const [isLoading, setIsLoading] = React.useState(false);
 
   const hasEmptyRequiredInputs = !projectName;
   const hasErrors = projectNameErrors.length > 0;
 
   React.useEffect(() => {
-    setIsValidatingInput(true);
-  }, [_projectName]);
-
-  React.useEffect(() => {
-    setIsValidatingInput(true);
-
     const errors: string[] = [];
 
     if (!projectName) {
@@ -77,7 +70,6 @@ export const CreateProjModal: React.FC<CreateProjModalProps> = ({
     }
 
     setProjectNameErrors(errors);
-    setIsValidatingInput(false);
   }, [projectName]);
 
   const handleCreateProject = async (
@@ -175,7 +167,6 @@ export const CreateProjModal: React.FC<CreateProjModalProps> = ({
             className='truncate rounded disabled:cursor-not-allowed disabled:opacity-75 disabled:hover:bg-[--vscode-button-background]'
             disabled={
               isLoading ||
-              isValidatingInput ||
               hasEmptyRequiredInputs ||
               hasErrors
             }

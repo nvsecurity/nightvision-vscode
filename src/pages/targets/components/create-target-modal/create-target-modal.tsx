@@ -85,7 +85,6 @@ export const CreateTargetModal: React.FC<CreateTargetModalProps> = ({
   const [swaggerFileErrors, setSwaggerFileErrors] = useState<string[]>([]);
 
   const [isValidatingUrl, setIsValidatingUrl] = useState(false);
-  const [isValidatingInput, setIsValidatingInput] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
 
   const [isTargetUrlTested, setIsTargetUrlTested] = React.useState(false);
@@ -165,12 +164,6 @@ export const CreateTargetModal: React.FC<CreateTargetModalProps> = ({
   };
 
   useEffect(() => {
-    setIsValidatingInput(true);
-  }, [_targetName, _targetUrl, _openApiUrl]);
-
-  useEffect(() => {
-    setIsValidatingInput(true);
-
     const errors: string[] = [];
 
     if (!targetName) {
@@ -194,7 +187,6 @@ export const CreateTargetModal: React.FC<CreateTargetModalProps> = ({
     }
 
     setTargetNameErrors(errors);
-    setIsValidatingInput(false);
   }, [targetName]);
 
   useEffect(() => {
@@ -241,8 +233,6 @@ export const CreateTargetModal: React.FC<CreateTargetModalProps> = ({
   }, [targetUrl]);
 
   useEffect(() => {
-    setIsValidatingInput(true);
-
     const errors: string[] = [];
 
     if (!openApiUrl) {
@@ -252,12 +242,9 @@ export const CreateTargetModal: React.FC<CreateTargetModalProps> = ({
     // TODO: Add swagger spec url validation (ticket: [NV-3292])
 
     setOpenApiUrlErrors(errors);
-    setIsValidatingInput(false);
   }, [openApiUrl]);
 
   useEffect(() => {
-    setIsValidatingInput(true);
-
     const errors: string[] = [];
 
     if (!filePath) {
@@ -275,7 +262,6 @@ export const CreateTargetModal: React.FC<CreateTargetModalProps> = ({
     }
 
     setSwaggerFileErrors(errors);
-    setIsValidatingInput(false);
   }, [filePath]);
 
   const handleCreateTarget = async (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -537,7 +523,6 @@ export const CreateTargetModal: React.FC<CreateTargetModalProps> = ({
             className='truncate rounded disabled:cursor-not-allowed disabled:opacity-75 disabled:hover:bg-[--vscode-button-background]'
             disabled={
               isLoading ||
-              isValidatingInput ||
               isValidatingUrl ||
               hasEmptyRequiredInputs ||
               hasErrors
