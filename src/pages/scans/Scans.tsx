@@ -23,7 +23,7 @@ export const Scans = () => {
   const [scans, setScans] = useState<ScanType[]>();
   const [projectFilter, setProjectFilter] = useState<Project>(currentProject);
   const [deleteModalOpen, setDeleteModalOpen] = React.useState(false);
-  const [scansLoading, setScansLoading] = React.useState(false);
+  const [isScansLoading, setIsScansLoading] = React.useState(false);
   const [page, setPage] = React.useState(1);
   const [totalCount, setTotalCount] = React.useState(0);
 
@@ -45,10 +45,10 @@ export const Scans = () => {
     const currCounter = searchChanges.count;
 
     const fetchApiWrapper = async () => {
-      setScansLoading(true);
+      setIsScansLoading(true);
       await fetchApi();
       if (searchChanges.count === currCounter) {
-        setScansLoading(false);
+        setIsScansLoading(false);
       }
     };
 
@@ -209,7 +209,7 @@ export const Scans = () => {
         id='scan-name-search'
       />
 
-      {scansLoading ? (
+      {isScansLoading ? (
         <Loading />
       ) : (
         scans?.length ? (
