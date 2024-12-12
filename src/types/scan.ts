@@ -1,6 +1,7 @@
 import { Auth } from '@types_/auth';
 import { Project } from '@types_/project';
 import { Target } from '@types_/target';
+import { IdAndName } from './idAndName';
 
 export type Severity =
   | 'Critical'
@@ -27,6 +28,11 @@ export const normalizedSeverity = (severity: string): Severity => {
       throw new Error(`Unknown severity: ${severity}`);
   }
 };
+
+export interface Issue extends IdAndName {
+  severity: string;
+  vulnerable_paths_count: number;
+}
 
 export type ScanStatus =
   | 'SUCCEEDED'
