@@ -3,7 +3,7 @@
   "displayName": "NightVision",
   "publisher": "nvsecurity",
   "description": "Test and exploit REST APIs and Web apps from your IDE.",
-  "version": "0.0.46",
+  "version": "0.0.47",
   "license": "Apache-2.0",
   "icon": "docs/icon.png",
   "engines": {
