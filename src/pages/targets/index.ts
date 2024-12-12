@@ -1,1 +1,1 @@
-export { Targets, getTargets } from './Targets';
+export { Targets } from './Targets';

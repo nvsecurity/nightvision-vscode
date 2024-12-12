@@ -7,74 +7,13 @@ import { useNavigate } from 'react-router-dom';
 import { EditList } from '@components/EditList';
 import { Label } from '@components/Label';
 import { Loading } from '@components/Loading';
-import { messageHandler } from '@utils/MessageHandler';
 import { PageHeader } from '@components/PageHeader';
-import { API_URL } from '@constants/GlobalConstants';
 import { ProjectDropdown } from '@components/project-dropdown';
 import { CreateProjModal } from './components';
 import { Pagination } from '@components/pagination';
-
-export const getProjects = async (
-  setIsLoggedIn: React.Dispatch<React.SetStateAction<boolean>>,
-  page: number,
-  ignore: boolean = false
-) => {
-  try {
-    const response = (
-      await messageHandler.api({
-        method: 'get',
-        url: `${API_URL}/api/v1/projects/?order=name&page=${page}`,
-        setIsLoggedIn: setIsLoggedIn,
-      })
-    );
-
-    if (ignore) {
-      return;
-    }
-
-    const nextPage = response.next && new URL(response.next).searchParams.get('page');
-    const totalCount = response.count;
-
-    const projects = response.results.map(
-      (project: any): ProjectInfo => ({
-        id: project.id,
-          name: project.name,
-          createdAt: new Date(project.created_at),
-          lastUpdatedAt: project.last_updated_at
-            ? new Date(project.last_updated_at)
-            : null,
-          owner: {
-            id: project.own_user.id,
-            name: project.own_user.username,
-            firstName: project.own_user.first_name,
-            lastName: project.own_user.last_name,
-            avatarUrl: project.own_user.avatar_url,
-          },
-          sharedWithUsers: project.shared_with_users_preview
-            .filter((user: any) => user.id !== project.own_user.id)
-            .map((user: any) => ({
-              id: user.id,
-              name: user.username,
-              firstName: user.first_name,
-              lastName: user.last_name,
-              avatarUrl: user.avatar_url,
-            })),
-          isDefault: project.is_default,
-      })
-    );
-
-    return {
-      projects: projects,
-      nextPage: nextPage,
-      totalCount: totalCount,
-    };
-  } catch (err: any) {
-    console.error(err);
-  }
-  return {
-    projects: [],
-  };
-};
+import { useDebounce } from 'use-debounce';
+import { TextInput } from '@components/TextInput';
+import { getProjectsList } from '@queries/projectsQueries';
 
 export const Projects = () => {
   const navigate = useNavigate();
@@ -88,36 +27,35 @@ export const Projects = () => {
   const [page, setPage] = React.useState(1);
   const [totalCount, setTotalCount] = React.useState(0);
 
-  const fetchProjects = async (ignore: boolean) => {
+  const [_searchValue, setSearchValue] = React.useState('');
+  const [search] = useDebounce(_searchValue, 500);
+  const [searchChanges] = React.useState({ count: 0 });
+
+  const fetchProjects = async () => {
     setIsProjectsLoading(true);
+    const currCounter = searchChanges.count;
 
-    const res = await getProjects(setIsLoggedIn, page, ignore);
-    setProjects(res?.projects);
-    setTotalCount(res?.totalCount);
+    const res = await getProjectsList({
+      setIsLoggedIn,
+      page,
+      filter: search,
+    });
 
-    setIsProjectsLoading(false);
+    if (searchChanges.count === currCounter) {
+      setProjects(res.projects);
+      setTotalCount(res.totalCount);
+      setIsProjectsLoading(false);
+    }
   };
 
   useEffect(() => {
-    let ignore = false;
-
-    fetchProjects(ignore);
-
-    return () => {
-      ignore = true;
-    };
-  }, [page]);
+    fetchProjects();
+  }, [page, search]);
 
   React.useEffect(() => {
-    let ignore = false;
-
     if (invalidateProjectsList) {
-      fetchProjects(ignore);
+      fetchProjects();
     }
-
-    return () => {
-      ignore = true;
-    };
   }, [invalidateProjectsList]);
 
   return (
@@ -140,6 +78,16 @@ export const Projects = () => {
         >
           Create Project
         </button>
+
+        <TextInput
+          value={_searchValue}
+          handleOnChange={val => {
+            setSearchValue(val);
+            searchChanges.count++;
+          }}
+          placeholder='Search...'
+          id='project-name-search'
+        />
 
         {isProjectsLoading ? (
           <Loading />

@@ -1,1 +1,1 @@
-export { Authentications, getAuths } from './Authentications';
+export { Authentications } from './Authentications';

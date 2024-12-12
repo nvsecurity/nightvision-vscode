@@ -1,3 +1,4 @@
+import { normalizedSeverity, Severity } from "@types_/scan";
 import { SpecStatusEnum } from "@types_/target";
 
 export const validateUrls = (urls: string[]): boolean => {
@@ -64,4 +65,18 @@ const mapSpecStatusToTextMessage = new Map<SpecStatusEnum, string>([
 
 export const specStatusToTextMessage = (status?: SpecStatusEnum): string => {
   return status ? mapSpecStatusToTextMessage.get(status) || status : 'Checking OpenAPI spec';
+};
+
+export const countIssues = (issues: any[]) => {
+  return issues.reduce(
+    (
+      counts: Record<Severity, number>,
+      kind: { severity: string; vulnerable_paths_count: number }
+    ) => {
+      const severity = normalizedSeverity(kind.severity);
+      counts[severity] = (counts[severity] ?? 0) + kind.vulnerable_paths_count;
+      return counts;
+    },
+    {} as Partial<Record<Severity, number>>
+  );
 };

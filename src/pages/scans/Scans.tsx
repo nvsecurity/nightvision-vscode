@@ -1,107 +1,21 @@
 import { useProject } from '@hooks/useProject';
 import { useUser } from '@hooks/useUser';
 import { Project } from '@types_/project';
-import { ScanType, Severity, normalizedSeverity } from '@types_/scan';
+import { ScanType } from '@types_/scan';
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Loading } from '@components/Loading';
-import { messageHandler } from '@utils/MessageHandler';
 import { PageHeader } from '@components/PageHeader';
-import { API_URL } from '@constants/GlobalConstants';
 import useItemSelection from '@hooks/use-item-selection';
 import { BulkDeleteModal, ScansTable } from './components';
 import { ProjectDropdown } from '@components/project-dropdown';
+import { TextInput } from '@components/TextInput';
+import { useDebounce } from 'use-debounce';
+import { getScansListWithIssuesStat } from '@queries/scansQueries';
+import { getIssuesList } from '@queries/issuesQueries';
+import { countIssues } from '@utils/globalUtils';
 
 const ALL_PROJECTS_FILTER_OPTION: Project = { id: "<Internal-All>", name: "All" };
-
-const countIssues = (issues: any[]) => {
-  return issues.reduce(
-    (
-      counts: Record<Severity, number>,
-      kind: { severity: string; vulnerable_paths_count: number }
-    ) => {
-      const severity = normalizedSeverity(kind.severity);
-      counts[severity] = (counts[severity] ?? 0) + kind.vulnerable_paths_count;
-      return counts;
-    },
-    {} as Partial<Record<Severity, number>>
-  );
-};
-
-const getIssues = async (
-  setIsLoggedIn: React.Dispatch<React.SetStateAction<boolean>>,
-  scanId: string
-) => {
-  try {
-    const response = await messageHandler.api({
-      method: 'get',
-      url: `${API_URL}/api/v1/issues/kind/?scan=${scanId}`,
-      setIsLoggedIn: setIsLoggedIn,
-    });
-    return response.results;
-  } catch (err: any) {
-    console.error(err);
-    return [];
-  }
-};
-
-const getScans = async (
-  setIsLoggedIn: React.Dispatch<React.SetStateAction<boolean>>,
-  page: number,
-  project?: string,
-) => {
-  try {
-    const projectFilter = project ? `&project=${project}` : '';
-    const response = (
-      await messageHandler.api({
-        method: 'get',
-        url: `${API_URL}/api/v1/scans/?order=-created_at&page=${page}${projectFilter}`,
-        setIsLoggedIn: setIsLoggedIn,
-      })
-    );
-
-    const nextPage = response.next && new URL(response.next).searchParams.get('page');
-    const totalCount = response.count;
-
-    const scansPromises: Promise<ScanType>[] = response.results.map(
-      async (scan: any): Promise<ScanType> => {
-        let vulnPathsStatistics = {};
-        if (!scan.vulnerable_paths_statistics) {
-          const issues = await getIssues(setIsLoggedIn, scan.id);
-          vulnPathsStatistics = countIssues(issues);
-        }
-
-        return {
-          id: scan.id,
-          authentication: scan.credentials,
-          target: scan.target,
-          project: scan.project,
-          createdAt: new Date(scan.created_at),
-          endedAt: scan.ended_at ? new Date(scan.ended_at) : undefined,
-          status: scan.status_value,
-          isScanning: scan.status_value === 'RUNNING',
-          disrupted: scan.status_value === 'TIMED_OUT' || scan.status_value === 'FAILED',
-          aborted: scan.status_value === 'ABORTED',
-          vulnPathsStatistics:
-            scan.vulnerable_paths_statistics ?? vulnPathsStatistics,
-          issues: [],
-        };
-      }
-    );
-
-    const scans = await Promise.all(scansPromises);
-    return {
-      scans: scans,
-      nextPage: nextPage,
-      totalCount: totalCount,
-    };
-  } catch (err: any) {
-    console.error(err);
-  }
-  return {
-    scans: [],
-  };
-};
 
 export const Scans = () => {
   const { currentProject, setCurrentProject } = useProject();
@@ -109,9 +23,13 @@ export const Scans = () => {
   const [scans, setScans] = useState<ScanType[]>();
   const [projectFilter, setProjectFilter] = useState<Project>(currentProject);
   const [deleteModalOpen, setDeleteModalOpen] = React.useState(false);
-  const [scansLoading, setScansLoading] = React.useState(false);
+  const [isScansLoading, setIsScansLoading] = React.useState(false);
   const [page, setPage] = React.useState(1);
   const [totalCount, setTotalCount] = React.useState(0);
+
+  const [_searchValue, setSearchValue] = React.useState('');
+  const [search] = useDebounce(_searchValue, 500);
+  const [searchChanges] = React.useState({ count: 0 });
 
   useEffect(() => {
     setPage(1);
@@ -124,18 +42,30 @@ export const Scans = () => {
   useEffect(() => {
     let interval: NodeJS.Timeout | undefined;
     clearInterval(interval);
+    const currCounter = searchChanges.count;
 
     const fetchApiWrapper = async () => {
-      setScansLoading(true);
+      setIsScansLoading(true);
       await fetchApi();
-      setScansLoading(false);
+      if (searchChanges.count === currCounter) {
+        setIsScansLoading(false);
+      }
     };
 
     const fetchApi = async () => {
+
       const project = projectFilter.id === ALL_PROJECTS_FILTER_OPTION.id ? undefined : projectFilter.id;
-      const res = await getScans(setIsLoggedIn, page, project);
-      setScans(res?.scans);
-      setTotalCount(res?.totalCount);
+      const res = await getScansListWithIssuesStat({
+        setIsLoggedIn,
+        page,
+        project,
+        filter: search,
+      });
+
+      if (searchChanges.count === currCounter) {
+        setScans(res?.scans);
+        setTotalCount(res?.totalCount);
+      }
     };
 
     fetchApiWrapper();
@@ -145,7 +75,7 @@ export const Scans = () => {
     }, 20000);
 
     return () => clearInterval(interval);
-  }, [deleteModalOpen, page, projectFilter]);
+  }, [deleteModalOpen, page, projectFilter, search]);
 
   // Get issues for scans that are still running
   useEffect(() => {
@@ -158,7 +88,10 @@ export const Scans = () => {
           return;
         }
 
-        const issues = await getIssues(setIsLoggedIn, scan.id);
+        const { issues } = await getIssuesList({
+          setIsLoggedIn,
+          scanId: scan.id
+        });
 
         setScans((prevState) =>
           prevState?.map((oldScan) =>
@@ -266,7 +199,17 @@ export const Scans = () => {
         </div>
       </div>
 
-      {scansLoading ? (
+      <TextInput
+        value={_searchValue}
+        handleOnChange={val => {
+          setSearchValue(val);
+          searchChanges.count++;
+        }}
+        placeholder='Search...'
+        id='scan-name-search'
+      />
+
+      {isScansLoading ? (
         <Loading />
       ) : (
         scans?.length ? (

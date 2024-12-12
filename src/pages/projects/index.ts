@@ -1,1 +1,1 @@
-export { Projects, getProjects } from './Projects';
+export { Projects } from './Projects';

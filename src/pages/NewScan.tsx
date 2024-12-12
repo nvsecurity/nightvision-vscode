@@ -19,9 +19,9 @@ import { ScanParams } from '@commands/Scan';
 import { Dropdown } from '@components/Dropdown';
 import { Label } from '@components/Label';
 import { Loading } from '@components/Loading';
-import { getAuths } from '@pages/authentications';
-import { getProjects } from '@pages/projects';
-import { getTargets } from '@pages/targets';
+import { getAuthenticationsList, GetAuthenticationsListResponse } from '@queries/authsQueries';
+import { getProjectsList, GetProjectsListResponse } from '@queries/projectsQueries';
+import { getTargetsList, GetTargetsListResponse } from '@queries/targetQueries';
 import { messageHandler } from '@utils/MessageHandler';
 import { PageHeader } from '@components/PageHeader';
 
@@ -43,21 +43,20 @@ export const NewScan = () => {
 
   const [isLoading, setIsLoading] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
-  const [isFetching, setIsFetching] = useState(false);
 
-  const [isAuthsLoading, setIsAuthsLoading] = React.useState(false);
+  const [isAuthsLoading, setIsAuthsLoading] = React.useState(true);
   const fetchAllAuthentications = async () => {
     setIsAuthsLoading(true);
     const auths = [];
 
     let page: number | undefined = 1;
     do {
-      const result: any = await getAuths(
+      const result: GetAuthenticationsListResponse = await getAuthenticationsList({
         setIsLoggedIn,
-        currentProject.id,
+        projectId: currentProject.id,
         page,
-      );
-      auths.push(...result?.auths);
+      });
+      auths.push(...result.auths);
       page = result?.nextPage;
     } while (!!page);
     setAuths(auths);
@@ -65,18 +64,18 @@ export const NewScan = () => {
     setIsAuthsLoading(false);
   };
 
-  const [isProjectsLoading, setIsProjectsLoading] = React.useState(false);
+  const [isProjectsLoading, setIsProjectsLoading] = React.useState(true);
   const fetchAllProjects = async () => {
     setIsProjectsLoading(true);
     const projects = [];
 
     let page: number | undefined = 1;
     do {
-      const result: any = await getProjects(
+      const result: GetProjectsListResponse = await getProjectsList({
         setIsLoggedIn,
         page,
-      );
-      projects.push(...result?.projects);
+      });
+      projects.push(...result.projects);
       page = result?.nextPage;
     } while (!!page);
     setProjects(projects);
@@ -84,20 +83,20 @@ export const NewScan = () => {
     setIsProjectsLoading(false);
   };
 
-  const [isTargetsLoading, setIsTargetsLoading] = React.useState(false);
+  const [isTargetsLoading, setIsTargetsLoading] = React.useState(true);
   const fetchAllTargets = async () => {
     setIsTargetsLoading(true);
     const targets = [];
 
     let page: number | undefined = 1;
     do {
-      const result: any = await getTargets(
+      const result: GetTargetsListResponse = await getTargetsList({
         setIsLoggedIn,
-        currentProject.id,
+        projectId: currentProject.id,
         page,
-        targetType === 'url' ? TargetTypeEnum.URL : TargetTypeEnum.OPENAPI,
-      );
-      targets.push(...result?.targets);
+        type: targetType === 'url' ? TargetTypeEnum.URL : TargetTypeEnum.OPENAPI,
+      });
+      targets.push(...result.targets);
       page = result?.nextPage;
     } while (!!page);
     setTargets(targets);
@@ -105,8 +104,11 @@ export const NewScan = () => {
     setIsTargetsLoading(false);
   };
 
-  useEffect(() => {
+  React.useEffect(() => {
     fetchAllProjects();
+  }, []);
+
+  useEffect(() => {
     fetchAllTargets();
     fetchAllAuthentications();
     setTargetErrors([]);
@@ -260,7 +262,7 @@ export const NewScan = () => {
         <button
           onClick={handleScanClick}
           className='truncate rounded disabled:cursor-not-allowed disabled:opacity-75 disabled:hover:bg-[--vscode-button-background]'
-          disabled={isLoading}
+          disabled={isLoading || !currentTarget || !currentProject}
         >
           {isLoading ? 'Loading...' : 'Start Scan'}
         </button>

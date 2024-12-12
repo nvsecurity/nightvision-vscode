@@ -14,7 +14,7 @@ export const TextInput = ({
 }: {
   value?: string | null;
   handleOnChange: (e: string) => void;
-  label: string;
+  label?: string;
   id: string;
   isLoading?: boolean;
   errors?: string[];
@@ -25,12 +25,11 @@ export const TextInput = ({
 
   return (
     <div style={style}>
-      <Label htmlFor={id}>{label}</Label>
+      {label && <Label htmlFor={id}>{label}</Label>}
       <div className='relative'>
         <input
           onChange={(e) => {
             handleOnChange(e.target.value);
-            setIsTouched(true);
           }}
           value={value ?? ''}
           id={id}

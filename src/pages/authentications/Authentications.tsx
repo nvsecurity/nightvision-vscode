@@ -6,57 +6,13 @@ import { useNavigate } from 'react-router-dom';
 import { EditList } from '@components/EditList';
 import { Label } from '@components/Label';
 import { Loading } from '@components/Loading';
-import { messageHandler } from '@utils/MessageHandler';
 import { PageHeader } from '@components/PageHeader';
-import { API_URL } from '@constants/GlobalConstants';
 import { CreateAuthModal } from './components';
 import { Pagination } from '@components/pagination';
 import { ProjectDropdown } from '@components/project-dropdown';
-
-export const getAuths = async (
-  setIsLoggedIn: React.Dispatch<React.SetStateAction<boolean>>,
-  projectId: string,
-  page: number,
-  ignore: boolean = false
-) => {
-  try {
-    const response = (
-      await messageHandler.api({
-        method: 'get',
-        url: `${API_URL}/api/v1/credentials/?order=name&page=${page}&project=${projectId}`,
-        setIsLoggedIn: setIsLoggedIn,
-      })
-    );
-
-    if (ignore) {
-      return;
-    }
-
-    const nextPage = response.next && new URL(response.next).searchParams.get('page');
-    const totalCount = response.count;
-
-    const auths = response.results.map(
-      (auth: any): Auth => ({
-        id: auth.id,
-        name: auth.name,
-        type: auth.type,
-        description: auth.description,
-        headers: auth.cookie ?? auth.headers ?? [],
-        url: auth.script_first_url,
-      })
-    );
-    return {
-      auths: auths,
-      nextPage: nextPage,
-      totalCount: totalCount,
-    };
-  } catch (err: any) {
-    console.error(err);
-  }
-  return {
-    auths: [],
-  };
-};
+import { useDebounce } from 'use-debounce';
+import { TextInput } from '@components/TextInput';
+import { getAuthenticationsList } from '@queries/authsQueries';
 
 const types: { type: AuthType; name: string }[] = [
   { type: 'COOKIE', name: 'Cookie' },
@@ -76,39 +32,36 @@ export const Authentications = () => {
   const [page, setPage] = React.useState(1);
   const [totalCount, setTotalCount] = React.useState(0);
 
-  const fetchAuths = async (ignore: boolean) => {
+  const [_searchValue, setSearchValue] = React.useState('');
+  const [search] = useDebounce(_searchValue, 500);
+  const [searchChanges] = React.useState({ count: 0 });
+
+  const fetchAuths = async () => {
     setIsAuthsLoading(true);
-    const res = await getAuths(
+    const currCounter = searchChanges.count;
+
+    const res = await getAuthenticationsList({
       setIsLoggedIn,
-      currentProject.id,
+      projectId: currentProject.id,
       page,
-      ignore
-    );
-    setAuths(res?.auths);
-    setTotalCount(res?.totalCount);
-    setIsAuthsLoading(false);
+      filter: search,
+    });
+
+    if (searchChanges.count === currCounter) {
+      setAuths(res.auths);
+      setTotalCount(res.totalCount);
+      setIsAuthsLoading(false);
+    }
   };
 
   React.useEffect(() => {
-    let ignore = false;
-
-    fetchAuths(ignore);
-
-    return () => {
-      ignore = true;
-    };
-  }, [currentProject, page]);
+    fetchAuths();
+  }, [currentProject, page, search]);
 
   React.useEffect(() => {
-    let ignore = false;
-
     if (invalidateAuthsList) {
-      fetchAuths(ignore);
+      fetchAuths();
     }
-
-    return () => {
-      ignore = true;
-    };
   }, [invalidateAuthsList]);
 
   const onProjectChange = (value: any) => {
@@ -136,6 +89,16 @@ export const Authentications = () => {
         >
           Create Authentication
         </button>
+
+        <TextInput
+          value={_searchValue}
+          handleOnChange={val => {
+            setSearchValue(val);
+            searchChanges.count++;
+          }}
+          placeholder='Search...'
+          id='auth-name-search'
+        />
 
         {isAuthsLoading ? (
           <Loading />
