@@ -19,9 +19,9 @@ import { ScanParams } from '@commands/Scan';
 import { Dropdown } from '@components/Dropdown';
 import { Label } from '@components/Label';
 import { Loading } from '@components/Loading';
-import { getAuthenticationsList } from '@queries/authsQueries';
-import { getProjectsList } from '@queries/projectsQueries';
-import { getTargetsList } from '@queries/targetQueries';
+import { getAuthenticationsList, GetAuthenticationsListResponse } from '@queries/authsQueries';
+import { getProjectsList, GetProjectsListResponse } from '@queries/projectsQueries';
+import { getTargetsList, GetTargetsListResponse } from '@queries/targetQueries';
 import { messageHandler } from '@utils/MessageHandler';
 import { PageHeader } from '@components/PageHeader';
 
@@ -51,7 +51,7 @@ export const NewScan = () => {
 
     let page: number | undefined = 1;
     do {
-      const result: any = await getAuthenticationsList({
+      const result: GetAuthenticationsListResponse = await getAuthenticationsList({
         setIsLoggedIn,
         projectId: currentProject.id,
         page,
@@ -71,7 +71,7 @@ export const NewScan = () => {
 
     let page: number | undefined = 1;
     do {
-      const result = await getProjectsList({
+      const result: GetProjectsListResponse = await getProjectsList({
         setIsLoggedIn,
         page,
       });
@@ -90,7 +90,7 @@ export const NewScan = () => {
 
     let page: number | undefined = 1;
     do {
-      const result = await getTargetsList({
+      const result: GetTargetsListResponse = await getTargetsList({
         setIsLoggedIn,
         projectId: currentProject.id,
         page,
