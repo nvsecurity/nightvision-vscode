@@ -32,7 +32,7 @@ export const getTargetsList = async ({
     const response = (
       await messageHandler.api({
         method: 'get',
-        url: `${API_URL}/api/v1/targets/${_type}?order=name&page=${page}${projectFilter}${searchFilter}`,
+        url: `${API_URL}/api/v1/targets/${_type}?page=${page}${projectFilter}${searchFilter}`,
         setIsLoggedIn: setIsLoggedIn,
       })
     );

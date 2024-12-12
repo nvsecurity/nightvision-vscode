@@ -36,7 +36,7 @@ export const ScansTable: React.FC<ScansTableProps> = ({
   }, [currentTime]);
 
   return (
-    <div className='!mt-1'>
+    <div className='!mt-4'>
       <div className='grid gap-3' style={{ gridTemplateColumns: '4rem repeat(3, minmax(0, 1fr))' }} >
         {/* Table Headers */}
         <div className='font-bold uppercase flex justify-start items-center px-4 gap-1 pl-4'>

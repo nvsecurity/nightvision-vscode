@@ -29,7 +29,7 @@ export const getAuthenticationsList = async ({
     const response = (
       await messageHandler.api({
         method: 'get',
-        url: `${API_URL}/api/v1/credentials/?order=name&page=${page}${projectFilter}${searchFilter}`,
+        url: `${API_URL}/api/v1/credentials/?page=${page}${projectFilter}${searchFilter}`,
         setIsLoggedIn: setIsLoggedIn,
       })
     );

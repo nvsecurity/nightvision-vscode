@@ -30,7 +30,6 @@ export const TextInput = ({
         <input
           onChange={(e) => {
             handleOnChange(e.target.value);
-            setIsTouched(true);
           }}
           value={value ?? ''}
           id={id}

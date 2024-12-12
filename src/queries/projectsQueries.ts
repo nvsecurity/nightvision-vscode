@@ -27,7 +27,7 @@ export const getProjectsList = async ({
     const response = (
       await messageHandler.api({
         method: 'get',
-        url: `${API_URL}/api/v1/projects/?order=name&page=${page}${searchFilter}`,
+        url: `${API_URL}/api/v1/projects/?page=${page}${searchFilter}`,
         setIsLoggedIn: setIsLoggedIn,
       })
     );

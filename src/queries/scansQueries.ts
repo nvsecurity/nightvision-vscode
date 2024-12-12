@@ -30,7 +30,7 @@ export const getScansListWithIssuesStat = async ({
     const response = (
       await messageHandler.api({
         method: 'get',
-        url: `${API_URL}/api/v1/scans/?order=-created_at&page=${page}${projectFilter}${searchFilter}`,
+        url: `${API_URL}/api/v1/scans/?page=${page}${projectFilter}${searchFilter}`,
         setIsLoggedIn: setIsLoggedIn,
       })
     );
