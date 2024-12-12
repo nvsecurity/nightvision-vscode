@@ -206,7 +206,7 @@ export const Scans = () => {
           searchChanges.count++;
         }}
         placeholder='Search...'
-        id='target-name-search'
+        id='scan-name-search'
       />
 
       {scansLoading ? (

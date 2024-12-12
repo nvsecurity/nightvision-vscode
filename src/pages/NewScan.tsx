@@ -19,7 +19,7 @@ import { ScanParams } from '@commands/Scan';
 import { Dropdown } from '@components/Dropdown';
 import { Label } from '@components/Label';
 import { Loading } from '@components/Loading';
-import { getAuths } from '@pages/authentications';
+import { getAuthenticationsList } from '@queries/authsQueries';
 import { getProjects } from '@pages/projects';
 import { getTargetsList } from '@queries/targetQueries';
 import { messageHandler } from '@utils/MessageHandler';
@@ -51,12 +51,12 @@ export const NewScan = () => {
 
     let page: number | undefined = 1;
     do {
-      const result: any = await getAuths(
+      const result: any = await getAuthenticationsList({
         setIsLoggedIn,
-        currentProject.id,
+        projectId: currentProject.id,
         page,
-      );
-      auths.push(...result?.auths);
+      });
+      auths.push(...result.auths);
       page = result?.nextPage;
     } while (!!page);
     setAuths(auths);

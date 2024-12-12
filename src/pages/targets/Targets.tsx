@@ -31,7 +31,7 @@ export const Targets = () => {
   const [search] = useDebounce(_searchValue, 500);
   const [searchChanges] = React.useState({ count: 0 });
 
-  const fetchTargets = async (ignore: boolean) => {
+  const fetchTargets = async () => {
     setIsTargetsLoading(true);
     const currCounter = searchChanges.count;
 
@@ -39,8 +39,7 @@ export const Targets = () => {
       setIsLoggedIn,
       projectId: currentProject.id,
       page,
-      search,
-      ignore,
+      filter: search,
     });
 
     if (searchChanges.count === currCounter) {
@@ -51,27 +50,15 @@ export const Targets = () => {
   };
 
   React.useEffect(() => {
-    let ignore = false;
-
-    fetchTargets(ignore);
-
-    return () => {
-      ignore = true;
-    };
-  }, [currentProject, page]);
+    fetchTargets();
+  }, [currentProject, page, search]);
 
   React.useEffect(() => {
-    let ignore = false;
-
-    if (invalidateTargetsList || search) {
-      fetchTargets(ignore);
+    if (invalidateTargetsList) {
+      fetchTargets();
       setInvalidateTargetsList(false);
     }
-
-    return () => {
-      ignore = true;
-    };
-  }, [invalidateTargetsList, search]);
+  }, [invalidateTargetsList]);
 
   const onProjectChange = (value: any) => {
     setPage(1);
