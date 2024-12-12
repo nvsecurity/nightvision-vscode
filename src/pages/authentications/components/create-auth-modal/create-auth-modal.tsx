@@ -103,11 +103,6 @@ export const CreateAuthModal: React.FC<CreateAuthModalProps> = ({
     setIsAuthUrlTested(false);
   };
 
-  const handleAuthNameChange = (newName: string) => {
-    setAuthNameErrors([]);
-    setAuthName(newName);
-  };
-
   React.useEffect(() => {
     const errors: string[] = [];
 
@@ -346,7 +341,7 @@ export const CreateAuthModal: React.FC<CreateAuthModalProps> = ({
           />
           <TextInput
             value={_authName}
-            handleOnChange={handleAuthNameChange}
+            handleOnChange={setAuthName}
             label='Authentication Name'
             id='auth-name'
             errors={authNameErrors}
