@@ -124,8 +124,8 @@ export const Targets = () => {
                 renderItem={(listItem) => (
                   <div className='flex max-w-full flex-nowrap justify-between truncate'>
                   <div className='flex flex-nowrap items-center gap-2 mr-2 truncate'>
-                    <span className='font-medium'>{listItem.name}</span>
-                    <span className='text-gray-400'>{`(${listItem.location})`}</span>
+                    <span className='truncate font-medium'>{listItem.name}</span>
+                    <span className='truncate text-gray-400'>{`(${listItem.location})`}</span>
                   </div>
                     <TargetTypeLabel targetType={listItem.type} />
                   </div>
