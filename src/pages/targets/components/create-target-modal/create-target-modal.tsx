@@ -163,6 +163,16 @@ export const CreateTargetModal: React.FC<CreateTargetModalProps> = ({
     setIsTargetUrlTested(false);
   };
 
+  const handleTargetNameChange = (newName: string) => {
+    setTargetNameErrors([]);
+    setTargetName(newName);
+  };
+
+  const handleOpenapiUrlChange = (newUrl: string) => {
+    setOpenApiUrlErrors([]);
+    setOpenApiUrl(newUrl);
+  };
+
   useEffect(() => {
     const errors: string[] = [];
 
@@ -385,7 +395,7 @@ export const CreateTargetModal: React.FC<CreateTargetModalProps> = ({
           />
           <TextInput
             value={_targetName}
-            handleOnChange={setTargetName}
+            handleOnChange={handleTargetNameChange}
             label='Target Name'
             id='target-name'
             errors={targetNameErrors}
@@ -412,7 +422,7 @@ export const CreateTargetModal: React.FC<CreateTargetModalProps> = ({
               >
                 <TextInput
                   value={_openApiUrl}
-                  handleOnChange={setOpenApiUrl}
+                  handleOnChange={handleOpenapiUrlChange}
                   label='OpenAPI URL'
                   id='open-api-url'
                   errors={openApiUrlErrors}

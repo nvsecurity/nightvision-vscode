@@ -46,6 +46,11 @@ export const CreateProjModal: React.FC<CreateProjModalProps> = ({
   const hasEmptyRequiredInputs = !projectName;
   const hasErrors = projectNameErrors.length > 0;
 
+  const handleProjectNameChange = (newName: string) => {
+    setProjectNameErrors([]);
+    setProjectName(newName);
+  };
+
   React.useEffect(() => {
     const errors: string[] = [];
 
@@ -150,7 +155,7 @@ export const CreateProjModal: React.FC<CreateProjModalProps> = ({
         </div>
         <TextInput
           value={_projectName}
-          handleOnChange={setProjectName}
+          handleOnChange={handleProjectNameChange}
           label='Project Name'
           id='project-name'
           errors={projectNameErrors}
