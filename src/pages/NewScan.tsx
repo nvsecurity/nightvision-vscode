@@ -20,7 +20,7 @@ import { Dropdown } from '@components/Dropdown';
 import { Label } from '@components/Label';
 import { Loading } from '@components/Loading';
 import { getAuthenticationsList } from '@queries/authsQueries';
-import { getProjects } from '@pages/projects';
+import { getProjectsList } from '@queries/projectsQueries';
 import { getTargetsList } from '@queries/targetQueries';
 import { messageHandler } from '@utils/MessageHandler';
 import { PageHeader } from '@components/PageHeader';
@@ -71,11 +71,11 @@ export const NewScan = () => {
 
     let page: number | undefined = 1;
     do {
-      const result: any = await getProjects(
+      const result = await getProjectsList({
         setIsLoggedIn,
         page,
-      );
-      projects.push(...result?.projects);
+      });
+      projects.push(...result.projects);
       page = result?.nextPage;
     } while (!!page);
     setProjects(projects);
