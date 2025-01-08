@@ -16,6 +16,7 @@ export const BulkDeleteModal: React.FC<BulkDeleteProps> = ({
 }) => {
   const [scanDeleteInProgress, setScanDeleteInProgress] = React.useState(false);
   const [deleteError, setDeleteError] = React.useState('');
+  const isSingleScan = scans?.length === 1;
 
   const { setIsLoggedIn } = useUser();
 
@@ -42,7 +43,7 @@ export const BulkDeleteModal: React.FC<BulkDeleteProps> = ({
   const body = React.useMemo(() => (
     <>
       <p className='overflow-hidden'>
-        {`Are you sure you want to delete ${scans?.length} selected scans from your account?`}
+        {`Are you sure you want to delete the ${isSingleScan ? 'selected scan' : `${scans?.length} selected scans`} from your account?`}
       </p>
       <p>This action is irreversible.</p>
       {deleteError && (
