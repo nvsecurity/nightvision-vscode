@@ -15,7 +15,7 @@ In order to use this extension you must have a **NightVision account**. Addition
 
 ### Main page
 
-If you have installed the NightVision CLI and logged in, you'll come to the main page, where you'll be presented with these options:
+If you have installed the NightVision CLI and logged in, you'll arrive at the main page, where you'll be presented with these options:
 
 <table style="border: none; border-collapse: collapse;">
   <tr>
@@ -53,7 +53,7 @@ If successful, a new window in your VSCode will open with your API information a
 As an example, we can use the [javaspringvulny repository](https://github.com/vulnerable-apps/javaspringvulny):
 1. Clone the repo: `git clone https://github.com/vulnerable-apps/javaspringvulny.git`
 2. Copy the filepath or select the parent folder;
-3. Select the **Java** language.
+3. Select **Java** as the API language.
 
 When generating the OpenAPI specification, you should see something similar to the image below:
 
@@ -67,12 +67,12 @@ In order to execute a DAST scan, we must first have in place a **project** and a
 
 #### Configuring a project
 
-1. Click in **Create Project**:
+1. Click on **Create Project**:
 
     <img width="300" alt="Projects page" src="https://github.com/api-extraction-examples/nv-images/raw/refs/heads/main/docs/project_1.png" />
 
 2. Type your project name, e.g. **Tutorial_test_project**
-    
+
     <img width="300" alt="Projects page - Creating a project" src="https://github.com/api-extraction-examples/nv-images/raw/refs/heads/main/docs/project_2.png" />
 
 3. Select the project:
@@ -89,7 +89,7 @@ Let's use the [javaspringvulny repository](https://github.com/vulnerable-apps/ja
 
 Now, let's create our target.
 
-1. Click in **Create Target**:
+1. Click on **Create Target**:
 
     <img width="300" alt="Targets page" src="https://github.com/api-extraction-examples/nv-images/raw/refs/heads/main/docs/target_1.png" />
 
@@ -97,7 +97,7 @@ Now, let's create our target.
 
     <img width="300" alt="Targets page - API Target" src="https://github.com/api-extraction-examples/nv-images/raw/refs/heads/main/docs/target_2.png" />
 
-3. After created, you may see it in the list of targets. You can click on a target to see its details:
+3. Once created, you may see it in the list of targets. You can click on a target to see its details:
 
     <img width="300" alt="Targets page - list targets" src="https://github.com/api-extraction-examples/nv-images/raw/refs/heads/main/docs/target_3.png" />
 
@@ -109,7 +109,7 @@ Now, let's create our target.
 
 If your website or API is protected by an authentication, we can configure it so the security scan is able to access and reveal issues behind protected endpoints.
 
-1. Click in **Create Authentication**:
+1. Click on **Create Authentication**:
 
     <img width="300" alt="Authentications page" src="https://github.com/api-extraction-examples/nv-images/raw/refs/heads/main/docs/authentication_1.png" />
 
@@ -125,7 +125,7 @@ If your website or API is protected by an authentication, we can configure it so
 
     <img width="500" alt="Authentications page" src="https://github.com/api-extraction-examples/nv-images/raw/refs/heads/main/docs/authentication_4.png" />
 
-5. After submiting, you'll see our authentication has been recorded:
+5. After submitting, you'll see our authentication has been recorded:
 
     <img width="300" alt="Authentications page" src="https://github.com/api-extraction-examples/nv-images/raw/refs/heads/main/docs/authentication_5.png" />
 
@@ -139,7 +139,7 @@ If your website or API is protected by an authentication, we can configure it so
 
 #### Configuring a scan
 
-1. Click in **Scan APIs**
+1. Click on **Scan APIs**
 
     <img width="300" alt="Scans page" src="https://github.com/api-extraction-examples/nv-images/raw/refs/heads/main/docs/scan_1.png" />
 
