@@ -991,8 +991,8 @@ export const ProjectPage = () => {
                     key={user.id}
                     className='cursor-pointer rounded hover:bg-[--vscode-input-background]'
                   >
-                    <button
-                      className='unstyled flex !h-full !w-full items-center space-x-3 !p-2'
+                    <div
+                      className='flex !h-full !w-full items-center space-x-3 !p-2'
                       onClick={() => {
                         setAddUsers((prevState) => [...prevState, user]);
                         setIsUserAdded(true);
@@ -1012,7 +1012,7 @@ export const ProjectPage = () => {
                         </span>
                         <span className='truncate'>{user.name}</span>
                       </div>
-                    </button>
+                    </div>
                   </li>
                 ))}
               </ul>
