@@ -8,8 +8,9 @@ import { Label } from '@components/Label';
 import { Dropdown } from '@components/Dropdown';
 import { IdAndName } from '@types_/idAndName';
 import { SwaggerExtractParams, SwaggerExtractSuccessResults } from '@commands/SwaggerExtract';
-import { FilePathValidatorParams, ValidationResult } from '@commands/FilePathValidator';
+import { FilePathValidatorParams } from '@commands/FilePathValidator';
 import { useUser } from '@hooks/useUser';
+import { CONTACT_EMAIL } from '@constants/GlobalConstants';
 
 const PATH_REQUIRED_ERROR = 'Path is required';
 
@@ -29,7 +30,7 @@ export const ApiDiscoveryPage: React.FC = () => {
   const [language, setLanguage] = React.useState<IdAndName>();
 
   const [isSubmitting, setIsSubmitting] = React.useState(false);
-  const [submitError, setSubmitError] = React.useState('');
+  const [submitError, setSubmitError] = React.useState<React.ReactElement | string>('');
   const [submitResults, setSubmitResults] = React.useState<SwaggerExtractSuccessResults | undefined>();
 
   const { setIsLoggedIn, setIsCliInstalled } = useUser();
@@ -129,7 +130,13 @@ export const ApiDiscoveryPage: React.FC = () => {
             break;
           }
           case SWAGGER_EXTRACT_ERROR: {
-            setSubmitError('Error extracting API info');
+            setSubmitError(<span>
+              Error extracting API info. Please recheck the entered Path to the Root Directory and selected Language, then try again. If the problem persists, contact us at
+              <a href={`mailto:${CONTACT_EMAIL}`}>
+                &nbsp;{CONTACT_EMAIL}
+              </a>.
+            </span>
+            );
             break;
           }
           case UNAUTHORIZED_ACCESS: {
