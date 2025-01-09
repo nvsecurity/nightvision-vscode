@@ -8,14 +8,17 @@ import { API_URL } from '@constants/GlobalConstants';
 interface BulkDeleteProps {
   scans?: string[];
   setDeleteModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  onAfterDelete?: () => void;
 }
 
 export const BulkDeleteModal: React.FC<BulkDeleteProps> = ({
   scans,
   setDeleteModalOpen,
+  onAfterDelete,
 }) => {
   const [scanDeleteInProgress, setScanDeleteInProgress] = React.useState(false);
   const [deleteError, setDeleteError] = React.useState('');
+  const isSingleScan = scans?.length === 1;
 
   const { setIsLoggedIn } = useUser();
 
@@ -27,11 +30,12 @@ export const BulkDeleteModal: React.FC<BulkDeleteProps> = ({
         url: `${API_URL}/api/v1/scans/drop/`,
         body: { ids: scans },
         setIsLoggedIn: setIsLoggedIn,
-    });
+      });
+      onAfterDelete?.();
       setDeleteModalOpen(false);
     }
     catch (error: any) {
-      setDeleteError(`Failed to delete selected Scans`);
+      setDeleteError(`Failed to delete selected ${isSingleScan ? 'Scan' : 'Scans'}`);
       console.error(error);
     }
     finally {
@@ -42,7 +46,7 @@ export const BulkDeleteModal: React.FC<BulkDeleteProps> = ({
   const body = React.useMemo(() => (
     <>
       <p className='overflow-hidden'>
-        {`Are you sure you want to delete ${scans?.length} selected scans from your account?`}
+        {`Are you sure you want to delete the ${isSingleScan ? 'selected scan' : `${scans?.length} selected scans`} from your account?`}
       </p>
       <p>This action is irreversible.</p>
       {deleteError && (
@@ -58,7 +62,7 @@ export const BulkDeleteModal: React.FC<BulkDeleteProps> = ({
   return (
     <ConfirmationModal
       onClose={() => setDeleteModalOpen(false)}
-      title={'Delete selected Scans?'}
+      title={`Delete selected ${isSingleScan ? 'Scan' : 'Scans'}?`}
       body={body}
       action={onDeleteScan}
       buttonText={scanDeleteInProgress ? 'Deleting...' : 'Delete'}

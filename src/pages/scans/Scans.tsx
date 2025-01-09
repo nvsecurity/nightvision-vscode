@@ -26,6 +26,7 @@ export const Scans = () => {
   const [isScansLoading, setIsScansLoading] = React.useState(false);
   const [page, setPage] = React.useState(1);
   const [totalCount, setTotalCount] = React.useState(0);
+  const [invalidateScansListCount, setInvalidateScansListCount] = React.useState(0);
 
   const [_searchValue, setSearchValue] = React.useState('');
   const [search] = useDebounce(_searchValue, 500);
@@ -75,7 +76,7 @@ export const Scans = () => {
     }, 20000);
 
     return () => clearInterval(interval);
-  }, [deleteModalOpen, page, projectFilter, search]);
+  }, [invalidateScansListCount, page, projectFilter, search]);
 
   // Get issues for scans that are still running
   useEffect(() => {
@@ -230,6 +231,10 @@ export const Scans = () => {
         <BulkDeleteModal
           scans={Array.from(itemSelectionApi.selectedItems.values()).map(scan => scan.id)}
           setDeleteModalOpen={setDeleteModalOpen}
+          onAfterDelete={() => {
+            setPage(1);
+            setInvalidateScansListCount(old => ++old);
+          }}
         />
       )}
     </div>

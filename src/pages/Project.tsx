@@ -239,6 +239,12 @@ export const ProjectPage = () => {
   const hasErrors = projectNameErrors.length > 0;
   const hasChanges = updateName !== project?.name;
 
+  const isMyProject = currentUser?.id === project?.owner.id;
+  const canRename = isMyProject;
+  const canShare = isMyProject;
+  const canLeave = !isMyProject;
+  const canDelete = isMyProject && !project?.isDefault;
+
   useEffect(() => {
     let ignore = false;
 
@@ -517,21 +523,24 @@ export const ProjectPage = () => {
                     {project.name}
                   </h2>
                   <div className='flex items-center justify-center space-x-4'>
-                    <button
-                      className='unstyled'
-                      title='Update'
-                      onClick={() => setShowUpdateModal(true)}
-                    >
-                      <svg
-                        viewBox='0 0 16 16'
-                        xmlns='http://www.w3.org/2000/svg'
-                        fill='currentColor'
-                        className='mt-0 h-6 w-6 fill-[--vscode-foreground]'
+                    {canRename && (
+                      <button
+                        className='unstyled'
+                        title='Update'
+                        onClick={() => setShowUpdateModal(true)}
                       >
-                        <path d='M13.23 1h-1.46L3.52 9.25l-.16.22L1 13.59 2.41 15l4.12-2.36.22-.16L15 4.23V2.77L13.23 1zM2.41 13.59l1.51-3 1.45 1.45-2.96 1.55zm3.83-2.06L4.47 9.76l8-8 1.77 1.77-8 8z' />
-                      </svg>
-                    </button>
-                    {currentUser?.id !== project?.owner.id && (
+                        <svg
+                          viewBox='0 0 16 16'
+                          xmlns='http://www.w3.org/2000/svg'
+                          fill='currentColor'
+                          className='mt-0 h-6 w-6 fill-[--vscode-foreground]'
+                        >
+                          <path d='M13.23 1h-1.46L3.52 9.25l-.16.22L1 13.59 2.41 15l4.12-2.36.22-.16L15 4.23V2.77L13.23 1zM2.41 13.59l1.51-3 1.45 1.45-2.96 1.55zm3.83-2.06L4.47 9.76l8-8 1.77 1.77-8 8z' />
+                        </svg>
+                      </button>
+                    )}
+
+                    {canLeave && (
                       <button
                         className='unstyled'
                         title='Leave Project'
@@ -551,29 +560,30 @@ export const ProjectPage = () => {
                         </svg>
                       </button>
                     )}
-                    {currentUser?.id === project.owner.id &&
-                      !project.isDefault && (
-                        <>
-                          <button
-                            className='unstyled'
-                            title='Share'
-                            onClick={() => setShowShareModal(true)}
-                          >
-                            <svg
-                              xmlns='http://www.w3.org/2000/svg'
-                              viewBox='0 0 24 24'
-                              strokeWidth={1.5}
-                              stroke='currentColor'
-                              className='size-6 fill-[--vscode-sideBar-background] stroke-[--vscode-foreground]'
-                            >
-                              <path
-                                strokeLinecap='round'
-                                strokeLinejoin='round'
-                                d='M7.217 10.907a2.25 2.25 0 1 0 0 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186 9.566-5.314m-9.566 7.5 9.566 5.314m0 0a2.25 2.25 0 1 0 3.935 2.186 2.25 2.25 0 0 0-3.935-2.186Zm0-12.814a2.25 2.25 0 1 0 3.933-2.185 2.25 2.25 0 0 0-3.933 2.185Z'
-                              />
-                            </svg>
-                          </button>
 
+                    {canShare && (
+                      <>
+                        <button
+                          className='unstyled'
+                          title='Share'
+                          onClick={() => setShowShareModal(true)}
+                        >
+                          <svg
+                            xmlns='http://www.w3.org/2000/svg'
+                            viewBox='0 0 24 24'
+                            strokeWidth={1.5}
+                            stroke='currentColor'
+                            className='size-6 fill-[--vscode-sideBar-background] stroke-[--vscode-foreground]'
+                          >
+                            <path
+                              strokeLinecap='round'
+                              strokeLinejoin='round'
+                              d='M7.217 10.907a2.25 2.25 0 1 0 0 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186 9.566-5.314m-9.566 7.5 9.566 5.314m0 0a2.25 2.25 0 1 0 3.935 2.186 2.25 2.25 0 0 0-3.935-2.186Zm0-12.814a2.25 2.25 0 1 0 3.933-2.185 2.25 2.25 0 0 0-3.933 2.185Z'
+                            />
+                          </svg>
+                        </button>
+
+                        {canDelete && (
                           <button
                             className='unstyled'
                             title='Delete'
@@ -592,8 +602,9 @@ export const ProjectPage = () => {
                               />
                             </svg>
                           </button>
-                        </>
-                      )}
+                        )}
+                      </>
+                    )}
                   </div>
                 </div>
                 <div className='mt-5 flex flex-col [&>*:nth-child(even)]:mb-4 [&>*:nth-child(even)]:ml-4 [&>*:nth-child(odd)]:font-bold'>
@@ -991,8 +1002,8 @@ export const ProjectPage = () => {
                     key={user.id}
                     className='cursor-pointer rounded hover:bg-[--vscode-input-background]'
                   >
-                    <button
-                      className='unstyled flex !h-full !w-full items-center space-x-3 !p-2'
+                    <div
+                      className='flex !h-full !w-full items-center space-x-3 !p-2'
                       onClick={() => {
                         setAddUsers((prevState) => [...prevState, user]);
                         setIsUserAdded(true);
@@ -1012,7 +1023,7 @@ export const ProjectPage = () => {
                         </span>
                         <span className='truncate'>{user.name}</span>
                       </div>
-                    </button>
+                    </div>
                   </li>
                 ))}
               </ul>
