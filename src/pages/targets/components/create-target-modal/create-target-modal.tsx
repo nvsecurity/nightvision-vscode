@@ -29,6 +29,7 @@ import { Exclusion } from '@components/exclusion';
 import { FilePathValidatorParams, ValidationResult } from '@commands/FilePathValidator';
 import { validateUrls } from '@utils/globalUtils';
 import { checkPublicUrl } from '@queries/targetQueries';
+import { DEFAULT_EXCLUSIONS } from '@constants/GlobalConstants';
 
 const types: { type: TargetType; name: string }[] = [
   { type: TargetTypeEnum.URL, name: 'Web Target' },
@@ -76,7 +77,7 @@ export const CreateTargetModal: React.FC<CreateTargetModalProps> = ({
   const [_openApiUrl, setOpenApiUrl] = useState('');
   const [openApiUrl] = useDebounce(_openApiUrl, 500);
   // const [swaggerFile, setSwaggerFile] = useState<File | null>();
-  const [urlPatterns, setUrlPatterns] = useState<string[]>([]);
+  const [urlPatterns, setUrlPatterns] = useState<string[]>(DEFAULT_EXCLUSIONS);
   const [xPaths, setXPaths] = useState<string[]>([]);
 
   const [targetNameErrors, setTargetNameErrors] = useState<string[]>([]);
