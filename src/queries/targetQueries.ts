@@ -110,3 +110,35 @@ function getCheckUrlErrorResponse(
   };
 }
 // #endregion
+
+// #region getDefaultTargetExclusions
+export interface DefaultTargetExclusionsParams {
+  setIsLoggedIn: React.Dispatch<React.SetStateAction<boolean>>;
+}
+
+export interface DefaultTargetExclusionsResponse {
+  urlPatterns: string[];
+  xPaths: string[];
+}
+
+export const getDefaultTargetExclusions = async ({
+  setIsLoggedIn,
+}: DefaultTargetExclusionsParams): Promise<DefaultTargetExclusionsResponse | undefined> => {
+  const response = (
+    await messageHandler.api({
+      method: 'GET',
+      url: `${API_URL}/api/v1/common/exclusions/`,
+      setIsLoggedIn: setIsLoggedIn,
+    })
+  );
+
+  if (!!response.status && response.status !== 200) {  // API error
+    return;
+  }
+
+  return ({
+    urlPatterns: response.excluded_url_patterns,
+    xPaths: response.excluded_x_paths,
+  });
+};
+// #endregion
