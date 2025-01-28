@@ -55,10 +55,19 @@ export default class CreateTarget extends Command {
       });
     }
 
-    excludedUrlPatterns?.forEach(urlPattern => flags.push({
-      flag: '--exclude-url',
-      value: urlPattern,
-    }));
+    if (excludedUrlPatterns?.length) {
+      excludedUrlPatterns?.forEach(urlPattern => flags.push({
+        flag: '--exclude-url',
+        value: urlPattern,
+      }));
+    }
+    else {
+      // Don't set default exclusions if user has deleted them
+      flags.push({
+        flag: '--exclude-url',
+        value: '',
+      });
+    }
 
     if (type === TargetTypeEnum.URL) {
       excludedXPaths?.forEach(xPath => flags.push({
