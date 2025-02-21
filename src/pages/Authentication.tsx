@@ -688,7 +688,7 @@ export const AuthenticationPage = () => {
                   <TextInput
                     value={_updateUrl}
                     handleOnChange={handleUpdateUrlChange}
-                    label='Authentication URL'
+                    label='Authentication URL (must match target Base URL)'
                     id='auth-url'
                     errors={authUrlErrors}
                     touched={true}

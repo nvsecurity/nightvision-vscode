@@ -8,7 +8,7 @@ export const Label = ({
   htmlFor: string;
 }) => {
   return (
-    <div className='truncate'>
+    <div>
       <label className='mb-1 text-sm uppercase' htmlFor={htmlFor}>
         {children}
       </label>

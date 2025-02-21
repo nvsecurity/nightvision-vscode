@@ -360,7 +360,7 @@ export const CreateAuthModal: React.FC<CreateAuthModalProps> = ({
             <TextInput
               value={_authUrl}
               handleOnChange={handleAuthUrlChange}
-              label='Authentication URL'
+              label='Authentication URL (must match target Base URL)'
               id='auth-url'
               errors={authUrlErrors}
               isLoading={isValidatingUrl}
