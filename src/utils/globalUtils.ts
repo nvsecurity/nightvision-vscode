@@ -54,17 +54,18 @@ export const isCliOutdated = (cliVersion: string) => {
 };
 
 const mapSpecStatusToTextMessage = new Map<SpecStatusEnum, string>([
-  [SpecStatusEnum.NoSpec, 'OpenAPI spec is not specified'],
-  [SpecStatusEnum.Downloading, 'Downloading OpenAPI spec'],
-  [SpecStatusEnum.DownloadError, 'OpenAPI spec download failed'],
-  [SpecStatusEnum.Validating, 'Validating OpenAPI spec'],
-  [SpecStatusEnum.Invalid, 'Invalid OpenAPI definition'],
-  [SpecStatusEnum.Valid, 'OpenAPI spec is valid'],
-  [SpecStatusEnum.WaitingForUpload, 'Waiting for OpenAPI spec upload to complete'],
+  [SpecStatusEnum.NoSpec, 'Spec/collection is not specified'],
+  [SpecStatusEnum.Downloading, 'Downloading spec/collection'],
+  [SpecStatusEnum.DownloadError, 'Spec/collection download failed'],
+  [SpecStatusEnum.Validating, 'Validating spec/collection'],
+  [SpecStatusEnum.Invalid, 'Invalid spec/collection definition'],
+  [SpecStatusEnum.Valid, 'Spec/collection is valid'],
+  [SpecStatusEnum.Warning, 'Spec/collection has validation warnings'],
+  [SpecStatusEnum.WaitingForUpload, 'Waiting for spec/collection upload to complete'],
 ]);
 
 export const specStatusToTextMessage = (status?: SpecStatusEnum): string => {
-  return status ? mapSpecStatusToTextMessage.get(status) || status : 'Checking OpenAPI spec';
+  return status ? mapSpecStatusToTextMessage.get(status) || '' : 'Checking spec/collection';
 };
 
 export const countIssues = (issues: any[]) => {

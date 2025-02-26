@@ -37,8 +37,8 @@ const types: { type: TargetType; name: string }[] = [
 ];
 
 const apiSpecs: { type: ApiSpec; name: string }[] = [
-  { type: 'URL', name: 'OpenAPI URL' },
-  { type: 'FILE', name: 'Swagger File' },
+  { type: 'URL', name: 'URL' },
+  { type: 'FILE', name: 'File' },
 ];
 
 interface CreateTargetModalProps {
@@ -255,7 +255,7 @@ export const CreateTargetModal: React.FC<CreateTargetModalProps> = ({
     const errors: string[] = [];
 
     if (!openApiUrl) {
-      errors.push('URL is required');
+      errors.push('Spec/collection file location is required');
     }
 
     // TODO: Add swagger spec url validation (ticket: [NV-3292])
@@ -267,7 +267,7 @@ export const CreateTargetModal: React.FC<CreateTargetModalProps> = ({
     const errors: string[] = [];
 
     if (!filePath) {
-      errors.push('Swagger file is required');
+      errors.push('Spec/collection is required');
     }
 
     if (
@@ -276,7 +276,7 @@ export const CreateTargetModal: React.FC<CreateTargetModalProps> = ({
       !filePath.endsWith('.json')
     ) {
       errors.push(
-        'The swagger specification file must have a .yml, .yaml, or .json extension'
+        'Spec/collection must have a .yml, .yaml, or .json extension'
       );
     }
 
@@ -343,7 +343,7 @@ export const CreateTargetModal: React.FC<CreateTargetModalProps> = ({
             if (selectedApiSpec.type === 'FILE') {
               setOpenApiUrlErrors((prevState) => [
                 ...prevState,
-                'The swagger specification file must have a .yml, .yaml, or .json extension',
+                'Spec/collection must have a .yml, .yaml, or .json extension',
               ]);
             }
             break;
@@ -351,7 +351,7 @@ export const CreateTargetModal: React.FC<CreateTargetModalProps> = ({
           case INVALID_OPENAPI_FILE: {
             setOpenApiUrlErrors((prevState) => [
               ...prevState,
-              'Could not download swagger specification from provided url',
+              'Could not download spec/collection from provided url',
             ]);
             break;
           }
@@ -427,12 +427,12 @@ export const CreateTargetModal: React.FC<CreateTargetModalProps> = ({
               />
 
               <div
-                className={`${selectedApiSpec.type === TargetTypeEnum.URL ? 'block' : 'hidden'}`}
+                className={`${selectedApiSpec.type === TargetTypeEnum.URL ? 'block' : 'hidden'} !mt-4`}
               >
                 <TextInput
                   value={_openApiUrl}
                   handleOnChange={setOpenApiUrl}
-                  label='OpenAPI URL'
+                  placeholder='Enter URL here...'
                   id='open-api-url'
                   errors={openApiUrlErrors}
                 />
@@ -446,7 +446,7 @@ export const CreateTargetModal: React.FC<CreateTargetModalProps> = ({
                       className='relative !mt-4 inline-flex h-32 w-full flex-col flex-nowrap items-center justify-center truncate rounded border border-dashed border-[--vscode-foreground]'
                     >
                       <span className='w-full truncate text-center text-lg font-bold'>
-                        Upload Swagger File
+                        Swagger File or Postman Collection
                       </span>
                       <span className='w-full truncate text-center'>
                         (.YML, .YAML, .JSON)
