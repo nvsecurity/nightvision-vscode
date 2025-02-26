@@ -93,7 +93,7 @@ Now, let's create our target.
 
     <img width="300" alt="Targets page" src="https://github.com/api-extraction-examples/nv-images/raw/refs/heads/main/docs/target_1.png" />
 
-2. Select **API Target**, fill in the data, select the Swagger / OpenAPI file (see [API Discovery section](#api-discovery)) and press the **Create** button:
+2. Select **API Target**, fill in the data, select the Swagger File or Postman Collection (see [API Discovery section](#api-discovery)) and press the **Create** button:
 
     <img width="300" alt="Targets page - API Target" src="https://github.com/api-extraction-examples/nv-images/raw/refs/heads/main/docs/target_2.png" />
 
