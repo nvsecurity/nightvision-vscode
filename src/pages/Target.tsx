@@ -108,8 +108,8 @@ export const getTarget = async (
 };
 
 const apiSpecs: { type: ApiSpec; name: string }[] = [
-  { type: 'URL', name: 'OpenAPI URL' },
-  { type: 'FILE', name: 'Swagger File' },
+  { type: 'URL', name: 'Spec URL' },
+  { type: 'FILE', name: 'Spec File' },
 ];
 
 export const TargetPage = () => {
@@ -374,7 +374,7 @@ export const TargetPage = () => {
     const errors: string[] = [];
 
     if (!updateOpenApiUrl) {
-      errors.push('URL is required');
+      errors.push('Spec/collection file location is required');
     }
 
     // TODO: Add swagger spec url validation (ticket: [NV-3292])
@@ -390,17 +390,18 @@ export const TargetPage = () => {
     const errors: string[] = [];
 
     if (!filePath) {
-      errors.push('Swagger file is required');
+      errors.push('Spec/collection is required');
     }
-
-    if (
-      !filePath.endsWith('.yml') &&
-      !filePath.endsWith('.yaml') &&
-      !filePath.endsWith('.json')
-    ) {
-      errors.push(
-        'The swagger specification file must have a .yml, .yaml, or .json extension'
-      );
+    else {
+      if (
+        !filePath.endsWith('.yml') &&
+        !filePath.endsWith('.yaml') &&
+        !filePath.endsWith('.json')
+      ) {
+        errors.push(
+          'Spec/collection must have a .yml, .yaml, or .json extension'
+        );
+      }
     }
 
     setSwaggerFileErrors(errors);
@@ -473,7 +474,7 @@ export const TargetPage = () => {
             if (selectedApiSpec.type === 'FILE') {
               setOpenApiUrlErrors((prevState) => [
                 ...prevState,
-                'The swagger specification file must have a .yml, .yaml, or .json extension',
+                'Spec/collection must have a .yml, .yaml, or .json extension',
               ]);
             }
             break;
@@ -481,7 +482,7 @@ export const TargetPage = () => {
           case INVALID_OPENAPI_FILE: {
             setOpenApiUrlErrors((prevState) => [
               ...prevState,
-              'Could not download swagger specification from provided url',
+              'Could not download spec/collection from provided url',
             ]);
             break;
           }
@@ -684,13 +685,13 @@ export const TargetPage = () => {
 
                   {isOpenAPITarget && (
                     <>
-                      <span>API Specs:</span>
+                      <span>API Spec:</span>
                       {isSpecUploaded ? (
                         <a
                           className='flex items-center space-x-2'
                           href={target.specUrlForDownload ?? ''}
                           download
-                          title={'Download swagger file'}
+                          title={'Download spec/collection'}
                         >
                           <span>{swaggerFileName}</span>
                           <svg
@@ -741,7 +742,7 @@ export const TargetPage = () => {
 
                       {target.lastSpecUploadedAt && (
                         <>
-                          <span>Latest update of API Specs:</span>
+                          <span>Latest update of API Spec:</span>
                           <span>
                             {new Date(target.lastSpecUploadedAt).toLocaleString(
                               'en-US',
@@ -853,12 +854,12 @@ export const TargetPage = () => {
                   />
 
                   <div
-                    className={`${selectedApiSpec.type === 'URL' ? 'block' : 'hidden'}`}
+                    className={`${selectedApiSpec.type === 'URL' ? 'block' : 'hidden'} !mt-4`}
                   >
                     <TextInput
                       value={_updateOpenApiUrl}
                       handleOnChange={setUpdateOpenApiUrl}
-                      label='OpenAPI URL'
+                      placeholder='Enter URL here...'
                       id='update-open-api-url'
                       errors={openApiUrlErrors}
                     />
@@ -872,7 +873,7 @@ export const TargetPage = () => {
                           className='relative !mt-4 inline-flex h-32 w-full flex-col flex-nowrap items-center justify-center truncate rounded border border-dashed border-[--vscode-foreground]'
                         >
                           <span className='w-full truncate text-center text-lg font-bold'>
-                            Upload Swagger File
+                            Swagger File or Postman Collection
                           </span>
                           <span className='w-full truncate text-center'>
                             (.YML, .YAML, .JSON)

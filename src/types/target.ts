@@ -7,7 +7,8 @@ export const SpecStatusEnum = {
   WaitingForUpload: 'WAITING_FOR_UPLOAD',
   Validating: 'VALIDATING',
   Invalid: 'INVALID',
-  Valid: 'VALID'
+  Valid: 'VALID',
+  Warning: 'WARNING',
 } as const;
 
 export type SpecStatusEnum = typeof SpecStatusEnum[keyof typeof SpecStatusEnum];
