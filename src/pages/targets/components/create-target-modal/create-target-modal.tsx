@@ -37,8 +37,8 @@ const types: { type: TargetType; name: string }[] = [
 ];
 
 const apiSpecs: { type: ApiSpec; name: string }[] = [
-  { type: 'URL', name: 'URL' },
-  { type: 'FILE', name: 'File' },
+  { type: 'URL', name: 'Spec URL' },
+  { type: 'FILE', name: 'Spec File' },
 ];
 
 interface CreateTargetModalProps {
@@ -268,6 +268,7 @@ export const CreateTargetModal: React.FC<CreateTargetModalProps> = ({
 
     if (!filePath) {
       errors.push('Spec/collection is required');
+      return;
     }
 
     if (

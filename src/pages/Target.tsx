@@ -108,8 +108,8 @@ export const getTarget = async (
 };
 
 const apiSpecs: { type: ApiSpec; name: string }[] = [
-  { type: 'URL', name: 'URL' },
-  { type: 'FILE', name: 'File' },
+  { type: 'URL', name: 'Spec URL' },
+  { type: 'FILE', name: 'Spec File' },
 ];
 
 export const TargetPage = () => {
@@ -391,6 +391,7 @@ export const TargetPage = () => {
 
     if (!filePath) {
       errors.push('Spec/collection is required');
+      return;
     }
 
     if (
