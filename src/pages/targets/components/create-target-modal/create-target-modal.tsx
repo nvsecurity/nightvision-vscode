@@ -268,17 +268,17 @@ export const CreateTargetModal: React.FC<CreateTargetModalProps> = ({
 
     if (!filePath) {
       errors.push('Spec/collection is required');
-      return;
     }
-
-    if (
-      !filePath.endsWith('.yml') &&
-      !filePath.endsWith('.yaml') &&
-      !filePath.endsWith('.json')
-    ) {
-      errors.push(
-        'Spec/collection must have a .yml, .yaml, or .json extension'
-      );
+    else {
+      if (
+        !filePath.endsWith('.yml') &&
+        !filePath.endsWith('.yaml') &&
+        !filePath.endsWith('.json')
+      ) {
+        errors.push(
+          'Spec/collection must have a .yml, .yaml, or .json extension'
+        );
+      }
     }
 
     setSwaggerFileErrors(errors);
