@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import Command from '@commands/Command';
 import fs from 'fs/promises';
 import { v4 } from 'uuid';
-import { SWAGGER_EXTRACT, SWAGGER_EXTRACT_ERROR } from './CommandConstants';
+import { SWAGGER_EXTRACT, SWAGGER_EXTRACT_ERROR, SWAGGER_EXTRACT_NO_PATHS_FOUND } from './CommandConstants';
 import { NIGHTVISION } from '@constants/GlobalConstants';
 import * as path from 'path';
 import { makeFilePathAbsolute } from '@utils/filePathAbsolute';
@@ -54,7 +54,14 @@ export default class SwaggerExtract extends Command {
       return;
     }
 
-    if (/ERROR error/.test(message)) {
+    if (/0 paths discovered/.test(message)) {
+      this.webview.postMessage({
+        command: SWAGGER_EXTRACT_NO_PATHS_FOUND,
+        requestId: this.requestId,
+        isFinal: true,
+      });
+    }
+    else if (/ERROR error/.test(message)) {
       this.webview.postMessage({
         command: SWAGGER_EXTRACT_ERROR,
         requestId: this.requestId,

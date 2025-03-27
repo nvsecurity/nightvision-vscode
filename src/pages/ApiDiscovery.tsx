@@ -1,7 +1,7 @@
 import React from 'react';
 import { PageHeader } from '@components/PageHeader';
 import { messageHandler } from '@utils/MessageHandler';
-import { OPEN_FILE_DIALOG, VALIDATE_FILE_PATH, SWAGGER_EXTRACT, SWAGGER_EXTRACT_ERROR, UNAUTHORIZED_ACCESS, CLI_MISSING } from '@commands/CommandConstants';
+import { OPEN_FILE_DIALOG, VALIDATE_FILE_PATH, SWAGGER_EXTRACT, SWAGGER_EXTRACT_ERROR, UNAUTHORIZED_ACCESS, CLI_MISSING, SWAGGER_EXTRACT_NO_PATHS_FOUND } from '@commands/CommandConstants';
 import { v4 } from 'uuid';
 import { OpenFileDialogParams } from '@commands/OpenFileDialog';
 import { Label } from '@components/Label';
@@ -127,6 +127,17 @@ export const ApiDiscoveryPage: React.FC = () => {
               paths: response.payload.paths,
               classes: response.payload.classes,
             });
+            break;
+          }
+          case SWAGGER_EXTRACT_NO_PATHS_FOUND: {
+            setSubmitError(<span>
+              We scanned your repository but couldn't identify any API endpoints. This could be a limitation in our detection tool
+              or an issue with the location/format of your API definitions. Please ensure your API specifications are properly formatted and located in the expected directories. If the problem persists, contact us at
+              <a href={`mailto:${CONTACT_EMAIL}`}>
+                &nbsp;{CONTACT_EMAIL}
+              </a>.
+            </span>
+            );
             break;
           }
           case SWAGGER_EXTRACT_ERROR: {

@@ -44,5 +44,6 @@ export const UNAUTHORIZED_ACCESS = 'unauthorized-access';
 export const OPEN_FILE_DIALOG = 'open-file-dialog';
 export const SWAGGER_EXTRACT = 'swagger-extract';
 export const SWAGGER_EXTRACT_ERROR = 'swagger-extract-error';
+export const SWAGGER_EXTRACT_NO_PATHS_FOUND = 'swagger-extract-no-paths-found';
 export const VALIDATE_FILE_PATH = 'validate-file-path';
 export const CHECK_HEALTH = 'check-health';
