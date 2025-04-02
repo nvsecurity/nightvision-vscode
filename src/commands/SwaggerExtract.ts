@@ -10,6 +10,8 @@ import { makeFilePathAbsolute } from '@utils/filePathAbsolute';
 export interface SwaggerExtractParams {
   dirPath: string;
   language: string;
+  verbose: boolean;
+  fileFormat: string;
 }
 
 export interface SwaggerExtractSuccessResults {
@@ -27,14 +29,26 @@ export default class SwaggerExtract extends Command {
   constructor(
     webview: vscode.Webview,
     requestId: string,
-    { dirPath, language }: SwaggerExtractParams
+    { dirPath, language, verbose, fileFormat }: SwaggerExtractParams
   ) {
-    const fileName = `nv-swagger-${v4()}.yml`;
-
     dirPath = makeFilePathAbsolute(dirPath);
 
+    var fileFormatCmd = '';
+    var verboseCmd = '';
+    if (verbose) {
+      verboseCmd = ' --verbose';
+    }
+    var extension = 'yml';
+    if (fileFormat) {
+      if (fileFormat === 'json') {
+        extension = 'json';
+      }
+      fileFormatCmd = ` --file-format ${fileFormat}`;
+    }
+    const fileName = `nv-swagger-${v4()}.${extension}`;
+    const cmd = `${NIGHTVISION} swagger extract ${dirPath} --lang ${language} --no-upload --output ${fileName}${fileFormatCmd}${verboseCmd}`;
     super({
-      command: `${NIGHTVISION} swagger extract ${dirPath} --lang ${language} --no-upload --output ${fileName}`,
+      command: cmd,
       webview: webview,
       requestId: requestId,
       cwd: dirPath,
