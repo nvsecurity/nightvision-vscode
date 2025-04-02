@@ -28,6 +28,8 @@ export const ApiDiscoveryPage: React.FC = () => {
   const [pathTouched, setPathTouched] = React.useState(false);
 
   const [language, setLanguage] = React.useState<IdAndName>();
+  const [fileFormat, setFileFormat] = React.useState('yml');
+  const [verbose, setVerbose] = React.useState(false);
 
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [submitError, setSubmitError] = React.useState<React.ReactElement | string>('');
@@ -114,6 +116,8 @@ export const ApiDiscoveryPage: React.FC = () => {
       {
         dirPath: dirPath,
         language: language?.id || '',
+        verbose: verbose,
+        fileFormat: fileFormat,
       }
     );
 
@@ -171,7 +175,7 @@ export const ApiDiscoveryPage: React.FC = () => {
 
   return (
     <div className='flex flex-col space-y-4'>
-      <PageHeader title='API Discovery' reloadButton={false}/>
+      <PageHeader title='API Discovery' reloadButton={false} />
 
       <div>
         <Label htmlFor='path-to-folder'>
@@ -218,6 +222,65 @@ export const ApiDiscoveryPage: React.FC = () => {
         />
       </div>
 
+      <div>
+        <label className="mb-1 text-sm uppercase">File Format</label>
+
+        <div style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
+          <div style={{ display: "flex", gap: "0.3rem", alignItems: "center" }}>
+            <input
+              type="radio"
+              id="json"
+              name="file-format"
+              value="json"
+              checked={fileFormat === "json"}
+              onChange={() => setFileFormat("json")}
+              className="custom-radio"
+            />
+            <label htmlFor="json" className="custom-radio-label">JSON</label>
+          </div>
+          <div style={{ display: "flex", gap: "0.3rem", alignItems: "center" }}>
+            <input
+              type="radio"
+              id="yml"
+              name="file-format"
+              value="yml"
+              checked={fileFormat === "yml"}
+              onChange={() => setFileFormat("yml")}
+              className="custom-radio"
+            />
+            <label htmlFor="yml" className="custom-radio-label">YML</label>
+          </div>
+        </div>
+
+        <style>{`
+        .custom-radio, .custom-radio-label {
+          cursor: pointer;
+        }
+      `}</style>
+      </div>
+
+      {/* <div>
+        <label className="mb-1 text-sm uppercase">Verbose</label>
+
+        <div style={{ display: "flex", alignItems: "left" }}>
+          <input
+            type="checkbox"
+            id="verbose"
+            checked={verbose}
+            onChange={(e) => setVerbose(e.target.checked)}
+          />
+          <label htmlFor="verbose" className="ml-2 verbose-checkbox">
+            Share verbose information with NightVision's team
+          </label>
+        </div>
+
+        <style>{`
+          .verbose-checkbox {
+            cursor: pointer;
+          }
+        `}</style>
+      </div> */}
+
       <button
         onClick={() => onSubmit()}
         className='truncate rounded disabled:cursor-not-allowed disabled:opacity-75 disabled:hover:bg-[--vscode-button-background]'
@@ -250,7 +313,7 @@ export const ApiDiscoveryPage: React.FC = () => {
 
 const CustomFileSelectIcon: React.FC = () => (
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="32" height="32">
-    <path d="M4 20V56C4 58.2 5.8 60 8 60H56C58.2 60 60 58.2 60 56V24C60 21.8 58.2 20 56 20H30L26 14H8C5.8 14 4 15.8 4 18V20Z" fill="#CCCCCC"/>
-    <path d="M32 32L32 48M32 32L24 40M32 32L40 40" stroke="#000" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M4 20V56C4 58.2 5.8 60 8 60H56C58.2 60 60 58.2 60 56V24C60 21.8 58.2 20 56 20H30L26 14H8C5.8 14 4 15.8 4 18V20Z" fill="#CCCCCC" />
+    <path d="M32 32L32 48M32 32L24 40M32 32L40 40" stroke="#000" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
   </svg>
 );
