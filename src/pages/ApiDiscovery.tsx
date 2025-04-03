@@ -119,7 +119,7 @@ export const ApiDiscoveryPage: React.FC = () => {
       {
         dirPath: dirPath,
         language: language?.id || '',
-        verbose: verbose,
+        verbose: verbose && isDisplayLogs,
         fileFormat: fileFormat,
       }
     );
