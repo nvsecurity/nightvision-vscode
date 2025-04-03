@@ -333,29 +333,30 @@ export const ApiDiscoveryPage: React.FC = () => {
           <input
             type="checkbox"
             id="isDisplayLogs"
-            className='unstyled'
+            className='unstyled isDisplayLogs-checkbox'
             checked={isDisplayLogs}
             onChange={(e) => setIsDisplayLogs(e.target.checked)}
           />
-          <label htmlFor="isDisplayLogs" className="ml-2">
-            Display logs
+          <label htmlFor="isDisplayLogs" className="ml-2 isDisplayLogs-checkbox">
+            Display execution logs
           </label>
         </div>
 
-        <div style={{ display: "flex", alignItems: "left", opacity: isDisplayLogs ? 1 : 0.5 }} className={isDisplayLogs ? "verbose-checkbox" : ""}>
-          <input
-            type="checkbox"
-            id="verbose"
-            className='unstyled'
-            checked={verbose}
-            disabled={!isDisplayLogs}
-            onChange={(e) => setVerbose(e.target.checked)}
-          />
-          <label htmlFor="verbose" className="ml-2">
-            Capture debug level messages
-          </label>
-        </div>
-        
+        {isDisplayLogs && (
+          <div style={{ display: "flex", alignItems: "left" }} className="verbose-checkbox">
+            <input
+              type="checkbox"
+              id="verbose"
+              className='unstyled verbose-checkbox'
+              checked={verbose}
+              onChange={(e) => setVerbose(e.target.checked)}
+            />
+            <label htmlFor="verbose" className="ml-2 verbose-checkbox">
+              Capture debug level messages
+            </label>
+          </div>
+        )}
+
 
         <style>{`
           .verbose-checkbox, .isDisplayLogs-checkbox {
@@ -391,7 +392,7 @@ export const ApiDiscoveryPage: React.FC = () => {
         )
       )}
 
-      {(isSubmitting || submitResults) && isDisplayLogs && (
+      {(isSubmitting || submitResults || (executionLogs && executionLogs.length > 0)) && isDisplayLogs && (
         <div>
           <h2>Execution Logs</h2>
           <div
@@ -410,7 +411,7 @@ export const ApiDiscoveryPage: React.FC = () => {
               onClick={handleCopyLogs}
             >
               <div
-                className={`pointer-events-none absolute bottom-[125%] right-0 z-40 h-min w-min select-none rounded bg-black px-2 transition duration-200 ${isLogsCopied ? 'opacity-100' : 'opacity-0'}`}
+                className={`pointer-events-none absolute top-[125%] right-0 z-40 h-min w-min select-none rounded bg-black px-2 transition duration-200 ${isLogsCopied ? 'opacity-100' : 'opacity-0'}`}
               >
                 Copied!
               </div>
