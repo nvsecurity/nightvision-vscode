@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import Command from '@commands/Command';
 import fs from 'fs/promises';
 import { v4 } from 'uuid';
-import { SWAGGER_EXTRACT, SWAGGER_EXTRACT_ERROR, SWAGGER_EXTRACT_NO_PATHS_FOUND } from './CommandConstants';
+import { EXECUTION_LOGS, SWAGGER_EXTRACT, SWAGGER_EXTRACT_ERROR, SWAGGER_EXTRACT_NO_PATHS_FOUND } from './CommandConstants';
 import { NIGHTVISION } from '@constants/GlobalConstants';
 import * as path from 'path';
 import { makeFilePathAbsolute } from '@utils/filePathAbsolute';
@@ -17,6 +17,10 @@ export interface SwaggerExtractParams {
 export interface SwaggerExtractSuccessResults {
   paths: number;
   classes: number;
+}
+
+export interface SwaggerExtractExecutionLogs {
+  message: string;
 }
 
 export default class SwaggerExtract extends Command {
@@ -63,6 +67,15 @@ export default class SwaggerExtract extends Command {
 
   async handleOutput(data: any) {
     const message = data.toString();
+
+    this.webview.postMessage({
+      command: EXECUTION_LOGS,
+      requestId: this.requestId,
+      payload: {
+        message: message,
+      } as SwaggerExtractExecutionLogs,
+      isFinal: false,
+    });
 
     if (!this.isLoggedIn(message)) {
       return;

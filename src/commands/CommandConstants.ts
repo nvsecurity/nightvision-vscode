@@ -14,6 +14,7 @@ export const DELETE_PROJECT = 'delete-project';
 export const DELETE_TARGET = 'delete-target';
 export const DELETE_TOKENS = 'delete-tokens';
 export const DUPLICATE_NAME = 'duplicate-name';
+export const EXECUTION_LOGS = 'execution-logs';
 export const EXIT = 'exit';
 export const GET_CURRENT_PROJECT = 'get-current-project';
 export const GET_CURRENT_TARGET = 'get-current-target';
