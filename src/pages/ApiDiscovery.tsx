@@ -1,7 +1,7 @@
 import React from 'react';
 import { PageHeader } from '@components/PageHeader';
 import { messageHandler } from '@utils/MessageHandler';
-import { OPEN_FILE_DIALOG, VALIDATE_FILE_PATH, SWAGGER_EXTRACT, SWAGGER_EXTRACT_ERROR, UNAUTHORIZED_ACCESS, CLI_MISSING, SWAGGER_EXTRACT_NO_PATHS_FOUND } from '@commands/CommandConstants';
+import { EXECUTION_LOGS, OPEN_FILE_DIALOG, VALIDATE_FILE_PATH, SWAGGER_EXTRACT, SWAGGER_EXTRACT_ERROR, UNAUTHORIZED_ACCESS, CLI_MISSING, SWAGGER_EXTRACT_NO_PATHS_FOUND } from '@commands/CommandConstants';
 import { v4 } from 'uuid';
 import { OpenFileDialogParams } from '@commands/OpenFileDialog';
 import { Label } from '@components/Label';
@@ -34,6 +34,9 @@ export const ApiDiscoveryPage: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [submitError, setSubmitError] = React.useState<React.ReactElement | string>('');
   const [submitResults, setSubmitResults] = React.useState<SwaggerExtractSuccessResults | undefined>();
+  const [isDisplayLogs, setIsDisplayLogs] = React.useState(false);
+  const [executionLogs, setExecutionLogs] = React.useState<string[]>([]);
+  const [isLogsCopied, setIsLogsCopied] = React.useState(false);
 
   const { setIsLoggedIn, setIsCliInstalled } = useUser();
 
@@ -122,10 +125,15 @@ export const ApiDiscoveryPage: React.FC = () => {
     );
 
     setIsSubmitting(true);
+    setExecutionLogs([]);
 
     try {
       for await (const response of result) {
         switch (response.command) {
+          case EXECUTION_LOGS: {
+            setExecutionLogs((prev) => [...prev, response.payload.message]);
+            break;
+          }
           case SWAGGER_EXTRACT: {
             setSubmitResults({
               paths: response.payload.paths,
@@ -169,6 +177,66 @@ export const ApiDiscoveryPage: React.FC = () => {
     }
 
     setIsSubmitting(false);
+  };
+
+  /**
+   * Formats a log message by wrapping occurrences of specific keywords with a <span> 
+   * that sets the appropriate color.
+   */
+  const formatLogMessage = (log: string): React.ReactNode[] => {
+    const keywords = [
+      { keyword: "ERROR", color: "red" },
+      { keyword: "WARN", color: "orange" },
+      { keyword: "INFO", color: "green" },
+      { keyword: "DEBUG", color: "blue" }
+    ];
+
+    // Start with the entire log as a single string node.
+    let nodes: React.ReactNode[] = [log];
+
+    // Iterate over each keyword and replace occurrences in text nodes.
+    keywords.forEach(({ keyword, color }) => {
+      const newNodes: React.ReactNode[] = [];
+      nodes.forEach((node) => {
+        if (typeof node === "string") {
+          // Split the string on the keyword.
+          const parts = node.split(keyword);
+          // Reconstruct with the colored keyword in between.
+          parts.forEach((part, index) => {
+            newNodes.push(part);
+            if (index < parts.length - 1) {
+              newNodes.push(
+                <span key={Math.random()} style={{ color, fontWeight: "bold" }}>
+                  {keyword}
+                </span>
+              );
+            }
+          });
+        } else {
+          // If it's already a React element, leave it unchanged.
+          newNodes.push(node);
+        }
+      });
+      nodes = newNodes;
+    });
+
+    return nodes;
+  }
+
+  // Handler to copy the logs to the clipboard.
+  const handleCopyLogs = () => {
+    const logsText = executionLogs.join("\n");
+    navigator.clipboard.writeText(logsText).then(
+      () => {
+        setIsLogsCopied(true);
+        setTimeout(() => {
+          setIsLogsCopied(false);
+        }, 1000);
+      },
+      () => {
+        console.error("Failed to copy logs to clipboard");
+      }
+    );
   };
 
   const submitDisabled = !dirPath || !language || !!pathError || isSubmitting;
@@ -259,27 +327,42 @@ export const ApiDiscoveryPage: React.FC = () => {
       `}</style>
       </div>
 
-      {/* <div>
-        <label className="mb-1 text-sm uppercase">Verbose</label>
-
-        <div style={{ display: "flex", alignItems: "left" }}>
+      <div>
+        <label className="mb-1 text-sm uppercase">Logging</label>
+        <div style={{ display: "flex", alignItems: "left" }} className="isDisplayLogs-checkbox">
           <input
             type="checkbox"
-            id="verbose"
-            checked={verbose}
-            onChange={(e) => setVerbose(e.target.checked)}
+            id="isDisplayLogs"
+            className='unstyled'
+            checked={isDisplayLogs}
+            onChange={(e) => setIsDisplayLogs(e.target.checked)}
           />
-          <label htmlFor="verbose" className="ml-2 verbose-checkbox">
-            Share verbose information with NightVision's team
+          <label htmlFor="isDisplayLogs" className="ml-2">
+            Display logs
           </label>
         </div>
 
+        <div style={{ display: "flex", alignItems: "left", opacity: isDisplayLogs ? 1 : 0.5 }} className={isDisplayLogs ? "verbose-checkbox" : ""}>
+          <input
+            type="checkbox"
+            id="verbose"
+            className='unstyled'
+            checked={verbose}
+            disabled={!isDisplayLogs}
+            onChange={(e) => setVerbose(e.target.checked)}
+          />
+          <label htmlFor="verbose" className="ml-2">
+            Capture debug level messages
+          </label>
+        </div>
+        
+
         <style>{`
-          .verbose-checkbox {
+          .verbose-checkbox, .isDisplayLogs-checkbox {
             cursor: pointer;
           }
         `}</style>
-      </div> */}
+      </div>
 
       <button
         onClick={() => onSubmit()}
@@ -307,6 +390,44 @@ export const ApiDiscoveryPage: React.FC = () => {
           </div>
         )
       )}
+
+      {(isSubmitting || submitResults) && isDisplayLogs && (
+        <div>
+          <h2>Execution Logs</h2>
+          <div
+            style={{
+              height: "300px",
+              overflowY: "scroll",
+              border: "1px solid #ccc",
+              padding: "0.5rem",
+            }}
+            className='relative !ml-0'
+          >
+            <button
+              type="button"
+              className="unstyled absolute right-3 top-3 !size-10 rounded !bg-white"
+              title="Copy Logs to Clipboard"
+              onClick={handleCopyLogs}
+            >
+              <div
+                className={`pointer-events-none absolute bottom-[125%] right-0 z-40 h-min w-min select-none rounded bg-black px-2 transition duration-200 ${isLogsCopied ? 'opacity-100' : 'opacity-0'}`}
+              >
+                Copied!
+              </div>
+              <CustomCopyIcon />
+            </button>
+            {executionLogs.map((log, index) => (
+              <div
+                key={index}
+                style={{ whiteSpace: "pre-wrap", marginBottom: "0.5rem" }}
+              >
+                {formatLogMessage(log)}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };
@@ -315,5 +436,24 @@ const CustomFileSelectIcon: React.FC = () => (
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="32" height="32">
     <path d="M4 20V56C4 58.2 5.8 60 8 60H56C58.2 60 60 58.2 60 56V24C60 21.8 58.2 20 56 20H30L26 14H8C5.8 14 4 15.8 4 18V20Z" fill="#CCCCCC" />
     <path d="M32 32L32 48M32 32L24 40M32 32L40 40" stroke="#000" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+  </svg>
+);
+
+const CustomCopyIcon: React.FC = () => (
+  <svg
+    viewBox='0 0 16 16'
+    xmlns='http://www.w3.org/2000/svg'
+    className='m-auto h-6 w-6 fill-black'
+  >
+    <path
+      fillRule='evenodd'
+      clipRule='evenodd'
+      d='M4 4l1-1h5.414L14 6.586V14l-1 1H5l-1-1V4zm9 3l-3-3H5v10h8V7z'
+    />
+    <path
+      fillRule='evenodd'
+      clipRule='evenodd'
+      d='M3 1L2 2v10l1 1V2h6.414l-1-1H3z'
+    />
   </svg>
 );
