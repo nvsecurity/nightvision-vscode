@@ -13,6 +13,7 @@ import {
   INVALID_TARGET,
   SCAN,
   SCAN_ID,
+  TARGET_CONNECTIVITY_STARTED,
   UNAUTHORIZED_ACCESS,
 } from '@commands/CommandConstants';
 import { ScanParams } from '@commands/Scan';
@@ -24,6 +25,7 @@ import { getProjectsList, GetProjectsListResponse } from '@queries/projectsQueri
 import { getTargetsList, GetTargetsListResponse } from '@queries/targetQueries';
 import { messageHandler } from '@utils/MessageHandler';
 import { PageHeader } from '@components/PageHeader';
+import { MessageData } from '@utils/Messenger';
 
 export const NewScan = () => {
   const { targetType } = useParams();
@@ -42,6 +44,7 @@ export const NewScan = () => {
   const [targetErrors, setTargetErrors] = useState<string[]>([]);
 
   const [isLoading, setIsLoading] = useState(false);
+  const [txtScanInfo, setTxtScanInfo] = useState<React.ReactNode>("");
   const [currentTime, setCurrentTime] = useState(new Date());
 
   const [isAuthsLoading, setIsAuthsLoading] = React.useState(true);
@@ -114,16 +117,75 @@ export const NewScan = () => {
     setTargetErrors([]);
   }, [currentProject]);
 
+  function handleGenerator(gen: AsyncGenerator<MessageData>): Promise<void> {
+    // Return a Promise so we can .catch() or .finally() later
+    return gen.next().then(({ value, done }) => {
+      if (done) {
+        // The generator has no more values, so we’re done.
+        return;
+      }
+  
+      switch (value.command) {
+        case SCAN_ID: {
+          const scanId = value.payload;
+
+          setTxtScanInfo(
+            <span
+              className="cursor-pointer text-blue-600 underline"
+              onClick={() => navigate(`/scans/${scanId}`, { replace: true })}
+            >
+              Scan started, click here to view results
+            </span>
+          );
+          
+          setIsLoading(false);
+          break;
+        }
+        case TARGET_CONNECTIVITY_STARTED: {
+          setTxtScanInfo(
+            <span>
+              {value.payload}
+            </span>
+          );
+          break;
+        }
+        case INVALID_TARGET: {
+          setTargetErrors(['Invalid target: ' + value.payload]);
+          setTxtScanInfo(
+            <span className="text-red-600">
+              Scan didn't start due to an issue with the target.
+            </span>
+          );
+          break;
+        }
+        case UNAUTHORIZED_ACCESS: {
+          setIsLoggedIn(false);
+          break;
+        }
+        case CLI_MISSING: {
+          setIsCliInstalled(false);
+          break;
+        }
+      }
+  
+      // Recur to get the next item, returning that Promise
+      return handleGenerator(gen);
+    });
+  }
+
   const handleScanClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
 
     if (!currentTarget) {
       setTargetErrors(['Target is required']);
-    }
-
-    if (!currentTarget) {
       return;
     }
+
+    setTxtScanInfo(
+      <span>
+        Starting scan, please wait...
+      </span>
+    );
 
     const requestGenerator = messageHandler.requestGenerator<ScanParams>(
       SCAN,
@@ -137,30 +199,80 @@ export const NewScan = () => {
 
     setIsLoading(true);
 
-    for await (const response of requestGenerator) {
-      switch (response.command) {
-        case SCAN_ID: {
-          const scanId = response.payload;
-          navigate(`/scans/${scanId}`, { replace: true });
-          setIsLoading(false);
-          break;
-        }
-        case INVALID_TARGET: {
-          setTargetErrors(['Invalid target: ' + response.payload]);
-          break;
-        }
-        case UNAUTHORIZED_ACCESS: {
-          setIsLoggedIn(false);
-          break;
-        }
-        case CLI_MISSING: {
-          setIsCliInstalled(false);
-          break;
-        }
-      }
-    }
+    await new Promise<void>(resolve => setTimeout(resolve, 0));
 
-    setIsLoading(false);
+    handleGenerator(requestGenerator)
+    .catch((error: any) => {
+      // Handle the error
+      setTxtScanInfo(
+        <span className="text-red-600">
+          Error: {error?.message || error?.toString() || 'Unknown error'}
+        </span>
+      );
+    })
+    .finally(() => {
+      setIsLoading(false);
+    });
+
+      requestGenerator.next().then(({ value, done }) => {
+        if (done) {
+          return;
+        }
+  
+        switch (value.command) {
+          case SCAN_ID: {
+            const scanId = value.payload;
+  
+            setTxtScanInfo(
+              <span
+                className="cursor-pointer text-blue-600 underline"
+                onClick={() => navigate(`/scans/${scanId}`, { replace: true })}
+              >
+                Scan started, click here to view results
+              </span>
+            );
+            
+            setIsLoading(false);
+            break;
+          }
+          case TARGET_CONNECTIVITY_STARTED: {
+            setTxtScanInfo(
+              <span>
+                {value.payload}
+              </span>
+            );
+            break;
+          }
+          case INVALID_TARGET: {
+            setTargetErrors(['Invalid target: ' + value.payload]);
+            setTxtScanInfo(
+              <span className="text-red-600">
+                Scan didn't start due to an issue with the target.
+              </span>
+            );
+            break;
+          }
+          case UNAUTHORIZED_ACCESS: {
+            setIsLoggedIn(false);
+            break;
+          }
+          case CLI_MISSING: {
+            setIsCliInstalled(false);
+            break;
+          }
+        }
+      }).catch((error: any) => {
+        setTxtScanInfo(
+          <span className="text-red-600">
+            Error: {error?.message || error?.toString() || 'Unknown error'}
+          </span>
+        );
+      }).finally(() => {
+        setIsLoading(false);
+      });  
+    
+    
+
   };
 
   useEffect(() => {
@@ -200,7 +312,7 @@ export const NewScan = () => {
 
   return (
     <div className='flex flex-col space-y-4'>
-      <PageHeader title='Scan' backTo={isLoading ? '.' : '/scans'}/>
+      <PageHeader title='Scan' backTo='/scans'/>
 
       <div>
         <Label htmlFor='current-project'>Current Project</Label>
@@ -211,6 +323,7 @@ export const NewScan = () => {
           handleChange={setCurrentProject}
           loading={isProjectsLoading}
           id='current-project'
+          disabled={isLoading || isTargetsLoading || isAuthsLoading} // If scan started, don't allow to change project
         />
       </div>
       <div className='flex flex-col space-y-1'>
@@ -266,6 +379,11 @@ export const NewScan = () => {
         >
           {isLoading ? 'Loading...' : 'Start Scan'}
         </button>
+      )}
+      {txtScanInfo && (
+        <div className='flex items-center space-x-2 text-sm'>
+          {txtScanInfo}
+        </div>
       )}
     </div>
   );
