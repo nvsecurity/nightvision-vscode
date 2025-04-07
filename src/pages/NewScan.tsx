@@ -149,16 +149,7 @@ export const NewScan = () => {
       switch (response.command) {
         case SCAN_ID: {
           const scanId = response.payload;
-
-          setTxtScanInfo(
-            <span
-              className="cursor-pointer text-blue-600 underline"
-              onClick={() => navigate(`/scans/${scanId}`, { replace: true })}
-            >
-              Scan started, click here to view results
-            </span>
-          );
-
+          navigate(`/scans/${scanId}`, { replace: true });
           setIsLoading(false);
           break;
         }
