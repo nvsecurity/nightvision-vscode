@@ -29,7 +29,7 @@ const CustomLink = ({p, onClick, className}: {p: GeneralRouteParams, onClick?: (
       >
         <div className='flex flex-col items-center justify-center space-y-1' style={{ height: '100%' }}>
           {p.icon}
-          <span>{p.title}</span>
+          <span style={{ textAlign: 'center' }}>{p.title}</span>
         </div>
       </Link>
       <span className="tooltiptext">{p.tip}</span>
