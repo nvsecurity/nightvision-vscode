@@ -7,7 +7,7 @@ import { Project } from '@types_/project';
 import { Target, TargetTypeEnum } from '@types_/target';
 import { v4 } from 'uuid';
 import React, { useEffect, useState } from 'react';
-import {  useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import {
   CLI_MISSING,
   INVALID_TARGET,
@@ -117,62 +117,6 @@ export const NewScan = () => {
     setTargetErrors([]);
   }, [currentProject]);
 
-  function handleGenerator(gen: AsyncGenerator<MessageData>): Promise<void> {
-    // Return a Promise so we can .catch() or .finally() later
-    return gen.next().then(({ value, done }) => {
-      if (done) {
-        // The generator has no more values, so we’re done.
-        return;
-      }
-  
-      switch (value.command) {
-        case SCAN_ID: {
-          const scanId = value.payload;
-
-          setTxtScanInfo(
-            <span
-              className="cursor-pointer text-blue-600 underline"
-              onClick={() => navigate(`/scans/${scanId}`, { replace: true })}
-            >
-              Scan started, click here to view results
-            </span>
-          );
-          
-          setIsLoading(false);
-          break;
-        }
-        case TARGET_CONNECTIVITY_STARTED: {
-          setTxtScanInfo(
-            <span>
-              {value.payload}
-            </span>
-          );
-          break;
-        }
-        case INVALID_TARGET: {
-          setTargetErrors(['Invalid target: ' + value.payload]);
-          setTxtScanInfo(
-            <span className="text-red-600">
-              Scan didn't start due to an issue with the target.
-            </span>
-          );
-          break;
-        }
-        case UNAUTHORIZED_ACCESS: {
-          setIsLoggedIn(false);
-          break;
-        }
-        case CLI_MISSING: {
-          setIsCliInstalled(false);
-          break;
-        }
-      }
-  
-      // Recur to get the next item, returning that Promise
-      return handleGenerator(gen);
-    });
-  }
-
   const handleScanClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
 
@@ -201,78 +145,52 @@ export const NewScan = () => {
 
     await new Promise<void>(resolve => setTimeout(resolve, 0));
 
-    handleGenerator(requestGenerator)
-    .catch((error: any) => {
-      // Handle the error
-      setTxtScanInfo(
-        <span className="text-red-600">
-          Error: {error?.message || error?.toString() || 'Unknown error'}
-        </span>
-      );
-    })
-    .finally(() => {
-      setIsLoading(false);
-    });
+    for await (const response of requestGenerator) {
+      switch (response.command) {
+        case SCAN_ID: {
+          const scanId = response.payload;
 
-      requestGenerator.next().then(({ value, done }) => {
-        if (done) {
-          return;
-        }
-  
-        switch (value.command) {
-          case SCAN_ID: {
-            const scanId = value.payload;
-  
-            setTxtScanInfo(
-              <span
-                className="cursor-pointer text-blue-600 underline"
-                onClick={() => navigate(`/scans/${scanId}`, { replace: true })}
-              >
-                Scan started, click here to view results
-              </span>
-            );
-            
-            setIsLoading(false);
-            break;
-          }
-          case TARGET_CONNECTIVITY_STARTED: {
-            setTxtScanInfo(
-              <span>
-                {value.payload}
-              </span>
-            );
-            break;
-          }
-          case INVALID_TARGET: {
-            setTargetErrors(['Invalid target: ' + value.payload]);
-            setTxtScanInfo(
-              <span className="text-red-600">
-                Scan didn't start due to an issue with the target.
-              </span>
-            );
-            break;
-          }
-          case UNAUTHORIZED_ACCESS: {
-            setIsLoggedIn(false);
-            break;
-          }
-          case CLI_MISSING: {
-            setIsCliInstalled(false);
-            break;
-          }
-        }
-      }).catch((error: any) => {
-        setTxtScanInfo(
-          <span className="text-red-600">
-            Error: {error?.message || error?.toString() || 'Unknown error'}
-          </span>
-        );
-      }).finally(() => {
-        setIsLoading(false);
-      });  
-    
-    
+          setTxtScanInfo(
+            <span
+              className="cursor-pointer text-blue-600 underline"
+              onClick={() => navigate(`/scans/${scanId}`, { replace: true })}
+            >
+              Scan started, click here to view results
+            </span>
+          );
 
+          setIsLoading(false);
+          break;
+        }
+        case TARGET_CONNECTIVITY_STARTED: {
+          setTxtScanInfo(
+            <span>
+              {response.payload}
+            </span>
+          );
+          break;
+        }
+        case INVALID_TARGET: {
+          setTargetErrors(['Invalid target: ' + response.payload]);
+          setTxtScanInfo(
+            <span className="text-red-600">
+              Scan didn't start due to an issue with the target.
+            </span>
+          );
+          break;
+        }
+        case UNAUTHORIZED_ACCESS: {
+          setIsLoggedIn(false);
+          break;
+        }
+        case CLI_MISSING: {
+          setIsCliInstalled(false);
+          break;
+        }
+      }
+    }
+
+    setIsLoading(false);
   };
 
   useEffect(() => {
@@ -312,7 +230,7 @@ export const NewScan = () => {
 
   return (
     <div className='flex flex-col space-y-4'>
-      <PageHeader title='Scan' backTo='/scans'/>
+      <PageHeader title='Scan' backTo='/scans' />
 
       <div>
         <Label htmlFor='current-project'>Current Project</Label>
@@ -371,7 +289,7 @@ export const NewScan = () => {
       </div>
       {isProjectsLoading || isTargetsLoading || isAuthsLoading ? (
         <Loading />
-      )  : (
+      ) : (
         <button
           onClick={handleScanClick}
           className='truncate rounded disabled:cursor-not-allowed disabled:opacity-75 disabled:hover:bg-[--vscode-button-background]'
