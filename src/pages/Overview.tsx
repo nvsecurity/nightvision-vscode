@@ -14,11 +14,10 @@ interface GeneralRouteParams {
 
 const CustomLink = ({p, onClick, className}: {p: GeneralRouteParams, onClick?: () => void, className?: string }) => {
   return (
-    <div className="tooltip" style={{ height: '100%' }}>
+    <div className="tooltip">
       <Link
         to={p.path}
         key={p.path}
-        style={{ height: '100%' }}
         className={`${className ? className : ""} tooltip-trigger relative flex flex-col justify-between p-2 text-[--vscode-foreground] before:absolute before:inset-0 before:-z-10 before:rounded before:bg-[--vscode-input-background] hover:cursor-pointer hover:text-[--vscode-foreground] before:hover:brightness-75`}
         onClick={(event) => {
           if (onClick) {
@@ -27,7 +26,7 @@ const CustomLink = ({p, onClick, className}: {p: GeneralRouteParams, onClick?: (
           }
         }}
       >
-        <div className='flex flex-col items-center justify-center space-y-1' style={{ height: '100%' }}>
+        <div className='flex flex-col items-center justify-center space-y-1'>
           {p.icon}
           <span>{p.title}</span>
         </div>
