@@ -436,7 +436,7 @@ export const ApiDiscoveryPage: React.FC = () => {
 const CustomFileSelectIcon: React.FC = () => (
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="32" height="32">
     <path d="M4 20V56C4 58.2 5.8 60 8 60H56C58.2 60 60 58.2 60 56V24C60 21.8 58.2 20 56 20H30L26 14H8C5.8 14 4 15.8 4 18V20Z" fill="#CCCCCC" />
-    <path d="M32 32L32 48M32 32L24 40M32 32L40 40" stroke="#000" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+    <path d="M32 32L32 48M32 32L24 40M32 32L40 40" stroke="#000" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
   </svg>
 );
 

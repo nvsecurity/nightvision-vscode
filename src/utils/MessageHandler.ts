@@ -1,6 +1,6 @@
 import { v4 } from 'uuid';
 import { MessageData, Messenger } from '@utils/Messenger';
-import { API_ERROR_TYPES } from '@constants/GlobalConstants';
+import { API_ERROR_TYPES, HEALTH_CHECK_INTERVAL } from '@constants/GlobalConstants';
 import { CHECK_HEALTH, UNAUTHORIZED_ACCESS } from '@commands/CommandConstants';
 
 interface MessageHandlerApiProps {
@@ -14,6 +14,7 @@ class MessageHandler {
   private static instance: MessageHandler;
   private static listeners: { [commandId: string]: Function } = {};
   private callback: (message: MessageEvent<MessageData>) => void;
+  private lastTimeHealthCheck: number = new Date().getTime();
 
   private constructor() {
     this.callback = (message: MessageEvent<MessageData>) => {
@@ -65,6 +66,7 @@ class MessageHandler {
                   }
                 }
               }
+              reject(error);
             } else {
               reject(error);
             }
@@ -81,16 +83,21 @@ class MessageHandler {
         }
       };
 
-      // Check if CLI is alive
-      const result = messageHandler.requestGenerator(
-        CHECK_HEALTH,
-        v4(),
-      );
-      for await (const response of result) {
-        switch (response.command) {
-          case UNAUTHORIZED_ACCESS: {
-            setIsLoggedIn?.(false);
-            break;
+      const timeNow = new Date().getTime();
+      if (timeNow - this.lastTimeHealthCheck > HEALTH_CHECK_INTERVAL) {
+        this.lastTimeHealthCheck = timeNow;
+
+        // Check if CLI is alive
+        const result = messageHandler.requestGenerator(
+          CHECK_HEALTH,
+          v4(),
+        );
+        for await (const response of result) {
+          switch (response.command) {
+            case UNAUTHORIZED_ACCESS: {
+              setIsLoggedIn?.(false);
+              break;
+            }
           }
         }
       }
@@ -199,7 +206,13 @@ class MessageHandler {
       }
     );
 
-    yield* await iterator;
+    try {
+      yield* await iterator;
+    } finally {
+      // Prevent memory leaks by removing the listener when the generator is done
+      delete MessageHandler.listeners[requestId];
+    }
+    
   }
 }
 
