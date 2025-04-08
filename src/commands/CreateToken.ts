@@ -37,7 +37,8 @@ export default class CreateToken extends Command {
       const storedTokens =
         this.extensionContext.globalState.get<string>('tokens');
       const tokens: string[] = storedTokens ? JSON.parse(storedTokens) : [];
-      tokens.push(token.slice(0, 8));
+      const currentToken = token.slice(0, 8);
+      tokens.push(currentToken);
       this.extensionContext.globalState.update(
         'tokens',
         JSON.stringify(tokens)
@@ -46,7 +47,7 @@ export default class CreateToken extends Command {
       this.webview.postMessage({
         command: CREATE_TOKEN,
         requestId: this.requestId,
-        payload: { tokens: tokens, currentToken: token.slice(0, 8) },
+        payload: { tokens: tokens, currentToken: currentToken },
       });
     }
   }

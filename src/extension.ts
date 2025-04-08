@@ -50,11 +50,10 @@ import Scan from '@commands/Scan';
 import UpdateAuth from '@commands/UpdateAuth';
 import UpdateProject from '@commands/UpdateProject';
 import UpdateTarget from '@commands/UpdateTarget';
-import fs from 'fs/promises';
 import { openFileDialog } from '@commands/OpenFileDialog';
 import SwaggerExtract from '@commands/SwaggerExtract';
 import FilePathValidator from '@commands/FilePathValidator';
-import GetTokensList from '@commands/GetTokensList';
+import HealthCheck from '@commands/HealthCheck';
 import { installNightvisionCLI, putCLIToVSCodePath } from '@commands/InstallNightvisionCLI';
 
 export async function activate(context: vscode.ExtensionContext) {
@@ -384,7 +383,7 @@ class SidebarProvider implements vscode.WebviewViewProvider {
             break;
           }
           case CHECK_HEALTH: {
-            const command = new GetTokensList(
+            const command = new HealthCheck(
               webviewView.webview,
               requestId,
               this._extensionContext,

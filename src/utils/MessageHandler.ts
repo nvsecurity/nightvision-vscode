@@ -14,7 +14,7 @@ class MessageHandler {
   private static instance: MessageHandler;
   private static listeners: { [commandId: string]: Function } = {};
   private callback: (message: MessageEvent<MessageData>) => void;
-  private lastTimeHealthCheck: number = 0;
+  private lastTimeHealthCheck: number = new Date().getTime();
 
   private constructor() {
     this.callback = (message: MessageEvent<MessageData>) => {
@@ -66,6 +66,7 @@ class MessageHandler {
                   }
                 }
               }
+              reject(error);
             } else {
               reject(error);
             }
@@ -84,6 +85,8 @@ class MessageHandler {
 
       const timeNow = new Date().getTime();
       if (timeNow - this.lastTimeHealthCheck > HEALTH_CHECK_INTERVAL) {
+        this.lastTimeHealthCheck = timeNow;
+
         // Check if CLI is alive
         const result = messageHandler.requestGenerator(
           CHECK_HEALTH,
@@ -98,7 +101,6 @@ class MessageHandler {
           }
         }
       }
-      this.lastTimeHealthCheck = timeNow;
 
       const vscode = Messenger.getVsCodeAPI();
       vscode.postMessage({ url, method, body, requestId });

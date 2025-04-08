@@ -265,6 +265,17 @@ export const App = () => {
     }
   };
 
+  /*
+    This method tries to clean up the tokens saved in the extension's context.
+    The purpose is to always delete the tokens that were created by using the VSCode extension.
+    We save it under 'tokens' key in the context.
+    This method first fetches all the tokens from the API and then compares them with the tokens saved in the context.
+    If the token is in the context but not in the API response, it means that the token is not valid anymore.
+    So we delete it from the context.
+    Then, we delete all tokens created by the extension but is not the current token.
+
+    The trouble of having this function would be avoided if we were able to provide the digest of the token upon creation...
+  */
   const deleteTokens = async ({
     tokens,
     currentToken,
@@ -303,11 +314,16 @@ export const App = () => {
         ) {
           continue;
         }
-        await messageHandler.api({
-          method: 'DELETE',
-          url: `${API_URL}/api/v1/auth/cli/token/${token.digest}/`,
-        });
-        await messageHandler.request(DELETE_TOKENS, [token.token_key]);
+
+        try {
+          await messageHandler.api({
+            method: 'DELETE',
+            url: `${API_URL}/api/v1/auth/cli/token/${token.digest}/`,
+          });
+          await messageHandler.request(DELETE_TOKENS, [token.token_key]);
+        } catch (err) {
+          console.error(`Error cleaning up old token with digest ${token.digest}: ${err}`);
+        }
       }
     } catch (err) {
       console.error(err);
@@ -359,7 +375,7 @@ export const App = () => {
         ]);
 
         if (promises[2]) {
-          await deleteTokens(promises[2]);
+          deleteTokens(promises[2]); // Do not await - this can be done in parallel
           await getUser();
         }
       } catch (err) {
