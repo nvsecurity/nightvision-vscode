@@ -143,8 +143,6 @@ export const NewScan = () => {
 
     setIsLoading(true);
 
-    await new Promise<void>(resolve => setTimeout(resolve, 0));
-
     for await (const response of requestGenerator) {
       switch (response.command) {
         case SCAN_ID: {
