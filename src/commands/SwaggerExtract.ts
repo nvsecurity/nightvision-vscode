@@ -29,6 +29,7 @@ export default class SwaggerExtract extends Command {
   private fileName: string;
   private extractedPaths: number;
   private extractedClasses: number;
+  private fileFormat: string;
 
   constructor(
     webview: vscode.Webview,
@@ -42,7 +43,7 @@ export default class SwaggerExtract extends Command {
     if (verbose) {
       verboseCmd = ' --verbose';
     }
-    var extension = 'yml';
+    var extension = 'yml'; // Here we use 'yml' instead of 'yaml' because CLI generates as 'yml'... (should probably be fixed)
     if (fileFormat) {
       if (fileFormat === 'json') {
         extension = 'json';
@@ -63,6 +64,7 @@ export default class SwaggerExtract extends Command {
     this.language = language;
     this.extractedPaths = 0;
     this.extractedClasses = 0;
+    this.fileFormat = extension == 'json' ? 'json' : 'yaml'; // Here we must use yaml instead of yml, for VSCode to apply correct styling when displaying
   }
 
   async handleOutput(data: any) {
@@ -114,7 +116,6 @@ export default class SwaggerExtract extends Command {
 
       await fs.access(filePath);
       await this.processFile(filePath);
-
       this.webview.postMessage({
         command: SWAGGER_EXTRACT,
         requestId: this.requestId,
@@ -138,7 +139,7 @@ export default class SwaggerExtract extends Command {
 
     const document = await vscode.workspace.openTextDocument({
       content: data,
-      language: 'yaml',
+      language: this.fileFormat,
     });
     await vscode.window.showTextDocument(document, { preview: false, });
 
