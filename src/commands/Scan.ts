@@ -8,6 +8,7 @@ import {
   ISSUES,
   SCAN_FINISHED,
   SCAN_ID,
+  TARGET_CONNECTIVITY_STARTED,
 } from '@commands/CommandConstants';
 import { NIGHTVISION } from '@constants/GlobalConstants';
 
@@ -53,6 +54,12 @@ export default class Scan extends Command {
         command: SCAN_ID,
         requestId: this.requestId,
         payload: message.match(/Scan ID: (.*)/)[1],
+      });
+    } else if (/INFO Target connectivity test: starting TCP connection/.test(message)) {
+      this.webview.postMessage({
+        command: TARGET_CONNECTIVITY_STARTED,
+        requestId: this.requestId,
+        payload: 'Target connectivity test: starting TCP connection',
       });
     } else if (/INFO New Issue detected/.test(message)) {
       this.webview.postMessage({

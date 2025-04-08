@@ -7,12 +7,13 @@ import { Project } from '@types_/project';
 import { Target, TargetTypeEnum } from '@types_/target';
 import { v4 } from 'uuid';
 import React, { useEffect, useState } from 'react';
-import {  useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import {
   CLI_MISSING,
   INVALID_TARGET,
   SCAN,
   SCAN_ID,
+  TARGET_CONNECTIVITY_STARTED,
   UNAUTHORIZED_ACCESS,
 } from '@commands/CommandConstants';
 import { ScanParams } from '@commands/Scan';
@@ -24,6 +25,7 @@ import { getProjectsList, GetProjectsListResponse } from '@queries/projectsQueri
 import { getTargetsList, GetTargetsListResponse } from '@queries/targetQueries';
 import { messageHandler } from '@utils/MessageHandler';
 import { PageHeader } from '@components/PageHeader';
+import { MessageData } from '@utils/Messenger';
 
 export const NewScan = () => {
   const { targetType } = useParams();
@@ -42,6 +44,7 @@ export const NewScan = () => {
   const [targetErrors, setTargetErrors] = useState<string[]>([]);
 
   const [isLoading, setIsLoading] = useState(false);
+  const [txtScanInfo, setTxtScanInfo] = useState<React.ReactNode>("");
   const [currentTime, setCurrentTime] = useState(new Date());
 
   const [isAuthsLoading, setIsAuthsLoading] = React.useState(true);
@@ -119,11 +122,14 @@ export const NewScan = () => {
 
     if (!currentTarget) {
       setTargetErrors(['Target is required']);
-    }
-
-    if (!currentTarget) {
       return;
     }
+
+    setTxtScanInfo(
+      <span>
+        Starting scan, please wait...
+      </span>
+    );
 
     const requestGenerator = messageHandler.requestGenerator<ScanParams>(
       SCAN,
@@ -145,8 +151,21 @@ export const NewScan = () => {
           setIsLoading(false);
           break;
         }
+        case TARGET_CONNECTIVITY_STARTED: {
+          setTxtScanInfo(
+            <span>
+              {response.payload}
+            </span>
+          );
+          break;
+        }
         case INVALID_TARGET: {
           setTargetErrors(['Invalid target: ' + response.payload]);
+          setTxtScanInfo(
+            <span className="text-red-600">
+              Scan didn't start due to an issue with the target.
+            </span>
+          );
           break;
         }
         case UNAUTHORIZED_ACCESS: {
@@ -200,7 +219,7 @@ export const NewScan = () => {
 
   return (
     <div className='flex flex-col space-y-4'>
-      <PageHeader title='Scan' backTo={isLoading ? '.' : '/scans'}/>
+      <PageHeader title='Scan' backTo='/scans' />
 
       <div>
         <Label htmlFor='current-project'>Current Project</Label>
@@ -211,6 +230,7 @@ export const NewScan = () => {
           handleChange={setCurrentProject}
           loading={isProjectsLoading}
           id='current-project'
+          disabled={isLoading || isTargetsLoading || isAuthsLoading} // If scan started, don't allow to change project
         />
       </div>
       <div className='flex flex-col space-y-1'>
@@ -258,7 +278,7 @@ export const NewScan = () => {
       </div>
       {isProjectsLoading || isTargetsLoading || isAuthsLoading ? (
         <Loading />
-      )  : (
+      ) : (
         <button
           onClick={handleScanClick}
           className='truncate rounded disabled:cursor-not-allowed disabled:opacity-75 disabled:hover:bg-[--vscode-button-background]'
@@ -266,6 +286,11 @@ export const NewScan = () => {
         >
           {isLoading ? 'Loading...' : 'Start Scan'}
         </button>
+      )}
+      {txtScanInfo && (
+        <div className='flex items-center space-x-2 text-sm'>
+          {txtScanInfo}
+        </div>
       )}
     </div>
   );
