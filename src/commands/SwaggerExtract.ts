@@ -64,7 +64,7 @@ export default class SwaggerExtract extends Command {
     this.language = language;
     this.extractedPaths = 0;
     this.extractedClasses = 0;
-    this.fileFormat = extension == 'json' ? 'json' : 'yaml'; // Here we must use yaml instead of yml, for VSCode to apply correct styling when displaying
+    this.fileFormat = extension === 'json' ? 'json' : 'yaml'; // Here we must use yaml instead of yml, for VSCode to apply correct styling when displaying
   }
 
   async handleOutput(data: any) {
