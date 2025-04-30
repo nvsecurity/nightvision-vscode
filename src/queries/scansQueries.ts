@@ -1,5 +1,5 @@
 import { API_URL } from "@constants/GlobalConstants";
-import { Issue, ScanType } from "@types_/scan";
+import { normalizedSeverity, ScanType } from "@types_/scan";
 import { messageHandler } from "@utils/MessageHandler";
 import { getIssuesList } from "./issuesQueries";
 import { countIssues } from "@utils/globalUtils";
@@ -79,6 +79,70 @@ export const getScansListWithIssuesStat = async ({
   return {
     scans: [],
     totalCount: 0,
+  };
+};
+// #endregion
+
+// #region getScanById
+export interface GetScanByIdParams {
+  setIsLoggedIn: React.Dispatch<React.SetStateAction<boolean>>;
+  scanId: string;
+}
+
+export interface GetScanByIdResponse {
+  scan?: ScanType,
+}
+
+export const getScanByIdWithIssuesStat = async ({
+  setIsLoggedIn,
+  scanId,
+}: GetScanByIdParams): Promise<GetScanByIdResponse> => {
+  try {
+    const response = await messageHandler.api({
+      method: 'get',
+      url: `${API_URL}/api/v1/scans/${scanId}`,
+      setIsLoggedIn: setIsLoggedIn,
+    });
+
+    let vulnPathsStatistics = {};
+    const { issues } = await getIssuesList({
+      setIsLoggedIn,
+      scanId: response.id
+    });
+
+    if (!response.vulnerable_paths_statistics) {
+      vulnPathsStatistics = countIssues(issues);
+    }
+
+    const scan = {
+      id: response.id,
+      authentication: response.credentials,
+      target: response.target,
+      project: response.project,
+      createdAt: new Date(response.created_at),
+      endedAt: response.ended_at
+        ? new Date(response.ended_at)
+        : undefined,
+      status: response.status_value,
+      isScanning: response.status_value === 'RUNNING',
+      disrupted: response.status_value === 'TIMED_OUT' || response.status_value === 'FAILED',
+      aborted: response.status_value === 'ABORTED',
+      vulnPathsStatistics: response.vulnerable_paths_statistics ?? vulnPathsStatistics,
+      issues: issues.map((issue: any) => ({
+        kind_id: issue.kind_id,
+        name: issue.kind_name,
+        severity: normalizedSeverity(issue.severity),
+      })),
+    };
+
+    return {
+      scan
+    };
+  } catch (err: any) {
+    console.error(err);
+  }
+  return {
+    scan: undefined,
   };
 };
 // #endregion

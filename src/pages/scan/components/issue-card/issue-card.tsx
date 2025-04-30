@@ -6,7 +6,7 @@ const severityColor: { [key in Severity]: string } = {
   High: 'after:bg-orange-600',
   Medium: 'after:bg-yellow-600',
   Low: 'after:bg-green-600',
-  Informational: '',
+  Informational: 'after:bg-blue-600',
   Unspecified: '',
   Unknown: '',
 };

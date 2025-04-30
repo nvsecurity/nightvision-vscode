@@ -1,17 +1,16 @@
 import { useUser } from '@hooks/useUser';
-import { ScanType, Severity, normalizedSeverity } from '@types_/scan';
+import { ScanType, Severity } from '@types_/scan';
 import React, { useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { EditList } from '@components/EditList';
 import { Label } from '@components/Label';
 import { Loading } from '@components/Loading';
-import { messageHandler } from '@utils/MessageHandler';
 import { formatDuration } from '@utils/globalUtils';
 import { PageHeader } from '@components/PageHeader';
-import { API_URL } from '@constants/GlobalConstants';
 import { AbortModal, DeleteModal, IssueCard } from './components';
 import { ErrorIcon, ExtraLinkIcon, LoadingIcon, StopIcon, TrashIcon } from './assets';
 import { TargetTypeEnum } from '@types_/target';
+import { getScanByIdWithIssuesStat } from '@queries/scansQueries';
 
 export const Scan = () => {
   const { scanId } = useParams();
@@ -53,41 +52,13 @@ export const Scan = () => {
 
     const getAndSetScan = async () => {
       try {
-        const response = await messageHandler.api({
-          method: 'get',
-          url: `${API_URL}/api/v1/scans/${scanId}`,
-          setIsLoggedIn: setIsLoggedIn,
+         const { scan } = await getScanByIdWithIssuesStat({
+          setIsLoggedIn,
+          scanId: scanId || '',
         });
 
-        const issues = (
-          await messageHandler.api({
-            method: 'get',
-            url: `${API_URL}/api/v1/issues/kind/?scan=${scanId}`,
-            setIsLoggedIn: setIsLoggedIn,
-          })
-        ).results;
-
         if (!ignore) {
-          setScan({
-            id: response.id,
-            authentication: response.credentials,
-            target: response.target,
-            project: response.project,
-            createdAt: new Date(response.created_at),
-            endedAt: response.ended_at
-              ? new Date(response.ended_at)
-              : undefined,
-            status: response.status_value,
-            isScanning: response.status_value === 'RUNNING',
-            disrupted: response.status_value === 'TIMED_OUT' || response.status_value === 'FAILED',
-            aborted: response.status_value === 'ABORTED',
-            vulnPathsStatistics: response.vulnerable_paths_statistics,
-            issues: issues.map((issue: any) => ({
-              kind_id: issue.kind_id,
-              name: issue.kind_name,
-              severity: normalizedSeverity(issue.severity),
-            })),
-          });
+          setScan(scan);
         }
       } catch (err: any) {
         console.error(err);
@@ -232,6 +203,14 @@ export const Scan = () => {
                 severity='Low'
                 amount={
                   scan?.vulnPathsStatistics?.Low ?? 0
+                }
+                toggled={toggled}
+                setToggled={setToggled}
+              />
+              <IssueCard
+                severity='Informational'
+                amount={
+                  scan?.vulnPathsStatistics?.Informational ?? 0
                 }
                 toggled={toggled}
                 setToggled={setToggled}
