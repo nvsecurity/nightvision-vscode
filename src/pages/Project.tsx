@@ -178,6 +178,8 @@ export const unshareProject = async (
   }
 };
 
+const MIN_INPUT_LENGTH = 3;
+
 export const ProjectPage = () => {
   const { projectId } = useParams();
 
@@ -265,7 +267,7 @@ export const ProjectPage = () => {
     let ignore = false;
     setIsUserAdded(false);
 
-    if (!userName) {
+    if (userName.length < MIN_INPUT_LENGTH) {
       setSearchedUsers([]);
       return;
     }
@@ -984,11 +986,12 @@ export const ProjectPage = () => {
               value={_userName}
               handleOnChange={setUserName}
               label='Search Users'
+              placeholder='Email, username or name'
               id='user'
               isLoading={isSearchingUser}
             />
             {searchedUsers.length === 0 &&
-              userName &&
+              userName.length >= MIN_INPUT_LENGTH &&
               !isUserAdded &&
               !isSearchingUser && (
                 <span className='inline-block w-full text-center'>
