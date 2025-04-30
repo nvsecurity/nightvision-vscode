@@ -68,6 +68,7 @@ export const Projects = () => {
           <ProjectDropdown
             project={currentProject}
             onProjectChange={setCurrentProject}
+            invalidateProjectsList={invalidateProjectsList}
           />
         </div>
         <button
