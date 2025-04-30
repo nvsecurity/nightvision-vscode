@@ -180,7 +180,7 @@ export const ApiDiscoveryPage: React.FC = () => {
   };
 
   /**
-   * Formats a log message by wrapping occurrences of specific keywords with a <span> 
+   * Formats a log message by wrapping occurrences of specific keywords with a <span>
    * that sets the appropriate color.
    */
   const formatLogMessage = (log: string): React.ReactNode[] => {
@@ -382,11 +382,17 @@ export const ApiDiscoveryPage: React.FC = () => {
       ) : (
         submitResults && (
           <div className='flex flex-col gap-2'>
-            <span>
-              {`Number of discovered paths: ${submitResults.paths}`}
+            <span className='font-bold text-green-600 mb-2'>
+              {`OpenAPI Spec generated!`}
+            </span>
+            <span className='font-bold underline'>
+              {`Nightvision Extractor found:`}
             </span>
             <span>
-              {`Number of discovered classes: ${submitResults.classes}`}
+              {`Paths: ${submitResults.paths}`}
+            </span>
+            <span>
+              {`Classes: ${submitResults.classes}`}
             </span>
           </div>
         )
