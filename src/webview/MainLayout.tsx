@@ -35,7 +35,7 @@ export const MainLayout: React.FC = () => {
     <div className='h-full'>
       <div className='flex items-center gap-1 justify-between pb-[0.75rem]'>
         <h1 className='truncate text-[0.85rem] font-medium'>USERNAME: {currentUser?.name}</h1>
-        <button className="unstyled !outline-offset-0" onClick={handleLogOut} disabled={isLoggingOut}>
+        <button className="unstyled !outline-offset-0" onClick={handleLogOut} disabled={isLoggingOut} title='Log Out'>
           {SignOutIcon}
         </button>
       </div>
