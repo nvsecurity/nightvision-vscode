@@ -46,6 +46,7 @@ import { Targets } from '@pages/targets';
 import { messageHandler } from '@utils/MessageHandler';
 import { ApiDiscoveryPage } from '@pages/ApiDiscovery';
 import { API_URL } from '@constants/GlobalConstants';
+import { MainLayout } from './MainLayout';
 
 const Error = () => {
   const error = useRouteError();
@@ -61,7 +62,7 @@ const router = createMemoryRouter(
   [
     {
       path: '',
-      element: <Outlet />,
+      element: <MainLayout />,
       errorElement: <Error />,
       children: [
         { path: '/', element: <Overview /> },
