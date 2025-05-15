@@ -54,7 +54,6 @@ export const Scans = () => {
     };
 
     const fetchApi = async () => {
-
       const project = projectFilter.id === ALL_PROJECTS_FILTER_OPTION.id ? undefined : projectFilter.id;
       const res = await getScansListWithIssuesStat({
         setIsLoggedIn,

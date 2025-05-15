@@ -4,6 +4,7 @@
 
 - [NightVision CLI](https://docs.nightvision.net/docs/installing-the-cli)
 - Visual Studio Code (VSCode) version 1.75.0 or greater
+- [Node.js](https://nodejs.org)
 
 ### Installation
 

@@ -12,6 +12,7 @@ interface ProjectDropdownProps {
   project?: Project;
   onProjectChange: (value: IdAndName) => void;
   includeAllOption?: boolean;
+  invalidateProjectsList?: boolean;
 }
 
 const mapProjectDtoToViewModel = (dto: any) => {
@@ -97,6 +98,7 @@ export const ProjectDropdown: React.FC<ProjectDropdownProps> = ({
   project,
   onProjectChange,
   includeAllOption = false,
+  invalidateProjectsList = false,
 }) => {
   const { setIsLoggedIn } = useUser();
   const [projects, setProjects] = React.useState<ProjectInfo[]>([]);
@@ -125,6 +127,13 @@ export const ProjectDropdown: React.FC<ProjectDropdownProps> = ({
       fetchApi();
     }
   }, []);
+
+  React.useEffect(() => {
+    if (invalidateProjectsList) {
+      setProjects([]);
+      fetchApi();
+    }
+  }, [invalidateProjectsList]);
 
   const options = includeAllOption ? [ALL_PROJECTS_FILTER_OPTION, ...projects] : projects;
 
