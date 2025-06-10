@@ -5,7 +5,7 @@
 const path = require('path');
 const webpack = require('webpack');
 const dotenv = require('dotenv');
-const CLI_VERSION = '0.9.2';
+const CLI_VERSION = '0.9.5';
 
 dotenv.config();
 
