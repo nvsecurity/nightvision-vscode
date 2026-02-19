@@ -116,7 +116,7 @@
   "dependencies": {
     "react-syntax-highlighter": "^16.1.0",
     "sudo-prompt": "^9.2.1",
-    "tar": "^7.5.7",
+    "tar": "^7.5.8",
     "use-debounce": "^10.0.2"
   }
 }
