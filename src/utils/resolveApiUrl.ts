@@ -14,13 +14,15 @@ const DEFAULT_API_URL = 'https://api.nightvision.net';
  * The api-url from the config file includes /api/v1/ suffix which is stripped
  * to return the base URL.
  */
-export function resolveApiUrl(): string {
+const DEFAULT_CONFIG_PATH = path.join(os.homedir(), '.nightvision', 'nightvision.yml');
+
+export function resolveApiUrl(configPath: string = DEFAULT_CONFIG_PATH): string {
     const envUrl = process.env.NIGHTVISION_API_URL;
     if (envUrl) {
         return stripApiSuffix(envUrl);
     }
 
-    const configUrl = readConfigApiUrl();
+    const configUrl = readConfigApiUrl(configPath);
     if (configUrl) {
         return stripApiSuffix(configUrl);
     }
@@ -28,9 +30,8 @@ export function resolveApiUrl(): string {
     return DEFAULT_API_URL;
 }
 
-function readConfigApiUrl(): string | undefined {
+function readConfigApiUrl(configPath: string): string | undefined {
     try {
-        const configPath = path.join(os.homedir(), '.nightvision', 'nightvision.yml');
         const content = fs.readFileSync(configPath, 'utf8');
         const match = content.match(/^api-url:\s*(.+)$/m);
         return match?.[1]?.trim();
