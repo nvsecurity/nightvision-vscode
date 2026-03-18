@@ -146,8 +146,7 @@ export const ApiDiscoveryPage: React.FC = () => {
           }
           case SWAGGER_EXTRACT_NO_PATHS_FOUND: {
             setSubmitError(<span>
-              We scanned your repository but couldn't identify any API endpoints. This could be a limitation in our detection tool
-              or an issue with the location/format of your API definitions. Please ensure your API specifications are properly formatted and located in the expected directories. If the problem persists, contact us at
+              No API routes found. Please recheck the entered Path to the Root Directory and selected Language, then try again. If the problem persists, contact us at
               <a href={`mailto:${CONTACT_EMAIL}`}>
                 &nbsp;{CONTACT_EMAIL}
               </a>.
