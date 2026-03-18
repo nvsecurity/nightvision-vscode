@@ -4,7 +4,7 @@ import tsParser from "@typescript-eslint/parser";
 import stylistic from "@stylistic/eslint-plugin";
 
 
-export default defineConfig([globalIgnores(["**/out", "**/dist", "**/*.d.ts"]), {
+export default defineConfig([globalIgnores(["**/out", "**/dist", "**/*.d.ts", "**/.vscode-test"]), {
     plugins: {
         "@typescript-eslint": typescriptEslint,
         "@stylistic": stylistic,
