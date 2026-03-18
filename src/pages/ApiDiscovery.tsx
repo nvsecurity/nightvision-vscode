@@ -20,6 +20,7 @@ const SUPPORTED_LANGUAGES: IdAndName[] = [
   { id: 'python', name: 'Python' },
   { id: 'js', name: 'JavaScript' },
   { id: 'ruby', name: 'Ruby' },
+  { id: 'php', name: 'PHP' },
 ];
 
 export const ApiDiscoveryPage: React.FC = () => {

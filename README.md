@@ -42,7 +42,7 @@ If you have installed the NightVision CLI and logged in, you'll arrive at the ma
 
 ### API Discovery
 
-The **API Discovery** helps you document and discover hidden endpoints in your APIs for a set of different languages such as Java, C# (.net), Python, JavaScript / TypeScript and Ruby.
+The **API Discovery** helps you document and discover hidden endpoints in your APIs for a set of different languages such as Java, C# (.net), Python, JavaScript / TypeScript, Ruby and PHP.
 The process is straightforward:
 1. Provide the filepath to the root directory of your project to be scanned;
 2. Choose the language in which your API is written;
