@@ -1,9 +1,10 @@
 import { useUser } from '@hooks/useUser';
-import React, { useState } from 'react';
+import React, { useContext } from 'react';
 import { Link } from 'react-router-dom';
 import { InstallButton } from '@components/InstallButton';
 import { isCliOutdated } from '@utils/globalUtils';
 import { useToggleDASTOptions } from '@hooks/useToggleDASTOptions';
+import { ProjectContext } from '@contexts/ProjectContext';
 
 interface GeneralRouteParams {
   path: string;
@@ -40,6 +41,7 @@ const CustomLink = ({p, onClick, className}: {p: GeneralRouteParams, onClick?: (
 export const Overview = () => {
   const { cliVersion, setCliVersion, setIsCliInstalled } = useUser();
   const { isShowDASTOptions, setIsShowDASTOptions } = useToggleDASTOptions();
+  const { currentProject } = useContext(ProjectContext);
 
   const handleScanClick = () => {
     setIsShowDASTOptions(!isShowDASTOptions);
@@ -69,12 +71,19 @@ export const Overview = () => {
         <CustomLink p={{ path: '.', title: 'API and Web Security Testing', tip: "Show options to configure and run API and Web security scans", icon: <DastSvg /> }} onClick={handleScanClick} className={`${isShowDASTOptions ? 'active' : ''}`} />
       </div>
       {isShowDASTOptions && (
-        <div className={`dast-options grid auto-cols-min grid-cols-1 gap-3 min-[360px]:grid-cols-2 md:grid-cols-2`}>
-          <CustomLink p={{ path: '/scans', title: 'Scans', tip: "List and run new scans", icon: <ScansSvg /> }} />
-          <CustomLink p={{ path: '/targets', title: 'Targets', tip: "List and manage targets", icon: <TargetsSvg /> }} />
-          <CustomLink p={{ path: '/authentications', title: 'Authentications', tip: "List and manage authentications", icon: <AuthenticationsSvg /> }} />
-          <CustomLink p={{ path: '/projects', title: 'Projects', tip: "List and manage projects", icon: <ProjectsSvg /> }} />
-        </div>
+        currentProject ? (
+          <div className={`dast-options grid auto-cols-min grid-cols-1 gap-3 min-[360px]:grid-cols-2 md:grid-cols-2`}>
+            <CustomLink p={{ path: '/scans', title: 'Scans', tip: "List and run new scans", icon: <ScansSvg /> }} />
+            <CustomLink p={{ path: '/targets', title: 'Targets', tip: "List and manage targets", icon: <TargetsSvg /> }} />
+            <CustomLink p={{ path: '/authentications', title: 'Authentications', tip: "List and manage authentications", icon: <AuthenticationsSvg /> }} />
+            <CustomLink p={{ path: '/projects', title: 'Projects', tip: "List and manage projects", icon: <ProjectsSvg /> }} />
+          </div>
+        ) : (
+          <div className='flex flex-col gap-2'>
+            <span>Create or select a project to use DAST features.</span>
+            <CustomLink p={{ path: '/projects', title: 'Projects', tip: "List and manage projects", icon: <ProjectsSvg /> }} />
+          </div>
+        )
       )}
       {cliVersion && isCliOutdated(cliVersion) && (
         <InstallButton

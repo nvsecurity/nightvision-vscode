@@ -15,21 +15,24 @@ export default class Login extends Command {
   handleOutput(data: any) {
     const message = data.toString();
 
-    if (/Authentication token saved to file system/.test(message)) {
-      this.webview.postMessage({
-        command: LOGIN,
-        requestId: this.requestId,
-      });
-    } else if (/Only one usage of each socket address/.test(message)) {
-      const url = vscode.Uri.parse(
-        `${API_URL}/api/v1/auth/cli/social`
-      );
-
+    if (/Only one usage of each socket address/.test(message)) {
       try {
-        vscode.env.openExternal(url);
+        vscode.env.openExternal(vscode.Uri.parse(
+          `${API_URL}/api/v1/auth/cli/social`
+        ));
       } catch (err) {
         console.error('Failed to open the link.');
       }
     }
+  }
+
+  handleClose(code: number | null, signal: string | null) {
+    if (code === 0) {
+      this.webview.postMessage({
+        command: LOGIN,
+        requestId: this.requestId,
+      });
+    }
+    super.handleClose(code, signal);
   }
 }
