@@ -55,6 +55,7 @@ import SwaggerExtract from '@commands/SwaggerExtract';
 import FilePathValidator from '@commands/FilePathValidator';
 import HealthCheck from '@commands/HealthCheck';
 import { installNightvisionCLI, putCLIToVSCodePath } from '@commands/InstallNightvisionCLI';
+import { resolveApiUrl } from '@utils/resolveApiUrl';
 
 export async function activate(context: vscode.ExtensionContext) {
   const sidebarProvider = new SidebarProvider(context);
@@ -472,10 +473,13 @@ class SidebarProvider implements vscode.WebviewViewProvider {
     </head>
     <body>
       <div id="root"></div>
-      <script nonce="${nonce}" src="${scriptUrl}"></script>
+      <!-- This inline script must run before the bundle so that
+           GlobalConstants.ts can read window.__NV_API_URL__ at import time. -->
       <script nonce="${nonce}">
         const vscodeApi = acquireVsCodeApi();
+        window.__NV_API_URL__ = ${JSON.stringify(resolveApiUrl())};
       </script>
+      <script nonce="${nonce}" src="${scriptUrl}"></script>
     </body>
     </html>`;
   }

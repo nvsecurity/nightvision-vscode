@@ -56,10 +56,20 @@ Logs from the webview (React app) appear in the Developer Tools console of the E
 
 ### 5. NightVision CLI login
 
-The extension requires a valid NightVision CLI login. The extension makes API calls to `https://api.nightvision.net` (production), so make sure you are logged in to the production environment:
+The extension requires a valid NightVision CLI login. The extension reads the API URL from the same sources as the CLI, in this order:
+
+1. `NIGHTVISION_API_URL` environment variable
+2. `api-url` from `~/.nightvision/nightvision.yml` (written by `nightvision login`)
+3. `https://api.nightvision.net` (default)
+
+Just run `nightvision login` and the extension will automatically use the same environment:
 
 ```bash
-nightvision login --api-url https://api.nightvision.net/api/v1/
+# Production
+nightvision login
+
+# Staging
+nightvision login --api-url https://api.test.nightvision.net/api/v1/
 ```
 
 ## Running the Test Suite
