@@ -119,5 +119,8 @@
     "sudo-prompt": "^9.2.1",
     "tar": "^7.5.7",
     "use-debounce": "^10.0.2"
+  },
+  "overrides": {
+    "serialize-javascript": "^7.0.3"
   }
 }
