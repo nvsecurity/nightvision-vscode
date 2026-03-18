@@ -15,12 +15,13 @@ import { CONTACT_EMAIL } from '@constants/GlobalConstants';
 const PATH_REQUIRED_ERROR = 'Path is required';
 
 const SUPPORTED_LANGUAGES: IdAndName[] = [
-  { id: 'java', name: 'Java' },
   { id: 'csharp', name: 'C#' },
-  { id: 'python', name: 'Python' },
-  { id: 'js', name: 'JavaScript' },
-  { id: 'ruby', name: 'Ruby' },
+  { id: 'go', name: 'Go' },
+  { id: 'java', name: 'Java' },
+  { id: 'js', name: 'JavaScript/TypeScript' },
   { id: 'php', name: 'PHP' },
+  { id: 'python', name: 'Python' },
+  { id: 'ruby', name: 'Ruby' },
 ];
 
 export const ApiDiscoveryPage: React.FC = () => {
