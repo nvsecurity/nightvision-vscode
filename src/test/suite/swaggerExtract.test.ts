@@ -11,6 +11,12 @@ const mockWebview = {
   asWebviewUri: (uri: any) => uri,
 } as any;
 
+function hasFlag(instance: any, flag: string, value?: string): boolean {
+  return instance.flags.some((f: any) =>
+    f.flag === flag && (value === undefined || f.value === value)
+  );
+}
+
 suite('SwaggerExtract', () => {
   test('should store the specified language', () => {
     const cmd = new SwaggerExtract(mockWebview, 'test-request-id', {
@@ -20,7 +26,6 @@ suite('SwaggerExtract', () => {
       fileFormat: '',
     });
 
-    // Access protected fields via type assertion
     const instance = cmd as any;
     assert.strictEqual(instance.language, 'php');
   });
@@ -37,7 +42,7 @@ suite('SwaggerExtract', () => {
     assert.ok(instance.fileName.endsWith('.json'));
   });
 
-  test('should build correct CLI command with language flag', () => {
+  test('should pass correct flags for language, output, and no-upload', () => {
     const cmd = new SwaggerExtract(mockWebview, 'test-request-id', {
       dirPath: '/home/user/my-project',
       language: 'go',
@@ -46,8 +51,8 @@ suite('SwaggerExtract', () => {
     });
 
     const instance = cmd as any;
-    assert.ok(instance.command.includes('--lang go'));
-    assert.ok(instance.command.includes('--no-upload'));
+    assert.ok(hasFlag(instance, '--lang', 'go'));
+    assert.ok(hasFlag(instance, '--no-upload'));
   });
 
   test('should include verbose flag when verbose is true', () => {
@@ -59,7 +64,7 @@ suite('SwaggerExtract', () => {
     });
 
     const instance = cmd as any;
-    assert.ok(instance.command.includes('--verbose'));
+    assert.ok(hasFlag(instance, '--verbose'));
   });
 
   test('should not include verbose flag when verbose is false', () => {
@@ -71,7 +76,7 @@ suite('SwaggerExtract', () => {
     });
 
     const instance = cmd as any;
-    assert.ok(!instance.command.includes('--verbose'));
+    assert.ok(!hasFlag(instance, '--verbose'));
   });
 
   test('should include file-format flag when format is specified', () => {
@@ -83,7 +88,7 @@ suite('SwaggerExtract', () => {
     });
 
     const instance = cmd as any;
-    assert.ok(instance.command.includes('--file-format json'));
+    assert.ok(hasFlag(instance, '--file-format', 'json'));
   });
 
   test('should omit --lang flag when language is "all"', () => {
@@ -95,7 +100,7 @@ suite('SwaggerExtract', () => {
     });
 
     const instance = cmd as any;
-    assert.ok(!instance.command.includes('--lang'));
+    assert.ok(!hasFlag(instance, '--lang'));
   });
 
   test('should omit --lang flag when language is empty', () => {
@@ -107,6 +112,18 @@ suite('SwaggerExtract', () => {
     });
 
     const instance = cmd as any;
-    assert.ok(!instance.command.includes('--lang'));
+    assert.ok(!hasFlag(instance, '--lang'));
+  });
+
+  test('should handle paths with spaces correctly', () => {
+    const cmd = new SwaggerExtract(mockWebview, 'test-request-id', {
+      dirPath: '/home/user/my project/api server',
+      language: 'java',
+      verbose: false,
+      fileFormat: '',
+    });
+
+    const instance = cmd as any;
+    assert.ok(hasFlag(instance, '/home/user/my project/api server'));
   });
 });
