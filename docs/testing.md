@@ -112,12 +112,37 @@ suite('MyFeature', () => {
 
 Path aliases (`@commands/*`, `@utils/*`, etc.) are available in tests -- they are resolved at runtime by `tsconfig-paths` in the test runner.
 
+## Testing the Production Package
+
+The dev server and Extension Development Host use a different code path than the
+published extension. To verify the extension works as it would for end users,
+build and install the `.vsix` locally:
+
+```bash
+npx @vscode/vsce package
+code --install-extension nightvision-1.0.3.vsix
+```
+
+Then reload VSCode and test the extension from the sidebar. The version number in
+the filename should match `version` in `package.json`.
+
+To uninstall afterwards:
+
+1. Open the Extensions panel (Cmd+Shift+X)
+2. Find NightVision, click the gear icon, and select **Uninstall**
+
+This is worth doing before any release, especially after changes to webpack
+config, `.vscodeignore`, the webview HTML in `extension.ts`, or the API URL
+resolution logic.
+
 ## Other Commands
 
 | Command | Description |
 |---|---|
-| `npm run package` | Production build (extension + webview) |
-| `npm run lint` | Run ESLint |
+| `make install` | Install npm dependencies |
+| `make build` | Production build (extension + webview) |
+| `make test` | Full pipeline: compile, build, lint, and test |
+| `make clean` | Remove `out/`, `dist/`, `.vscode-test/`, and `*.vsix` |
+| `npm run lint` | Run ESLint only |
 | `npm run compile-tests` | Compile test files only |
 | `npm run watch-tests` | Watch and recompile test files |
-| `npm run vsce:package` | Package as `.vsix` for distribution |
