@@ -51,7 +51,8 @@ export default class SwaggerExtract extends Command {
       fileFormatCmd = ` --file-format ${fileFormat}`;
     }
     const fileName = `nv-swagger-${v4()}.${extension}`;
-    const cmd = `${NIGHTVISION} swagger extract ${dirPath} --lang ${language} --no-upload --output ${fileName}${fileFormatCmd}${verboseCmd}`;
+    const langCmd = language && language !== 'all' ? ` --lang ${language}` : '';
+    const cmd = `${NIGHTVISION} swagger extract ${dirPath}${langCmd} --no-upload --output ${fileName}${fileFormatCmd}${verboseCmd}`;
     super({
       command: cmd,
       webview: webview,

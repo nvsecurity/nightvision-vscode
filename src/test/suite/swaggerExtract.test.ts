@@ -86,4 +86,27 @@ suite('SwaggerExtract', () => {
     assert.ok(instance.command.includes('--file-format json'));
   });
 
+  test('should omit --lang flag when language is "all"', () => {
+    const cmd = new SwaggerExtract(mockWebview, 'test-request-id', {
+      dirPath: '/home/user/my-project',
+      language: 'all',
+      verbose: false,
+      fileFormat: '',
+    });
+
+    const instance = cmd as any;
+    assert.ok(!instance.command.includes('--lang'));
+  });
+
+  test('should omit --lang flag when language is empty', () => {
+    const cmd = new SwaggerExtract(mockWebview, 'test-request-id', {
+      dirPath: '/home/user/my-project',
+      language: '',
+      verbose: false,
+      fileFormat: '',
+    });
+
+    const instance = cmd as any;
+    assert.ok(!instance.command.includes('--lang'));
+  });
 });

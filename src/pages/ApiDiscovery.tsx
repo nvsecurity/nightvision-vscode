@@ -15,6 +15,7 @@ import { CONTACT_EMAIL } from '@constants/GlobalConstants';
 const PATH_REQUIRED_ERROR = 'Path is required';
 
 const SUPPORTED_LANGUAGES: IdAndName[] = [
+  { id: 'all', name: 'All languages' },
   { id: 'csharp', name: 'C#' },
   { id: 'go', name: 'Go' },
   { id: 'java', name: 'Java' },
@@ -29,7 +30,7 @@ export const ApiDiscoveryPage: React.FC = () => {
   const [pathError, setPathError] = React.useState('');
   const [pathTouched, setPathTouched] = React.useState(false);
 
-  const [language, setLanguage] = React.useState<IdAndName>();
+  const [language, setLanguage] = React.useState<IdAndName>(SUPPORTED_LANGUAGES[0]);
   const [fileFormat, setFileFormat] = React.useState('yml');
   const [verbose, setVerbose] = React.useState(false);
 
@@ -241,7 +242,7 @@ export const ApiDiscoveryPage: React.FC = () => {
     );
   };
 
-  const submitDisabled = !dirPath || !language || !!pathError || isSubmitting;
+  const submitDisabled = !dirPath || !!pathError || isSubmitting;
 
   return (
     <div className='flex flex-col space-y-4'>
@@ -286,8 +287,6 @@ export const ApiDiscoveryPage: React.FC = () => {
           selectedItem={language}
           items={SUPPORTED_LANGUAGES}
           handleChange={setLanguage}
-          optional={!language}
-          optionalText={'--Please select a language--'}
           id='language'
         />
       </div>
