@@ -1,7 +1,8 @@
 import * as vscode from 'vscode';
 import Command from '@commands/Command';
 import { LOGIN } from '@commands/CommandConstants';
-import { API_URL, NIGHTVISION } from '@constants/GlobalConstants';
+import { NIGHTVISION } from '@constants/GlobalConstants';
+import { resolveApiUrl } from '@utils/resolveApiUrl';
 
 export default class Login extends Command {
   constructor(webview: vscode.Webview, requestId: string) {
@@ -18,7 +19,7 @@ export default class Login extends Command {
     if (/Only one usage of each socket address/.test(message)) {
       try {
         vscode.env.openExternal(vscode.Uri.parse(
-          `${API_URL}/api/v1/auth/cli/social`
+          `${resolveApiUrl()}/api/v1/auth/cli/social`
         ));
       } catch (err) {
         console.error('Failed to open the link.');
