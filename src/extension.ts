@@ -56,6 +56,7 @@ import FilePathValidator from '@commands/FilePathValidator';
 import HealthCheck from '@commands/HealthCheck';
 import { installNightvisionCLI, putCLIToVSCodePath } from '@commands/InstallNightvisionCLI';
 import { resolveApiUrl } from '@utils/resolveApiUrl';
+import { specContentProvider, SPEC_URI_SCHEME, removeSpecContent } from '@utils/specContentProvider';
 
 export async function activate(context: vscode.ExtensionContext) {
   const sidebarProvider = new SidebarProvider(context);
@@ -65,7 +66,16 @@ export async function activate(context: vscode.ExtensionContext) {
       'nightvision-sidebar',
       sidebarProvider,
       { webviewOptions: { retainContextWhenHidden: true } }
-    )
+    ),
+    vscode.workspace.registerTextDocumentContentProvider(
+      SPEC_URI_SCHEME,
+      specContentProvider
+    ),
+    vscode.workspace.onDidCloseTextDocument(doc => {
+      if (doc.uri.scheme === SPEC_URI_SCHEME) {
+        removeSpecContent(doc.uri);
+      }
+    })
   );
 }
 

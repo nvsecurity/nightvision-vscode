@@ -6,6 +6,7 @@ import { EXECUTION_LOGS, SWAGGER_EXTRACT, SWAGGER_EXTRACT_ERROR, SWAGGER_EXTRACT
 import { NIGHTVISION } from '@constants/GlobalConstants';
 import * as path from 'path';
 import { makeFilePathAbsolute } from '@utils/filePathAbsolute';
+import { storeSpecContent } from '@utils/specContentProvider';
 
 export interface SwaggerExtractParams {
   dirPath: string;
@@ -30,6 +31,7 @@ export default class SwaggerExtract extends Command {
   private extractedPaths: number;
   private extractedClasses: number;
   private fileFormat: string;
+  private displayName!: string;
 
   constructor(
     webview: vscode.Webview,
@@ -74,6 +76,8 @@ export default class SwaggerExtract extends Command {
     this.extractedPaths = 0;
     this.extractedClasses = 0;
     this.fileFormat = extension === 'json' ? 'json' : 'yaml';
+    const dirName = path.basename(dirPath) || 'project';
+    this.displayName = `${dirName}-openapi.${extension}`;
   }
 
   async handleOutput(data: any) {
@@ -145,14 +149,12 @@ export default class SwaggerExtract extends Command {
 
   private async processFile(filePath: string) {
     const data = await fs.readFile(filePath, 'utf8');
-
-    const document = await vscode.workspace.openTextDocument({
-      content: data,
-      language: this.fileFormat,
-    });
-    await vscode.window.showTextDocument(document, { preview: false });
-
     await fs.rm(filePath, { force: true });
+
+    const uri = storeSpecContent(this.displayName, data);
+    const document = await vscode.workspace.openTextDocument(uri);
+    await vscode.languages.setTextDocumentLanguage(document, this.fileFormat);
+    await vscode.window.showTextDocument(document, { preview: false });
   }
 
   private parseResults(message: string) {
