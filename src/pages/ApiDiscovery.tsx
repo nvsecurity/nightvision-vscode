@@ -26,7 +26,8 @@ const SUPPORTED_LANGUAGES: IdAndName[] = [
 ];
 
 export const ApiDiscoveryPage: React.FC = () => {
-  const [dirPath, setDirPath] = React.useState('');
+  const workspacePath = (typeof window !== 'undefined' && (window as any).__NV_WORKSPACE_PATH__) || '';
+  const [dirPath, setDirPath] = React.useState(workspacePath);
   const [pathError, setPathError] = React.useState('');
   const [pathTouched, setPathTouched] = React.useState(false);
 

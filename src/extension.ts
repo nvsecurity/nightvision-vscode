@@ -484,10 +484,12 @@ class SidebarProvider implements vscode.WebviewViewProvider {
     <body>
       <div id="root"></div>
       <!-- This inline script must run before the bundle so that
-           GlobalConstants.ts can read window.__NV_API_URL__ at import time. -->
+           GlobalConstants.ts can read window.__NV_API_URL__ and
+           window.__NV_WORKSPACE_PATH__ at import time. -->
       <script nonce="${nonce}">
         const vscodeApi = acquireVsCodeApi();
         window.__NV_API_URL__ = ${JSON.stringify(resolveApiUrl())};
+        window.__NV_WORKSPACE_PATH__ = ${JSON.stringify(vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || '')};
       </script>
       <script nonce="${nonce}" src="${scriptUrl}"></script>
     </body>
