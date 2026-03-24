@@ -1,4 +1,4 @@
-import { useProject } from '@hooks/useProject';
+import { ProjectContext } from '@contexts/ProjectContext';
 import { useUser } from '@hooks/useUser';
 import { ProjectInfo } from '@types_/project';
 import React, { useEffect } from 'react';
@@ -17,7 +17,7 @@ import { getProjectsList } from '@queries/projectsQueries';
 
 export const Projects = () => {
   const navigate = useNavigate();
-  const { currentProject, setCurrentProject } = useProject();
+  const { currentProject, setCurrentProject } = React.useContext(ProjectContext);
   const { setIsLoggedIn } = useUser();
   const [showCreateModal, setShowCreateModal] = React.useState(false);
 

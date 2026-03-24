@@ -55,6 +55,8 @@ import SwaggerExtract from '@commands/SwaggerExtract';
 import FilePathValidator from '@commands/FilePathValidator';
 import HealthCheck from '@commands/HealthCheck';
 import { installNightvisionCLI, putCLIToVSCodePath } from '@commands/InstallNightvisionCLI';
+import { resolveApiUrl } from '@utils/resolveApiUrl';
+import { specContentProvider, SPEC_URI_SCHEME, removeSpecContent } from '@utils/specContentProvider';
 
 export async function activate(context: vscode.ExtensionContext) {
   const sidebarProvider = new SidebarProvider(context);
@@ -64,7 +66,16 @@ export async function activate(context: vscode.ExtensionContext) {
       'nightvision-sidebar',
       sidebarProvider,
       { webviewOptions: { retainContextWhenHidden: true } }
-    )
+    ),
+    vscode.workspace.registerTextDocumentContentProvider(
+      SPEC_URI_SCHEME,
+      specContentProvider
+    ),
+    vscode.workspace.onDidCloseTextDocument(doc => {
+      if (doc.uri.scheme === SPEC_URI_SCHEME) {
+        removeSpecContent(doc.uri);
+      }
+    })
   );
 }
 
@@ -472,10 +483,15 @@ class SidebarProvider implements vscode.WebviewViewProvider {
     </head>
     <body>
       <div id="root"></div>
-      <script nonce="${nonce}" src="${scriptUrl}"></script>
+      <!-- This inline script must run before the bundle so that
+           GlobalConstants.ts can read window.__NV_API_URL__ and
+           window.__NV_WORKSPACE_PATH__ at import time. -->
       <script nonce="${nonce}">
         const vscodeApi = acquireVsCodeApi();
+        window.__NV_API_URL__ = ${JSON.stringify(resolveApiUrl())};
+        window.__NV_WORKSPACE_PATH__ = ${JSON.stringify(vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || '')};
       </script>
+      <script nonce="${nonce}" src="${scriptUrl}"></script>
     </body>
     </html>`;
   }

@@ -58,6 +58,18 @@ const Error = () => {
   );
 };
 
+const RequireProject: React.FC<{ children: React.ReactElement }> = ({ children }) => {
+  const { currentProject } = React.useContext(ProjectContext);
+  if (!currentProject) {
+    return (
+      <div className='flex flex-col space-y-4'>
+        <span>Please <Link to='/projects' className='underline'>select or create a project</Link> first.</span>
+      </div>
+    );
+  }
+  return children;
+};
+
 const router = createMemoryRouter(
   [
     {
@@ -68,23 +80,23 @@ const router = createMemoryRouter(
         { path: '/', element: <Overview /> },
         {
           path: '/scans',
-          element: <Scans />,
+          element: <RequireProject><Scans /></RequireProject>,
         },
         {
           path: '/scans/new-scan/:targetType',
-          element: <NewScan />,
+          element: <RequireProject><NewScan /></RequireProject>,
         },
         {
           path: '/scans/:scanId',
-          element: <Scan />,
+          element: <RequireProject><Scan /></RequireProject>,
         },
         {
           path: '/authentications',
-          element: <Authentications />,
+          element: <RequireProject><Authentications /></RequireProject>,
         },
         {
           path: '/authentications/:authId',
-          element: <AuthenticationPage />,
+          element: <RequireProject><AuthenticationPage /></RequireProject>,
         },
         {
           path: '/projects',
@@ -96,11 +108,11 @@ const router = createMemoryRouter(
         },
         {
           path: '/targets',
-          element: <Targets />,
+          element: <RequireProject><Targets /></RequireProject>,
         },
         {
           path: '/targets/:targetType/:targetId',
-          element: <TargetPage />,
+          element: <RequireProject><TargetPage /></RequireProject>,
         },
         {
           path: '/api-discovery',
@@ -414,7 +426,7 @@ export const App = () => {
         </button>
       </Layout>
     );
-  } else if (isLoading || !currentProject) {
+  } else if (isLoading) {
     return <Loading />;
   }
 

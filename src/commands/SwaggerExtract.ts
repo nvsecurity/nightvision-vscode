@@ -1,11 +1,12 @@
 import * as vscode from 'vscode';
-import Command from '@commands/Command';
+import Command, { Flag } from '@commands/Command';
 import fs from 'fs/promises';
 import { v4 } from 'uuid';
 import { EXECUTION_LOGS, SWAGGER_EXTRACT, SWAGGER_EXTRACT_ERROR, SWAGGER_EXTRACT_NO_PATHS_FOUND } from './CommandConstants';
 import { NIGHTVISION } from '@constants/GlobalConstants';
 import * as path from 'path';
 import { makeFilePathAbsolute } from '@utils/filePathAbsolute';
+import { storeSpecContent } from '@utils/specContentProvider';
 
 export interface SwaggerExtractParams {
   dirPath: string;
@@ -30,6 +31,7 @@ export default class SwaggerExtract extends Command {
   private extractedPaths: number;
   private extractedClasses: number;
   private fileFormat: string;
+  private displayName!: string;
 
   constructor(
     webview: vscode.Webview,
@@ -38,24 +40,33 @@ export default class SwaggerExtract extends Command {
   ) {
     dirPath = makeFilePathAbsolute(dirPath);
 
-    var fileFormatCmd = '';
-    var verboseCmd = '';
-    if (verbose) {
-      verboseCmd = ' --verbose';
-    }
-    var extension = 'yml'; // Here we use 'yml' instead of 'yaml' because CLI generates as 'yml'... (should probably be fixed)
-    if (fileFormat) {
-      if (fileFormat === 'json') {
-        extension = 'json';
-      }
-      fileFormatCmd = ` --file-format ${fileFormat}`;
+    // CLI generates .yml files, but VSCode's language ID for YAML is 'yaml'
+    var extension = 'yml';
+    if (fileFormat === 'json') {
+      extension = 'json';
     }
     const fileName = `nv-swagger-${v4()}.${extension}`;
-    const cmd = `${NIGHTVISION} swagger extract ${dirPath} --lang ${language} --no-upload --output ${fileName}${fileFormatCmd}${verboseCmd}`;
+
+    const flags: Flag[] = [
+      { flag: dirPath },
+      { flag: '--no-upload' },
+      { flag: '--output', value: fileName },
+    ];
+    if (language && language !== 'all') {
+      flags.push({ flag: '--lang', value: language });
+    }
+    if (fileFormat) {
+      flags.push({ flag: '--file-format', value: fileFormat });
+    }
+    if (verbose) {
+      flags.push({ flag: '--verbose' });
+    }
+
     super({
-      command: cmd,
+      command: `${NIGHTVISION} swagger extract`,
       webview: webview,
       requestId: requestId,
+      flags: flags,
       cwd: dirPath,
       async: true
     });
@@ -64,7 +75,9 @@ export default class SwaggerExtract extends Command {
     this.language = language;
     this.extractedPaths = 0;
     this.extractedClasses = 0;
-    this.fileFormat = extension === 'json' ? 'json' : 'yaml'; // Here we must use yaml instead of yml, for VSCode to apply correct styling when displaying
+    this.fileFormat = extension === 'json' ? 'json' : 'yaml';
+    const dirName = path.basename(dirPath) || 'project';
+    this.displayName = `${dirName}-openapi.${extension}`;
   }
 
   async handleOutput(data: any) {
@@ -136,14 +149,12 @@ export default class SwaggerExtract extends Command {
 
   private async processFile(filePath: string) {
     const data = await fs.readFile(filePath, 'utf8');
-
-    const document = await vscode.workspace.openTextDocument({
-      content: data,
-      language: this.fileFormat,
-    });
-    await vscode.window.showTextDocument(document, { preview: false, });
-
     await fs.rm(filePath, { force: true });
+
+    const uri = storeSpecContent(this.displayName, data);
+    const document = await vscode.workspace.openTextDocument(uri);
+    await vscode.languages.setTextDocumentLanguage(document, this.fileFormat);
+    await vscode.window.showTextDocument(document, { preview: false });
   }
 
   private parseResults(message: string) {

@@ -4,3 +4,9 @@ node_modules
 .vscode-test/
 *.vsix
 .env
+
+# Local agent config
+.agent-sandbox-config/
+.claude/settings.local.json
+/analysis/
+/tools/agent-sandbox/
