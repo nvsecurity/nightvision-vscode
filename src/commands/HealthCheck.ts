@@ -18,6 +18,7 @@ export default class HealthCheck extends Command {
       command: `${NIGHTVISION} project show`,
       webview: webview,
       requestId: requestId,
+      timeoutMs: 20_000,
     });
 
     this.extensionContext = extensionContext;

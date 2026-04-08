@@ -9,6 +9,7 @@ export default class CliVersion extends Command {
       command: `${NIGHTVISION} version`,
       webview: webview,
       requestId: requestId,
+      timeoutMs: 20_000,
     });
   }
 

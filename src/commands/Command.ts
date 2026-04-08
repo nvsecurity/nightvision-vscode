@@ -19,6 +19,7 @@ interface CommandParams {
   stop?: boolean;
   cwd?: string;
   async?: boolean;
+  timeoutMs?: number;
 }
 
 export default class Command {
@@ -29,11 +30,12 @@ export default class Command {
   protected stop: boolean;
   protected cwd?: string;
   protected async: boolean;
+  protected timeoutMs?: number;
 
   constructor({
     command, webview, requestId,
     flags, stop, cwd,
-    async,
+    async, timeoutMs,
   }: CommandParams) {
     this.command = command;
     this.webview = webview;
@@ -42,6 +44,7 @@ export default class Command {
     this.stop = stop ?? false;
     this.cwd = cwd;
     this.async = async || false;
+    this.timeoutMs = timeoutMs;
   }
 
   execute() {
@@ -67,16 +70,47 @@ export default class Command {
       ...(flags ?? []),
     ], { cwd: this.cwd });
 
-    child.stdout.on('data', (data) => this.handleOutput(data));
-    child.stderr.on('data', (data) => this.handleOutput(data));
+    let didTimeout = false;
+    let timeoutHandle: NodeJS.Timeout | undefined;
+    if (this.timeoutMs && this.timeoutMs > 0) {
+      timeoutHandle = setTimeout(() => {
+        didTimeout = true;
+        try { child.kill(); } catch { /* ignore */ }
+        this.handleTimeout();
+      }, this.timeoutMs);
+    }
+
+    child.stdout.on('data', (data) => {
+      if (didTimeout) return;
+      this.handleOutput(data);
+    });
+    child.stderr.on('data', (data) => {
+      if (didTimeout) return;
+      this.handleOutput(data);
+    });
     child.on('close', (code, signal) => {
+      if (timeoutHandle) clearTimeout(timeoutHandle);
+      if (didTimeout) return;
       this.handleClose(code, signal);
     });
     child.on('error', (err) => {
+      if (timeoutHandle) clearTimeout(timeoutHandle);
+      if (didTimeout) return;
       this.handleError(err);
     });
 
     return child;
+  }
+
+  protected handleTimeout() {
+    this.cleanup();
+    const seconds = Math.round((this.timeoutMs ?? 0) / 1000);
+    const message = `\`${this.command}\` did not respond within ${seconds} seconds and was terminated.`;
+    this.webview.postMessage({
+      requestId: this.requestId,
+      error: message,
+      isFinal: true,
+    });
   }
 
   handleOutput(data: any) {
@@ -96,14 +130,21 @@ export default class Command {
   }
 
   handleError(err: NodeJS.ErrnoException) {
+    console.error(err);
     if (err.code === 'ENOENT' || err.code === 'EACCES') {
       this.webview.postMessage({
         command: CLI_MISSING,
         requestId: this.requestId,
         isFinal: true,
       });
+      return;
     }
-    console.error(err);
+    // For any other spawn error, surface it instead of hanging the consumer.
+    this.webview.postMessage({
+      requestId: this.requestId,
+      error: `\`${this.command}\` failed to start: ${err.message || err.code || 'unknown error'}`,
+      isFinal: true,
+    });
   }
 
   cleanup() { }

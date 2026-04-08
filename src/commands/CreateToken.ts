@@ -17,6 +17,7 @@ export default class CreateToken extends Command {
       command: `${NIGHTVISION} token create`,
       webview: webview,
       requestId: requestId,
+      timeoutMs: 20_000,
     });
 
     this.extensionContext = extensionContext;

@@ -45,7 +45,7 @@ import { TargetPage } from '@pages/Target';
 import { Targets } from '@pages/targets';
 import { messageHandler } from '@utils/MessageHandler';
 import { ApiDiscoveryPage } from '@pages/ApiDiscovery';
-import { API_URL } from '@constants/GlobalConstants';
+import { API_URL, CONTACT_EMAIL } from '@constants/GlobalConstants';
 import { MainLayout } from './MainLayout';
 
 const Error = () => {
@@ -142,6 +142,8 @@ export const App = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isLoggedIn, setIsLoggedIn] = useState(true);
   const [isCliInstalled, setIsCliInstalled] = useState(true);
+  const [startupError, setStartupError] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
 
   const handleLogin = async () => {
     const reqId = v4();
@@ -374,25 +376,50 @@ export const App = () => {
 
     setCurrentProject(undefined);
     setCurrentTarget(undefined);
+    setStartupError(null);
 
     (async () => {
       try {
         // Adding CLI executable to VSCode PATH
         for await (const _ of messageHandler.requestGenerator(ADD_CLI_TO_VSCODE_PATH)) {}
 
-        const promises = await Promise.all([
+        const results = await Promise.allSettled([
           getCurrentProject(ignore),
           getCurrentTarget(ignore),
           createToken(),
           getCliVersion(),
         ]);
 
-        if (promises[2]) {
-          deleteTokens(promises[2]); // Do not await - this can be done in parallel
-          await getUser();
+        const errors: string[] = [];
+        for (const r of results) {
+          if (r.status === 'rejected') {
+            const reason: any = r.reason;
+            const message = (reason && typeof reason.message === 'string')
+              ? reason.message
+              : String(reason);
+            errors.push(message);
+          }
+        }
+
+        if (errors.length > 0) {
+          console.error('Startup errors:', errors);
+          if (!ignore) {
+            setStartupError(errors.join('\n\n'));
+          }
+        } else {
+          const tokenResult = results[2];
+          if (tokenResult.status === 'fulfilled' && tokenResult.value) {
+            deleteTokens(tokenResult.value); // Do not await - this can be done in parallel
+            await getUser();
+          }
         }
       } catch (err) {
         console.error(err);
+        if (!ignore) {
+          const e: any = err;
+          const message = (e && typeof e.message === 'string') ? e.message : String(e);
+          setStartupError(message);
+        }
       }
       setIsLoading(false);
     })();
@@ -400,7 +427,7 @@ export const App = () => {
     return () => {
       ignore = true;
     };
-  }, [isLoggedIn, isCliInstalled]);
+  }, [isLoggedIn, isCliInstalled, retryCount]);
 
   if (!isCliInstalled) {
     return (
@@ -424,6 +451,29 @@ export const App = () => {
         <button onClick={handleLogin} className='mt-4 truncate rounded'>
           Log in to NightVision
         </button>
+      </Layout>
+    );
+  } else if (startupError) {
+    return (
+      <Layout>
+        <div className='mt-4 flex flex-col gap-3'>
+          <h2 className='font-bold text-red-600'>NightVision failed to start</h2>
+          <p className='whitespace-pre-wrap'>{startupError}</p>
+          <p>
+            If the problem persists, please contact us at{' '}
+            <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>.
+          </p>
+          <button
+            onClick={() => {
+              setStartupError(null);
+              setIsLoading(true);
+              setRetryCount((c) => c + 1);
+            }}
+            className='mt-2 truncate rounded'
+          >
+            Retry
+          </button>
+        </div>
       </Layout>
     );
   } else if (isLoading) {
