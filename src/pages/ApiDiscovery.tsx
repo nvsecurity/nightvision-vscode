@@ -70,7 +70,8 @@ export const ApiDiscoveryPage: React.FC = () => {
         canSelectFiles: false,
         canSelectFolders: true,
         canSelectMany: false,
-        openLabel: 'Select folder'
+        openLabel: 'Select folder',
+        defaultPath: dirPath || undefined,
       }
     );
 
