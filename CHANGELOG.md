@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.0.4]
+
+### Added
+- 20-second timeout on startup CLI commands with a clear error UI and Retry button
+- Aggregate all startup failures together instead of showing only the first
+- Surface unhandled spawn errors with the failing command name
+
+### Fixed
+- API Discovery folder picker now opens at the current path instead of the OS home directory
+- `CliVersion` regex no longer matches IP addresses as version numbers (e.g., `127.0.0.1` was being parsed as `127.0.0`)
+
 ## [1.0.3]
 
 ### Added
