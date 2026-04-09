@@ -9,17 +9,18 @@ export default class CliVersion extends Command {
       command: `${NIGHTVISION} version`,
       webview: webview,
       requestId: requestId,
+      timeoutMs: 20_000,
     });
   }
 
   handleOutput(data: any) {
     const message = data.toString();
-
-    if (/(\d+\.\d+\.\d+)/.test(message)) {
+    const match = message.match(/Version\s+(\d+\.\d+\.\d+)/);
+    if (match) {
       this.webview.postMessage({
         command: CLI_VERSION,
         requestId: this.requestId,
-        payload: { version: message.match(/(\d+\.\d+\.\d+)/)[1] },
+        payload: { version: match[1] },
       });
     }
   }

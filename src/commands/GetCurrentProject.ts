@@ -9,6 +9,7 @@ export default class GetCurrentProject extends Command {
       command: `${NIGHTVISION} project show`,
       webview: webview,
       requestId: requestId,
+      timeoutMs: 20_000,
     });
   }
 
