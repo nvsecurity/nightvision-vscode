@@ -137,16 +137,31 @@ button.secondary:hover {
   background: var(--vscode-button-secondaryHoverBackground);
 }
 
-input:not([type='checkbox']),
+input:not([type='checkbox']):not([type='radio']),
 textarea {
   display: block;
   width: 100%;
-  border: none;
+  border: 1px solid var(--vscode-input-border, var(--vscode-widget-border, rgba(128, 128, 128, 0.35)));
+  border-radius: 2px;
   font-family: var(--vscode-font-family);
   padding: var(--input-padding-vertical) var(--input-padding-horizontal);
   color: var(--vscode-input-foreground);
   outline-color: var(--vscode-input-border);
   background-color: var(--vscode-input-background);
+}
+
+select {
+  width: 100%;
+  border: 1px solid var(--vscode-dropdown-border, var(--vscode-widget-border, rgba(128, 128, 128, 0.35)));
+  border-radius: 2px;
+  font-family: var(--vscode-font-family);
+  padding: var(--input-padding-vertical) var(--input-padding-horizontal);
+  color: var(--vscode-dropdown-foreground, var(--vscode-foreground));
+  background-color: var(--vscode-dropdown-background, var(--vscode-input-background));
+}
+
+select:disabled {
+  opacity: 0.5;
 }
 
 input::placeholder,

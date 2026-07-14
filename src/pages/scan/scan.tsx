@@ -99,7 +99,7 @@ export const Scan = () => {
                 Target ({scan.target.type === TargetTypeEnum.URL ? 'WEB' : 'API'})
               </Label>
               <select
-                className='w-full bg-[--vscode-settings-dropdownBackground] px-0.5 py-1.5'
+                className='w-full'
                 disabled
               >
                 <option>
@@ -112,7 +112,7 @@ export const Scan = () => {
                 Project
               </Label>
               <select
-                className='w-full bg-[--vscode-settings-dropdownBackground] px-0.5 py-1.5'
+                className='w-full'
                 disabled
               >
                 <option>
@@ -123,7 +123,7 @@ export const Scan = () => {
             <div>
               <Label htmlFor='target-name'>Authentication</Label>
               <select
-                className='w-full bg-[--vscode-settings-dropdownBackground] px-0.5 py-1.5'
+                className='w-full'
                 disabled
               >
                 <option>{scan.authentication?.name ?? '-'}</option>

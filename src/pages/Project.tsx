@@ -935,7 +935,7 @@ export const ProjectPage = () => {
             </div>
             {addUsers.length > 0 && (
               <>
-                <span className='mb-1 text-sm uppercase'>Adding</span>
+                <span className='mb-1 text-sm uppercase text-[--vscode-descriptionForeground]'>Adding</span>
                 <ul className='!mt-0 pl-0'>
                   {addUsers.map((user) => (
                     <li

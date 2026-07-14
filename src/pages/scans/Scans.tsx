@@ -189,9 +189,9 @@ export const Scans = () => {
       </div>
 
       <div className='!mb-2 !mt-6 flex flex-col space-y-2'>
-        <h2 className='truncate text-sm uppercase'>Previous Scans</h2>
+        <h2 className='truncate font-bold uppercase'>Previous Scans</h2>
         <div className='flex items-center space-x-2'>
-          <label className='shrink-0 text-sm uppercase' htmlFor='current-project'>
+          <label className='shrink-0 text-sm uppercase text-[--vscode-descriptionForeground]' htmlFor='current-project'>
             Project
           </label>
           <div className='min-w-0 flex-1'>

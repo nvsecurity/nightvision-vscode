@@ -69,9 +69,9 @@ export const ScansTable: React.FC<ScansTableProps> = ({
             <TrashIcon color={!itemSelectionApi.selectedItems.size ? '#5A657C' : undefined} />
           </button>
         </div>
-        <div className='font-bold uppercase flex justify-start items-center'>Target</div>
-        <div className='flex font-bold uppercase flex justify-start items-center'>Project</div>
-        <div className='font-bold uppercase flex justify-start items-center'>
+        <div className='font-bold uppercase flex justify-start items-center text-[--vscode-descriptionForeground]'>Target</div>
+        <div className='flex font-bold uppercase flex justify-start items-center text-[--vscode-descriptionForeground]'>Project</div>
+        <div className='font-bold uppercase flex justify-start items-center text-[--vscode-descriptionForeground]'>
           <span className='block s-400px:hidden'>Vuln.</span>
           <span className='hidden s-400px:block'>Vulnerabilities</span>
         </div>
@@ -88,7 +88,7 @@ export const ScansTable: React.FC<ScansTableProps> = ({
 
         return (
           <>
-            <div className='my-1'>
+            <div className='my-1 text-sm text-[--vscode-descriptionForeground]'>
               {formattedDate}
             </div>
             <div className="space-y-2">

@@ -9,7 +9,7 @@ export const Label = ({
 }) => {
   return (
     <div>
-      <label className='mb-1 text-sm uppercase' htmlFor={htmlFor}>
+      <label className='mb-1 text-sm uppercase text-[--vscode-descriptionForeground]' htmlFor={htmlFor}>
         {children}
       </label>
     </div>
