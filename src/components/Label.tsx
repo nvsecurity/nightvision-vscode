@@ -5,7 +5,7 @@ export const Label = ({
   htmlFor,
 }: {
   children: React.ReactNode;
-  htmlFor: string;
+  htmlFor?: string;
 }) => {
   return (
     <div>
