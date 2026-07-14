@@ -76,7 +76,7 @@ export const InstallButton = ({
               <span>
                 Failed to install the NightVision CLI. You can manually install
                 by following the{' '}
-                <a href='https://docs.nightvision.net/docs/installing-the-cli'>
+                <a href='https://docs.nightviz.ai/welcome/tutorials-and-guides/installing-the-cli/'>
                   installation
                 </a>{' '}
                 steps.

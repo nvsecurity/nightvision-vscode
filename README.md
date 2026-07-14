@@ -4,14 +4,14 @@
     <img width="150" src="https://github.com/api-extraction-examples/nv-images/raw/refs/heads/main/docs/nvlogo.png" />
 </p>
 
-Leverage [NightVision](https://www.nightvision.net/) to document APIs, run [DAST](https://www.nightvision.net/blog/the-essential-role-of-dynamic-application-security-testing-dast-in-complementing-static-application-security-testing-sast) scans, and uncover vulnerabilities in both known and unknown endpoints!
+Leverage [NightVision](https://www.nightviz.ai/) to document APIs, run [DAST](https://www.nightviz.ai/blog/the-essential-role-of-dynamic-application-security-testing-dast-in-complementing-static-application-security-testing-sast) scans, and uncover vulnerabilities in both known and unknown endpoints!
 
 [![VSCode Extension](https://img.shields.io/badge/VSCode_Extension-Install-blue)](https://marketplace.visualstudio.com/items?itemName=nvsecurity.nightvision)
 [![Installs-count](https://vsmarketplacebadges.dev/installs-short/nvsecurity.nightvision.png)](https://marketplace.visualstudio.com/items?itemName=nvsecurity.nightvision)
 
 ## Getting Started
 
-In order to use this extension you must have a **NightVision account**. Additionally, it will be required to install the NightVision CLI, that can be done either through this extension or [manually](https://docs.nightvision.net/docs/installing-the-cli). It is available for all platforms: Windows, Linux and MacOS.
+In order to use this extension you must have a **NightVision account**. Additionally, it will be required to install the NightVision CLI, that can be done either through this extension or [manually](https://docs.nightviz.ai/welcome/tutorials-and-guides/installing-the-cli/). It is available for all platforms: Windows, Linux and MacOS.
 
 ### Main page
 

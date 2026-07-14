@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.0.5]
+
+### Added
+- Project label on the scans project filter
+- `make dev` target: start the watchers and open an Extension Development Host in one command
+
+### Changed
+- Clearer visual hierarchy in the sidebar: inputs and selects have themed borders, section titles are bold, and field labels, column headers, and date separators are muted
+- Marketing and documentation links updated for the migration to nightviz.ai
+
 ## [1.0.4]
 
 ### Added
