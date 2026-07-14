@@ -188,14 +188,19 @@ export const Scans = () => {
         </Link>
       </div>
 
-      <div className='!mb-2 !mt-6 flex items-end justify-between'>
+      <div className='!mb-2 !mt-6 flex flex-col space-y-2'>
         <h2 className='truncate text-sm uppercase'>Previous Scans</h2>
-        <div className='w-[calc(50%-.375rem)]'>
-          <ProjectDropdown
-            project={projectFilter}
-            onProjectChange={setProjectFilter}
-            includeAllOption
-          />
+        <div className='flex items-center space-x-2'>
+          <label className='shrink-0 text-sm uppercase' htmlFor='current-project'>
+            Project
+          </label>
+          <div className='min-w-0 flex-1'>
+            <ProjectDropdown
+              project={projectFilter}
+              onProjectChange={setProjectFilter}
+              includeAllOption
+            />
+          </div>
         </div>
       </div>
 
