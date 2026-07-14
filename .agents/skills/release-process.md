@@ -124,7 +124,7 @@ that on the Marketplace side.
 - **Extension ID:** `nvsecurity.nightvision`
 - **URL:** https://marketplace.visualstudio.com/items?itemName=nvsecurity.nightvision
 - **Publisher:** nvsecurity
-- **Vendor:** NightVision (support@nightvision.net)
+- **Vendor:** NightVision (support@nightviz.ai)
 
 ## Version numbering
 

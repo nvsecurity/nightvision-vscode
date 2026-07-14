@@ -5,7 +5,7 @@ export const API_URL: string =
   (typeof window !== 'undefined' && (window as any).__NV_API_URL__) ||
   'https://api.nightvision.net';
 export const API_ERROR_TYPES = ['client_error', 'validation_error', 'server_error'];
-export const CONTACT_EMAIL = 'support@nightvision.net';
+export const CONTACT_EMAIL = 'support@nightviz.ai';
 
 const HEALTH_CHECK_INTERVAL_SECONDS = 30;
 export const HEALTH_CHECK_INTERVAL = HEALTH_CHECK_INTERVAL_SECONDS * 1000;
