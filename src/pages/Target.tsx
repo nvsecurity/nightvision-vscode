@@ -859,6 +859,7 @@ export const TargetPage = () => {
                     <TextInput
                       value={_updateOpenApiUrl}
                       handleOnChange={setUpdateOpenApiUrl}
+                      label='Spec URL'
                       placeholder='Enter URL here...'
                       id='update-open-api-url'
                       errors={openApiUrlErrors}
