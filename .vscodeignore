@@ -8,6 +8,7 @@ src/**
 .env
 .env.example
 .github/**
+.agents/**
 .agent-sandbox-config/**
 .claude/**
 analysis/**
