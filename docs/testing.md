@@ -4,7 +4,7 @@
 
 - [Node.js](https://nodejs.org/) (v16+)
 - [Visual Studio Code](https://code.visualstudio.com/)
-- [NightVision CLI](https://docs.nightvision.net/docs/installing-the-cli) installed and on your PATH
+- [NightVision CLI](https://docs.nightviz.ai/welcome/tutorials-and-guides/installing-the-cli/) installed and on your PATH
 
 ## Setup
 
@@ -18,6 +18,20 @@ Edit `.env` and set a port for the webpack dev server (e.g. `PORT=8080`).
 ## Manual Testing
 
 Manual testing runs the extension inside a VSCode Extension Development Host window.
+
+The quickest path is a single command:
+
+```bash
+make dev
+```
+
+It starts the watchers, waits until both bundles are servable, and opens the
+Extension Development Host. Closing that window tears the watchers down. Note
+this launches without a debugger attached; to pick up extension backend
+changes in this mode, reload the dev host window (Cmd+R) instead of
+restarting a debug session.
+
+To run the same thing manually, or with the debugger attached:
 
 ### 1. Start the dev server
 
@@ -120,7 +134,7 @@ build and install the `.vsix` locally:
 
 ```bash
 npx @vscode/vsce package
-code --install-extension nightvision-1.0.3.vsix
+code --install-extension nightvision-<version>.vsix
 ```
 
 Then reload VSCode and test the extension from the sidebar. The version number in
@@ -140,6 +154,7 @@ resolution logic.
 | Command | Description |
 |---|---|
 | `make install` | Install npm dependencies |
+| `make dev` | Start watchers and open an Extension Development Host |
 | `make build` | Production build (extension + webview) |
 | `make test` | Full pipeline: compile, build, lint, and test |
 | `make clean` | Remove `out/`, `dist/`, `.vscode-test/`, and `*.vsix` |

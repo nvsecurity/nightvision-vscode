@@ -293,7 +293,7 @@ export const ApiDiscoveryPage: React.FC = () => {
       </div>
 
       <div>
-        <label className="mb-1 text-sm uppercase">File Format</label>
+        <label className="mb-1 text-sm uppercase text-[--vscode-descriptionForeground]">File Format</label>
 
         <div style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
           <div style={{ display: "flex", gap: "0.3rem", alignItems: "center" }}>
@@ -330,7 +330,7 @@ export const ApiDiscoveryPage: React.FC = () => {
       </div>
 
       <div>
-        <label className="mb-1 text-sm uppercase">Logging</label>
+        <label className="mb-1 text-sm uppercase text-[--vscode-descriptionForeground]">Logging</label>
         <div style={{ display: "flex", alignItems: "left" }} className="isDisplayLogs-checkbox">
           <input
             type="checkbox"

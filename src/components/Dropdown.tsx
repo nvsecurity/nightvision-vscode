@@ -52,7 +52,7 @@ export const Dropdown = <T extends IdAndName,>({
   return (
     <div className='flex flex-nowrap items-center space-x-2'>
       <select
-        className={`w-full bg-[--vscode-input-background] px-0.5 py-1.5 ${optional && !selectedItem && 'text-neutral-400'}`}
+        className={`w-full ${optional && !selectedItem ? 'text-[--vscode-input-placeholderForeground]' : ''}`}
         value={loading ? LOADING_OPTION.id : selectedItem?.id}
         onChange={(e) => {
           const item = items.filter((item) => item.id === e.target.value)[0];

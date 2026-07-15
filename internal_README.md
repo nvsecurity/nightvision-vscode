@@ -2,7 +2,7 @@
 
 ### Prerequisites
 
-- [NightVision CLI](https://docs.nightvision.net/docs/installing-the-cli)
+- [NightVision CLI](https://docs.nightviz.ai/welcome/tutorials-and-guides/installing-the-cli/)
 - Visual Studio Code (VSCode) version 1.75.0 or greater
 - [Node.js](https://nodejs.org)
 
@@ -11,13 +11,13 @@
 1. Clone the repo
 
 ```sh
-git clone https://github.com/nvsecurity/vscode-extension.git
+git clone https://github.com/nvsecurity/nightvision-vscode.git
 ```
 
 2. Change directory
 
 ```sh
-cd nightvision
+cd nightvision-vscode
 ```
 
 3. Install NPM packages
@@ -35,6 +35,18 @@ PORT=8080
 ```
 
 ### Running the extension
+
+The one-command way:
+
+```sh
+make dev
+```
+
+This starts the watchers, waits for the bundles to be ready, and opens an
+Extension Development Host window. Closing that window shuts the watchers
+down again.
+
+Alternatively, to run with the debugger attached:
 
 1. Start the server
 

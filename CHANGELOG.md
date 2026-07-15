@@ -1,5 +1,21 @@
 # Changelog
 
+## [1.0.5]
+
+### Added
+- Project label on the scans project filter
+- Spec URL label on the OpenAPI spec input in the create and update target forms
+- `make dev` target: start the watchers and open an Extension Development Host in one command
+
+### Changed
+- Clearer visual hierarchy in the sidebar: inputs and selects have themed borders, section titles are bold, and field labels, column headers, and date separators are muted
+- Scan details show target, project, and authentication as plain text instead of disabled dropdowns, so values are readable and copyable
+- Support contact email is now support@nightviz.ai
+- Marketing and documentation links updated for the migration to nightviz.ai
+
+### Fixed
+- API Discovery no longer leaves a stray temp file in the scanned project when reading the extraction output fails
+
 ## [1.0.4]
 
 ### Added

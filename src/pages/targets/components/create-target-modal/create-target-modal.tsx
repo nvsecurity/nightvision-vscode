@@ -433,6 +433,7 @@ export const CreateTargetModal: React.FC<CreateTargetModalProps> = ({
                 <TextInput
                   value={_openApiUrl}
                   handleOnChange={setOpenApiUrl}
+                  label='Spec URL'
                   placeholder='Enter URL here...'
                   id='open-api-url'
                   errors={openApiUrlErrors}

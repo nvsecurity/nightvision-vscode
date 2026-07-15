@@ -95,39 +95,24 @@ export const Scan = () => {
         <>
           <div className='flex flex-col space-y-1'>
             <div>
-              <Label htmlFor='target-name'>
+              <Label>
                 Target ({scan.target.type === TargetTypeEnum.URL ? 'WEB' : 'API'})
               </Label>
-              <select
-                className='w-full bg-[--vscode-settings-dropdownBackground] px-0.5 py-1.5'
-                disabled
-              >
-                <option>
-                  {scan.target.name} ({scan.target.location})
-                </option>
-              </select>
+              <div className='break-words'>
+                {scan.target.name} ({scan.target.location})
+              </div>
             </div>
             <div>
-              <Label htmlFor='target-name'>
+              <Label>
                 Project
               </Label>
-              <select
-                className='w-full bg-[--vscode-settings-dropdownBackground] px-0.5 py-1.5'
-                disabled
-              >
-                <option>
-                  {scan.project.name}
-                </option>
-              </select>
+              <div className='break-words'>
+                {scan.project.name}
+              </div>
             </div>
             <div>
-              <Label htmlFor='target-name'>Authentication</Label>
-              <select
-                className='w-full bg-[--vscode-settings-dropdownBackground] px-0.5 py-1.5'
-                disabled
-              >
-                <option>{scan.authentication?.name ?? '-'}</option>
-              </select>
+              <Label>Authentication</Label>
+              <div className='break-words'>{scan.authentication?.name ?? '-'}</div>
             </div>
           </div>
 
