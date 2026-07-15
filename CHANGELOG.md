@@ -13,6 +13,9 @@
 - Support contact email is now support@nightviz.ai
 - Marketing and documentation links updated for the migration to nightviz.ai
 
+### Fixed
+- API Discovery no longer leaves a stray temp file in the scanned project when reading the extraction output fails
+
 ## [1.0.4]
 
 ### Added

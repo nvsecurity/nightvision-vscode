@@ -122,11 +122,8 @@ export default class SwaggerExtract extends Command {
   }
 
   async handleClose(): Promise<void> {
+    const filePath = makeFilePathAbsolute(path.join(this.dirPath, this.fileName));
     try {
-      let filePath = path.join(this.dirPath, this.fileName);
-
-      filePath = makeFilePathAbsolute(filePath);
-
       await fs.access(filePath);
       await this.processFile(filePath);
       this.webview.postMessage({
@@ -144,12 +141,16 @@ export default class SwaggerExtract extends Command {
         requestId: this.requestId,
         isFinal: true,
       });
+    } finally {
+      // The CLI writes this file into the user's project directory, so it
+      // must not survive the request on any path. Command invokes
+      // handleClose without awaiting it, so cleanup must never throw.
+      await fs.rm(filePath, { force: true }).catch(() => {});
     }
   }
 
   private async processFile(filePath: string) {
     const data = await fs.readFile(filePath, 'utf8');
-    await fs.rm(filePath, { force: true });
 
     const uri = storeSpecContent(this.displayName, data);
     const document = await vscode.workspace.openTextDocument(uri);

@@ -1,5 +1,9 @@
 import * as assert from 'assert';
+import fs from 'fs/promises';
+import * as os from 'os';
+import * as path from 'path';
 import SwaggerExtract from '../../commands/SwaggerExtract';
+import { SWAGGER_EXTRACT_ERROR } from '../../commands/CommandConstants';
 
 // Minimal mock for vscode.Webview
 const mockWebview = {
@@ -125,5 +129,42 @@ suite('SwaggerExtract', () => {
 
     const instance = cmd as any;
     assert.ok(hasFlag(instance, '/home/user/my project/api server'));
+  });
+
+  test('should remove the temp file when reading it fails', async function () {
+    // Relies on POSIX permission semantics to make readFile fail while
+    // access succeeds; meaningless on Windows or as root.
+    if (process.platform === 'win32' || process.getuid?.() === 0) {
+      this.skip();
+    }
+
+    const dirPath = await fs.mkdtemp(path.join(os.tmpdir(), 'nv-swagger-test-'));
+    const messages: any[] = [];
+    const webview = {
+      ...mockWebview,
+      postMessage: (message: any) => {
+        messages.push(message);
+        return Promise.resolve(true);
+      },
+    };
+
+    const cmd = new SwaggerExtract(webview, 'test-request-id', {
+      dirPath,
+      language: 'java',
+      verbose: false,
+      fileFormat: '',
+    });
+    const tempFile = path.join(dirPath, (cmd as any).fileName);
+
+    try {
+      await fs.writeFile(tempFile, 'openapi: 3.0.0\n', { mode: 0o000 });
+
+      await cmd.handleClose();
+
+      assert.ok(messages.some(m => m.command === SWAGGER_EXTRACT_ERROR));
+      await assert.rejects(fs.access(tempFile), 'temp file should be removed');
+    } finally {
+      await fs.rm(dirPath, { recursive: true, force: true });
+    }
   });
 });
