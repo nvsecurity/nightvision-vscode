@@ -4,7 +4,7 @@
     <img width="150" src="https://github.com/api-extraction-examples/nv-images/raw/refs/heads/main/docs/nvlogo.png" />
 </p>
 
-Leverage [NightVision](https://www.nightviz.ai/) to document APIs, run [DAST](https://www.nightviz.ai/blog/the-essential-role-of-dynamic-application-security-testing-dast-in-complementing-static-application-security-testing-sast) scans, and uncover vulnerabilities in both known and unknown endpoints!
+Leverage [NightVision](https://nightviz.ai/) to document APIs, run [DAST](https://nightviz.ai/blog/the-essential-role-of-dynamic-application-security-testing-dast-in-complementing-static-application-security-testing-sast) scans, and uncover vulnerabilities in both known and unknown endpoints!
 
 [![VSCode Extension](https://img.shields.io/badge/VSCode_Extension-Install-blue)](https://marketplace.visualstudio.com/items?itemName=nvsecurity.nightvision)
 [![Installs-count](https://vsmarketplacebadges.dev/installs-short/nvsecurity.nightvision.png)](https://marketplace.visualstudio.com/items?itemName=nvsecurity.nightvision)
@@ -44,9 +44,10 @@ If you have installed the NightVision CLI and logged in, you'll arrive at the ma
 
 The **API Discovery** helps you document and discover hidden endpoints in your APIs for a set of different languages such as C# (.net), Go, Java, JavaScript/TypeScript, PHP, Python and Ruby.
 The process is straightforward:
-1. Provide the filepath to the root directory of your project to be scanned;
-2. Choose the language in which your API is written;
-3. Press the button to generate the OpenAPI specification for your project.
+1. Provide the filepath to the root directory of your project to be scanned (it defaults to the workspace you have open);
+2. Choose the language in which your API is written, or keep **All languages** to discover endpoints across every supported language;
+3. Choose the output file format (YAML or JSON);
+4. Press **Generate OpenAPI Spec** to generate the OpenAPI specification for your project.
 
 If successful, a new window in your VSCode will open with your API information and you can save it at your convenience.
 
@@ -93,7 +94,7 @@ Now, let's create our target.
 
     <img width="300" alt="Targets page" src="https://github.com/api-extraction-examples/nv-images/raw/refs/heads/main/docs/target_1.png" />
 
-2. Select **API Target**, fill in the data, select the Swagger File or Postman Collection (see [API Discovery section](#api-discovery)) and press the **Create** button:
+2. Choose the target type: a **Web Target** needs just a name and the URL of the website to scan, while an **API Target** also takes an API specification, provided either as a **Spec URL** or a **Spec File** (a Swagger/OpenAPI file or Postman Collection, such as the one produced in the [API Discovery section](#api-discovery)). Select **API Target**, fill in the data and press the **Create** button:
 
     <img width="300" alt="Targets page - API Target" src="https://github.com/api-extraction-examples/nv-images/raw/refs/heads/main/docs/target_2.png" />
 
@@ -107,7 +108,7 @@ Now, let's create our target.
 
 #### Configuring an authentication
 
-If your website or API is protected by an authentication, we can configure it so the security scan is able to access and reveal issues behind protected endpoints.
+If your website or API is protected by an authentication, we can configure it so the security scan is able to access and reveal issues behind protected endpoints. Three authentication types are available: **Cookie**, **Header** and **Playwright** (recorded by performing the login in a browser). This example uses Playwright.
 
 1. Click on **Create Authentication**:
 
@@ -139,7 +140,7 @@ If your website or API is protected by an authentication, we can configure it so
 
 #### Configuring a scan
 
-1. Click on **Scan APIs**
+1. Click on **Scan APIs** to scan an API Target, or **Scan Web Applications** to scan a Web Target. Our example target is an API, so click on **Scan APIs**:
 
     <img width="300" alt="Scans page" src="https://github.com/api-extraction-examples/nv-images/raw/refs/heads/main/docs/scan_1.png" />
 
