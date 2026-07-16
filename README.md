@@ -1,7 +1,7 @@
 # NightVision Visual Studio Code Extension
 
 <p align="center">
-    <img width="150" src="https://github.com/api-extraction-examples/nv-images/raw/refs/heads/main/docs/nvlogo.png" />
+    <img width="150" src="https://raw.githubusercontent.com/nvsecurity/nightvision-vscode/HEAD/docs/images/nvlogo.png" />
 </p>
 
 Leverage [NightVision](https://nightviz.ai/) to document APIs, run [DAST](https://nightviz.ai/blog/the-essential-role-of-dynamic-application-security-testing-dast-in-complementing-static-application-security-testing-sast) scans, and uncover vulnerabilities in both known and unknown endpoints!
@@ -17,26 +17,14 @@ In order to use this extension you must have a **NightVision account**. Addition
 
 If you have installed the NightVision CLI and logged in, you'll arrive at the main page, where you'll be presented with these options:
 
-<table style="border: none; border-collapse: collapse;">
-  <tr>
-    <td style="vertical-align: top; padding-right: 20px; border: none;">
-        <img width="150" style="display: block; margin: 0 auto;" alt="Main page" src="https://github.com/api-extraction-examples/nv-images/raw/refs/heads/main/docs/main_page.png" />
-    </td>
-    <td style="vertical-align: top; border: none;">
-      <ol>
-        <li style="margin-bottom: 10px;"><a href="#api-discovery">API Discovery</a></li>
-        <li style="margin-bottom: 10px;"><a href="#api-and-web-security-testing">API and Web Security Testing</a>
-          <ul>
-            <li style="margin-bottom: 5px;"><a href="#configuring-a-project">Configuring a project</a></li>
-            <li style="margin-bottom: 5px;"><a href="#configuring-a-target">Configuring a target</a></li>
-            <li style="margin-bottom: 5px;"><a href="#configuring-an-authentication">Configuring an authentication</a></li>
-            <li style="margin-bottom: 5px;"><a href="#configuring-a-scan">Configuring a scan</a></li>
-          </ul>
-        </li>
-      </ol>
-    </td>
-  </tr>
-</table>
+1. [API Discovery](#api-discovery)
+2. [API and Web Security Testing](#api-and-web-security-testing)
+   - [Configuring a project](#configuring-a-project)
+   - [Configuring a target](#configuring-a-target)
+   - [Configuring an authentication](#configuring-an-authentication)
+   - [Configuring a scan](#configuring-a-scan)
+
+<img width="500" alt="Main page" src="https://raw.githubusercontent.com/nvsecurity/nightvision-vscode/HEAD/docs/images/main_page.png" />
 
 
 
@@ -58,7 +46,7 @@ As an example, we can use the [javaspringvulny repository](https://github.com/vu
 
 When generating the OpenAPI specification, you should see something similar to the image below:
 
-<img width="400" alt="API Discovery Example" src="https://github.com/api-extraction-examples/nv-images/raw/refs/heads/main/docs/api_discovery_example.png" />
+<img alt="API Discovery Example" src="https://raw.githubusercontent.com/nvsecurity/nightvision-vscode/HEAD/docs/images/api_discovery_example.png" />
 
 ### API and Web Security Testing
 
@@ -70,92 +58,78 @@ In order to execute a DAST scan, we must first have in place a **project** and a
 
 1. Click on **Create Project**:
 
-    <img width="300" alt="Projects page" src="https://github.com/api-extraction-examples/nv-images/raw/refs/heads/main/docs/project_1.png" />
+    <img width="500" alt="Projects page" src="https://raw.githubusercontent.com/nvsecurity/nightvision-vscode/HEAD/docs/images/project_1.png" />
 
 2. Type your project name, e.g. **Tutorial_test_project**
 
-    <img width="300" alt="Projects page - Creating a project" src="https://github.com/api-extraction-examples/nv-images/raw/refs/heads/main/docs/project_2.png" />
+    <img width="500" alt="Projects page - Creating a project" src="https://raw.githubusercontent.com/nvsecurity/nightvision-vscode/HEAD/docs/images/project_2.png" />
 
-3. Select the project:
-
-    <img width="300" alt="Projects page - Selecting the project" src="https://github.com/api-extraction-examples/nv-images/raw/refs/heads/main/docs/project_3.png" />
+3. Select the project.
 
 4. (Optional) Select your project from the list to see its information and see options to edit, delete or share your project with other users:
 
-    <img width="300" alt="Projects page - Project options" src="https://github.com/api-extraction-examples/nv-images/raw/refs/heads/main/docs/project_4.png" />
+    <img width="500" alt="Projects page - Project options" src="https://raw.githubusercontent.com/nvsecurity/nightvision-vscode/HEAD/docs/images/project_4.png" />
 
 #### Configuring a target
 
-Let's use the [javaspringvulny repository](https://github.com/vulnerable-apps/javaspringvulny) for this example. The application can be started through Docker: `docker-compose up -d; sleep 10`.
+Let's use the [javaspringvulny repository](https://github.com/vulnerable-apps/javaspringvulny) for this example. The application can be started through Docker: `docker-compose up -d; sleep 10`. The screenshots below use NightVision's hosted instance of the same app at `https://javaspringvulny.nvtest.io:9000/`; when following along locally, use `https://localhost:9000` instead.
 
 Now, let's create our target.
 
 1. Click on **Create Target**:
 
-    <img width="300" alt="Targets page" src="https://github.com/api-extraction-examples/nv-images/raw/refs/heads/main/docs/target_1.png" />
+    <img width="500" alt="Targets page" src="https://raw.githubusercontent.com/nvsecurity/nightvision-vscode/HEAD/docs/images/target_1.png" />
 
 2. Choose the target type: a **Web Target** needs just a name and the URL of the website to scan, while an **API Target** also takes an API specification, provided either as a **Spec URL** or a **Spec File** (a Swagger/OpenAPI file or Postman Collection, such as the one produced in the [API Discovery section](#api-discovery)). Select **API Target**, fill in the data and press the **Create** button:
 
-    <img width="300" alt="Targets page - API Target" src="https://github.com/api-extraction-examples/nv-images/raw/refs/heads/main/docs/target_2.png" />
+    <img width="500" alt="Targets page - API Target" src="https://raw.githubusercontent.com/nvsecurity/nightvision-vscode/HEAD/docs/images/target_2.png" />
 
-3. Once created, you may see it in the list of targets. You can click on a target to see its details:
-
-    <img width="300" alt="Targets page - list targets" src="https://github.com/api-extraction-examples/nv-images/raw/refs/heads/main/docs/target_3.png" />
+3. Once created, you may see it in the list of targets. You can click on a target to see its details.
 
 4. You can see the target details. By default, if no excluded URL patterns are provided, some default ones are applied:
 
-    <img width="300" alt="Targets page - details" src="https://github.com/api-extraction-examples/nv-images/raw/refs/heads/main/docs/target_4.png" />
+    <img width="500" alt="Targets page - details" src="https://raw.githubusercontent.com/nvsecurity/nightvision-vscode/HEAD/docs/images/target_4.png" />
 
 #### Configuring an authentication
 
 If your website or API is protected by an authentication, we can configure it so the security scan is able to access and reveal issues behind protected endpoints. Three authentication types are available: **Cookie**, **Header** and **Playwright** (recorded by performing the login in a browser). This example uses Playwright.
 
-1. Click on **Create Authentication**:
-
-    <img width="300" alt="Authentications page" src="https://github.com/api-extraction-examples/nv-images/raw/refs/heads/main/docs/authentication_1.png" />
+1. Click on **Create Authentication**.
 
 2. Select **Playwright** authentication and fill in the information as shown below. Make sure your app is running in the provided URL and press **Create**:
 
-    <img width="300" alt="Authentications page" src="https://github.com/api-extraction-examples/nv-images/raw/refs/heads/main/docs/authentication_2.png" />
+    <img width="500" alt="Authentications page" src="https://raw.githubusercontent.com/nvsecurity/nightvision-vscode/HEAD/docs/images/authentication_2.png" />
 
-3. The browser and Playwright Inspector will show up. In the browser we perform actions, and Playwright will take notes of them to record our authentication. In the main page that shows up, let's click in **Form Auth**:
+3. The browser and Playwright Inspector will show up. In the browser we perform actions, and Playwright will take notes of them to record our authentication. In the main page that shows up, let's click in **Form Auth**.
 
-    <img width="500" alt="Authentications page" src="https://github.com/api-extraction-examples/nv-images/raw/refs/heads/main/docs/authentication_3.png" />
+4. Provide the user `user` and the password `password`, and then click **Submit**.
 
-4. Provide the user `user` and the password `password`, and then click **Submit**:
-
-    <img width="500" alt="Authentications page" src="https://github.com/api-extraction-examples/nv-images/raw/refs/heads/main/docs/authentication_4.png" />
-
-5. After submitting, you'll see our authentication has been recorded:
-
-    <img width="300" alt="Authentications page" src="https://github.com/api-extraction-examples/nv-images/raw/refs/heads/main/docs/authentication_5.png" />
+5. After submitting, you'll see our authentication has been recorded.
 
 6. Close the browser where the application is running to save the recordings. You should be able to see your new authentication being listed:
 
-    <img width="300" alt="Authentications page" src="https://github.com/api-extraction-examples/nv-images/raw/refs/heads/main/docs/authentication_6.png" />
+    <img width="500" alt="Authentications page" src="https://raw.githubusercontent.com/nvsecurity/nightvision-vscode/HEAD/docs/images/authentication_6.png" />
 
 7. By clicking on it you can check its information:
 
-    <img width="300" alt="Authentications page" src="https://github.com/api-extraction-examples/nv-images/raw/refs/heads/main/docs/authentication_7.png" />
+    <img width="500" alt="Authentications page" src="https://raw.githubusercontent.com/nvsecurity/nightvision-vscode/HEAD/docs/images/authentication_7.png" />
 
 #### Configuring a scan
 
 1. Click on **Scan APIs** to scan an API Target, or **Scan Web Applications** to scan a Web Target. Our example target is an API, so click on **Scan APIs**:
 
-    <img width="300" alt="Scans page" src="https://github.com/api-extraction-examples/nv-images/raw/refs/heads/main/docs/scan_1.png" />
+    <img width="500" alt="Scans page" src="https://raw.githubusercontent.com/nvsecurity/nightvision-vscode/HEAD/docs/images/scan_1.png" />
 
 2. Configure your scan by selecting the project, target and authentication we created before, and press **Start Scan**:
 
-    <img width="300" alt="Scans page" src="https://github.com/api-extraction-examples/nv-images/raw/refs/heads/main/docs/scan_2.png" />
+    <img width="500" alt="Scans page" src="https://raw.githubusercontent.com/nvsecurity/nightvision-vscode/HEAD/docs/images/scan_2.png" />
 
-3. Your scan will start and it may take a few minutes to start showing discovered vulnerabilities:
-
-    <img width="300" alt="Scans page" src="https://github.com/api-extraction-examples/nv-images/raw/refs/heads/main/docs/scan_3.png" />
+3. Your scan will start and it may take a few minutes to start showing discovered vulnerabilities.
 
 4. You can also check the existing scans' statuses in the main *Scans* page:
 
-    <img width="300" alt="Scans page" src="https://github.com/api-extraction-examples/nv-images/raw/refs/heads/main/docs/scan_4.png" />
+    <img width="500" alt="Scans page" src="https://raw.githubusercontent.com/nvsecurity/nightvision-vscode/HEAD/docs/images/scan_4.png" />
 
 5. Once it is done, you may check the discovered vulnerabilities:
 
-    <img width="300" alt="Scans page" src="https://github.com/api-extraction-examples/nv-images/raw/refs/heads/main/docs/scan_5.png" />
+    <img width="500" alt="Scans page" src="https://raw.githubusercontent.com/nvsecurity/nightvision-vscode/HEAD/docs/images/scan_5.png" />
