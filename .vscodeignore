@@ -12,6 +12,8 @@ src/**
 .agent-sandbox-config/**
 .claude/**
 analysis/**
+docs/images/**
+scripts/**
 tools/**
 vsc-extension-quickstart.md
 **/tsconfig.json

@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.0.6]
+
+### Added
+- Screenshot harness under `scripts/screenshots/` that drives the extension in `code serve-web` to regenerate the README captures
+
+### Changed
+- README documents web application scanning, the Spec URL / Spec File target options, the Cookie and Header authentication types, and the current API Discovery flow
+- README screenshots retaken against the current UI in dark theme and hosted in this repository instead of a third-party repo
+
 ## [1.0.5]
 
 ### Added
