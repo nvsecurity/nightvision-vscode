@@ -25,6 +25,9 @@ export default class Scan extends Command {
     { project, target, authentication }: ScanParams
   ) {
     const flags: Flag[] = [
+      // The target name is a positional argument, but it goes through `flags`
+      // because Command splits the command string on spaces (NV-4200).
+      { flag: target.name },
       { flag: '-P', value: project.id },
     ];
 
@@ -32,10 +35,8 @@ export default class Scan extends Command {
       flags.push({ flag: '-C', value: authentication.id });
     }
 
-    const cmd = `${NIGHTVISION} scan ${target.name}`;
-
     super({
-      command: cmd,
+      command: `${NIGHTVISION} scan`,
       webview: webview,
       requestId: requestId,
       flags: flags,
