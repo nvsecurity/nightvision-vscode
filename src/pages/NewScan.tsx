@@ -300,7 +300,7 @@ export const NewScan = () => {
         </button>
       )}
       {txtScanInfo && (
-        <div className='flex items-center space-x-2 text-sm'>
+        <div className='flex items-center space-x-2'>
           {txtScanInfo}
         </div>
       )}
