@@ -66,13 +66,15 @@ const config = [
     plugins: [
       new webpack.ProvidePlugin({
         // Resolved to an absolute path rather than left as the bare
-        // 'process/browser' specifier. webpack-dev-server 6 ships as
-        // "type": "module", so its client counts as fully specified ESM, and
-        // fully specified resolution ignores resolve.extensions entirely: a
-        // bare extensionless specifier cannot resolve from such a module at
-        // all. v5 was CommonJS, which is why this only surfaced on the
-        // upgrade, and its client logger calling process.hrtime() is what
-        // pulls process in.
+        // 'process/browser' specifier. Fully specified ESM resolution ignores
+        // resolve.extensions entirely, so a bare extensionless specifier
+        // cannot resolve from such a module at all, and two dependencies here
+        // are fully specified: webpack-dev-server 6, which ships as
+        // "type": "module" and whose client logger calls process.hrtime(),
+        // and react-router 7, whose .mjs chunks read process.env. Dropping
+        // either one does not make this removable, and the damage is not
+        // confined to the dev server: with the bare form a plain production
+        // build fails too.
         process: require.resolve('process/browser'),
       }),
       new webpack.DefinePlugin({
