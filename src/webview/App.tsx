@@ -138,6 +138,7 @@ export const App = () => {
   const [currentTarget, setCurrentTarget] = useState<Target>();
   const [currentUser, setCurrentUser] = useState<User>();
   const [cliVersion, setCliVersion] = useState<string | null>();
+  const [cliPath, setCliPath] = useState<string | undefined>();
 
   const [isLoading, setIsLoading] = useState(true);
   const [isLoggedIn, setIsLoggedIn] = useState(true);
@@ -266,6 +267,7 @@ export const App = () => {
       switch (response.command) {
         case CLI_VERSION: {
           setCliVersion(response.payload.version);
+          setCliPath(response.payload.path);
           break;
         }
         case UNAUTHORIZED_ACCESS: {
@@ -433,7 +435,7 @@ export const App = () => {
     return (
       <Layout>
         <InstallButton
-          installText='Install NightVison CLI'
+          installText='Install NightVision CLI'
           installingText='Installing...'
           isUpdateCLI={false}
           setIsCliInstalled={(installed) => {
@@ -489,6 +491,8 @@ export const App = () => {
             setIsLoggedIn,
             cliVersion,
             setCliVersion,
+            cliPath,
+            setCliPath,
             setIsCliInstalled,
           }}
         >

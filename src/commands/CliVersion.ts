@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import Command from '@commands/Command';
 import { CLI_VERSION } from '@commands/CommandConstants';
 import { NIGHTVISION } from '@constants/GlobalConstants';
+import { resolveCLIPath } from '@commands/InstallNightvisionCLI';
 
 export default class CliVersion extends Command {
   constructor(webview: vscode.Webview, requestId: string) {
@@ -20,7 +21,7 @@ export default class CliVersion extends Command {
       this.webview.postMessage({
         command: CLI_VERSION,
         requestId: this.requestId,
-        payload: { version: match[1] },
+        payload: { version: match[1], path: resolveCLIPath() },
       });
     }
   }

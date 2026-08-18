@@ -7,12 +7,14 @@ export const InstallButton = ({
   installText,
   installingText,
   cliVersion,
+  cliPath,
   isUpdateCLI,
   setIsCliInstalled,
 }: {
   installText: string;
   installingText: string;
   cliVersion?: string;
+  cliPath?: string;
   isUpdateCLI: boolean;
   setIsCliInstalled: (val: boolean) => void;
 }) => {
@@ -65,10 +67,17 @@ export const InstallButton = ({
           {installingText === 'Updating...' && (
             <li className='font-semibold text-red-600'>
               <span>
-                You have version {cliVersion} of the NightVison CLI, but the
+                You have version {cliVersion} of the NightVision CLI, but the
                 plugin requires version {process.env.CLI_VERSION} to be fully
                 operational.
               </span>
+              {cliPath && (
+                // The extension puts its own copy first on PATH, so this can be
+                // an older CLI than the one the user runs in a terminal.
+                <span className='mt-1 block break-all font-normal'>
+                  Using <code>{cliPath}</code>
+                </span>
+              )}
             </li>
           )}
           {installFailed && (

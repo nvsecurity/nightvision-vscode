@@ -143,43 +143,55 @@ export const NewScan = () => {
 
     setIsLoading(true);
 
-    for await (const response of requestGenerator) {
-      switch (response.command) {
-        case SCAN_ID: {
-          const scanId = response.payload;
-          navigate(`/scans/${scanId}`, { replace: true });
-          setIsLoading(false);
-          break;
-        }
-        case TARGET_CONNECTIVITY_STARTED: {
-          setTxtScanInfo(
-            <span>
-              {response.payload}
-            </span>
-          );
-          break;
-        }
-        case INVALID_TARGET: {
-          setTargetErrors(['Invalid target: ' + response.payload]);
-          setTxtScanInfo(
-            <span className="text-red-600">
-              Scan didn't start due to an issue with the target.
-            </span>
-          );
-          break;
-        }
-        case UNAUTHORIZED_ACCESS: {
-          setIsLoggedIn(false);
-          break;
-        }
-        case CLI_MISSING: {
-          setIsCliInstalled(false);
-          break;
+    try {
+      for await (const response of requestGenerator) {
+        switch (response.command) {
+          case SCAN_ID: {
+            const scanId = response.payload;
+            navigate(`/scans/${scanId}`, { replace: true });
+            break;
+          }
+          case TARGET_CONNECTIVITY_STARTED: {
+            setTxtScanInfo(
+              <span>
+                {response.payload}
+              </span>
+            );
+            break;
+          }
+          case INVALID_TARGET: {
+            setTargetErrors(['Invalid target: ' + response.payload]);
+            setTxtScanInfo(
+              <span className="text-red-600">
+                Scan didn't start due to an issue with the target.
+              </span>
+            );
+            break;
+          }
+          case UNAUTHORIZED_ACCESS: {
+            setIsLoggedIn(false);
+            break;
+          }
+          case CLI_MISSING: {
+            setIsCliInstalled(false);
+            break;
+          }
         }
       }
+    } catch (err) {
+      // requestGenerator throws when the request carries an error, which is how
+      // Scan reports a CLI that stopped without starting a scan (NV-4827).
+      // Without this the rejection escaped the handler and left the button
+      // stuck on "Loading..." with no explanation.
+      const message = err instanceof Error ? err.message : String(err);
+      setTxtScanInfo(
+        <span className='whitespace-pre-wrap break-words text-red-600'>
+          {message}
+        </span>
+      );
+    } finally {
+      setIsLoading(false);
     }
-
-    setIsLoading(false);
   };
 
   useEffect(() => {
@@ -288,7 +300,7 @@ export const NewScan = () => {
         </button>
       )}
       {txtScanInfo && (
-        <div className='flex items-center space-x-2 text-sm'>
+        <div className='flex items-center space-x-2'>
           {txtScanInfo}
         </div>
       )}

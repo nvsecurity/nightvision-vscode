@@ -18,13 +18,36 @@ export interface ScanParams {
   authentication?: Auth | null;
 }
 
+// Cap on the CLI output kept for failure reporting. Only the tail is needed to
+// explain why a scan never started, and the panel it is rendered into is narrow.
+const OUTPUT_LIMIT = 2000;
+
+// How long the CLI gets to report a scan id. This covers target connectivity
+// and, for a private target, bringing up the relay tunnel, which normally takes
+// seconds. It is cancelled once the scan id arrives, so it never limits the scan
+// itself. Without it a CLI that hangs before starting the scan leaves the panel
+// waiting forever with nothing reported (NV-4827).
+const SCAN_START_TIMEOUT_MS = 120_000;
+
 export default class Scan extends Command {
+  // Set once the CLI reports a scan id. Until then any exit is a failure to
+  // start, which is what NV-4827 was: the CLI failed, matched none of the
+  // patterns below, and the webview was told nothing at all.
+  private scanStarted = false;
+  // Set when a specific reason has already been posted (expired login,
+  // unreachable target) so the generic failure below does not pile on top.
+  private reportedFailure = false;
+  private output = '';
+
   constructor(
     webview: vscode.Webview,
     requestId: string,
     { project, target, authentication }: ScanParams
   ) {
     const flags: Flag[] = [
+      // The target name is a positional argument, but it goes through `flags`
+      // because Command splits the command string on spaces (NV-4200).
+      { flag: target.name },
       { flag: '-P', value: project.id },
     ];
 
@@ -32,29 +55,43 @@ export default class Scan extends Command {
       flags.push({ flag: '-C', value: authentication.id });
     }
 
-    const cmd = `${NIGHTVISION} scan ${target.name}`;
-
     super({
-      command: cmd,
+      command: `${NIGHTVISION} scan`,
       webview: webview,
       requestId: requestId,
       flags: flags,
+      timeoutMs: SCAN_START_TIMEOUT_MS,
     });
   }
 
   handleOutput(data: any) {
     const message = data.toString();
 
+    this.recordOutput(message);
+
     if (!this.isLoggedIn(message)) {
+      // isLoggedIn has posted UNAUTHORIZED_ACCESS as the final message.
+      this.reportedFailure = true;
       return;
     }
 
     if (/INFO Scan Details/.test(message)) {
-      this.webview.postMessage({
-        command: SCAN_ID,
-        requestId: this.requestId,
-        payload: message.match(/Scan ID: (.*)/)[1],
-      });
+      // The CLI logs this as soon as the backend accepts the scan, so a scan
+      // exists from here on. Stop the deadline before reading the id out of the
+      // record: killing the CLI now would send SIGTERM, which the CLI handles by
+      // cancelling the scan server-side. A record we cannot parse is not worth
+      // destroying a running scan for.
+      this.scanStarted = true;
+      this.cancelTimeout();
+
+      const scanId = message.match(/Scan ID: (.*)/);
+      if (scanId) {
+        this.webview.postMessage({
+          command: SCAN_ID,
+          requestId: this.requestId,
+          payload: scanId[1].trim(),
+        });
+      }
     } else if (/INFO Target connectivity test: starting TCP connection/.test(message)) {
       this.webview.postMessage({
         command: TARGET_CONNECTIVITY_STARTED,
@@ -72,23 +109,74 @@ export default class Scan extends Command {
         }),
       });
     } else if (/INFO Scan Finished/.test(message)) {
-      this.webview.postMessage({
-        command: SCAN_FINISHED,
-        requestId: this.requestId,
-        payload: message.match(/(?<!Login\s)Status:\s([^\n\r]+)/)[1],
-      });
-    } else if (/error validating target location/.test(message)) {
-      this.webview.postMessage({
-        command: INVALID_TARGET,
-        requestId: this.requestId,
-        payload: 'error validating target location',
-      });
+      const status = message.match(/(?<!Login\s)Status:\s([^\n\r]+)/);
+      if (status) {
+        this.webview.postMessage({
+          command: SCAN_FINISHED,
+          requestId: this.requestId,
+          payload: status[1],
+        });
+      }
     } else if (/target connectivity test failed/.test(message)) {
+      this.reportedFailure = true;
       this.webview.postMessage({
         command: INVALID_TARGET,
         requestId: this.requestId,
         payload: 'target connectivity test failed',
       });
     }
+  }
+
+  handleTimeout() {
+    this.cleanup();
+    const seconds = Math.round((this.timeoutMs ?? SCAN_START_TIMEOUT_MS) / 1000);
+    this.webview.postMessage({
+      requestId: this.requestId,
+      error: this.withOutput(
+        `The NightVision CLI did not start a scan within ${seconds} seconds and was stopped. ` +
+        'The most common cause is a failed connection to the NightVision relay, which is ' +
+        'required for targets that are not reachable from the internet.'
+      ),
+      isFinal: true,
+    });
+  }
+
+  handleClose(code: number | null, signal: string | null) {
+    if (this.scanStarted || this.reportedFailure) {
+      super.handleClose(code, signal);
+      return;
+    }
+
+    // The CLI stopped without ever reporting a scan id and without saying
+    // anything this class recognises. Surface its own output rather than
+    // letting the request end silently.
+    this.cleanup();
+    this.webview.postMessage({
+      requestId: this.requestId,
+      error: this.failureMessage(code, signal),
+      isFinal: true,
+    });
+  }
+
+  private recordOutput(message: string) {
+    if (this.scanStarted) {
+      return;
+    }
+    this.output = (this.output + message).slice(-OUTPUT_LIMIT);
+  }
+
+  private failureMessage(code: number | null, signal: string | null): string {
+    return this.withOutput(
+      signal
+        ? `The NightVision CLI was terminated by ${signal} before the scan started.`
+        : `The NightVision CLI exited with code ${code ?? 'unknown'} without starting a scan.`
+    );
+  }
+
+  // Appends whatever the CLI managed to say, which is usually the only thing
+  // that explains the failure.
+  private withOutput(reason: string): string {
+    const output = this.output.trim();
+    return output ? `${reason}\n\n${output}` : reason;
   }
 }
