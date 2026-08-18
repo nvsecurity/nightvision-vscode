@@ -52,6 +52,37 @@ const getDestinationDirForPlatform = (platform: string): string => {
     return destinationDir;
 };
 
+/**
+ * The `nightvision` the extension host will actually spawn, found by walking
+ * PATH the way spawn does.
+ *
+ * putCLIToVSCodePath puts the extension-managed copy first, so this can be an
+ * older CLI than the one the user runs in their own terminal. Reporting it
+ * makes that difference visible instead of silent (NV-4873).
+ */
+export const resolveCLIPath = (): string | undefined => {
+    const names = os.platform() === 'win32'
+        ? ['nightvision.exe', 'nightvision.cmd', 'nightvision.bat']
+        : ['nightvision'];
+
+    for (const dir of (process.env.PATH ?? '').split(path.delimiter)) {
+        if (!dir) {
+            continue;
+        }
+        for (const name of names) {
+            const candidate = path.join(dir, name);
+            try {
+                fs.accessSync(candidate, fs.constants.X_OK);
+                return candidate;
+            } catch {
+                // Not here, keep walking.
+            }
+        }
+    }
+
+    return undefined;
+};
+
 export const putCLIToVSCodePath = () => {
     const platform = os.platform();
     const destinationDir = getDestinationDirForPlatform(platform);

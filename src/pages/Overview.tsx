@@ -39,7 +39,7 @@ const CustomLink = ({p, onClick, className}: {p: GeneralRouteParams, onClick?: (
 };
 
 export const Overview = () => {
-  const { cliVersion, setCliVersion, setIsCliInstalled } = useUser();
+  const { cliVersion, setCliVersion, cliPath, setIsCliInstalled } = useUser();
   const { isShowDASTOptions, setIsShowDASTOptions } = useToggleDASTOptions();
   const { currentProject } = useContext(ProjectContext);
 
@@ -90,6 +90,7 @@ export const Overview = () => {
           installText='Update NightVison CLI'
           installingText='Updating...'
           cliVersion={cliVersion}
+          cliPath={cliPath}
           isUpdateCLI={true}
           setIsCliInstalled={(installed) => {
             setIsCliInstalled(installed);
