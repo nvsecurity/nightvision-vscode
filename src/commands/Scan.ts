@@ -22,6 +22,13 @@ export interface ScanParams {
 // explain why a scan never started, and the panel it is rendered into is narrow.
 const OUTPUT_LIMIT = 2000;
 
+// How long the CLI gets to report a scan id. This covers target connectivity
+// and, for a private target, bringing up the relay tunnel, which normally takes
+// seconds. It is cancelled once the scan id arrives, so it never limits the scan
+// itself. Without it a CLI that hangs before starting the scan leaves the panel
+// waiting forever with nothing reported (NV-4827).
+const SCAN_START_TIMEOUT_MS = 120_000;
+
 export default class Scan extends Command {
   // Set once the CLI reports a scan id. Until then any exit is a failure to
   // start, which is what NV-4827 was: the CLI failed, matched none of the
@@ -53,6 +60,7 @@ export default class Scan extends Command {
       webview: webview,
       requestId: requestId,
       flags: flags,
+      timeoutMs: SCAN_START_TIMEOUT_MS,
     });
   }
 
@@ -68,9 +76,16 @@ export default class Scan extends Command {
     }
 
     if (/INFO Scan Details/.test(message)) {
+      // The CLI logs this as soon as the backend accepts the scan, so a scan
+      // exists from here on. Stop the deadline before reading the id out of the
+      // record: killing the CLI now would send SIGTERM, which the CLI handles by
+      // cancelling the scan server-side. A record we cannot parse is not worth
+      // destroying a running scan for.
+      this.scanStarted = true;
+      this.cancelTimeout();
+
       const scanId = message.match(/Scan ID: (.*)/);
       if (scanId) {
-        this.scanStarted = true;
         this.webview.postMessage({
           command: SCAN_ID,
           requestId: this.requestId,
@@ -112,6 +127,20 @@ export default class Scan extends Command {
     }
   }
 
+  handleTimeout() {
+    this.cleanup();
+    const seconds = Math.round((this.timeoutMs ?? SCAN_START_TIMEOUT_MS) / 1000);
+    this.webview.postMessage({
+      requestId: this.requestId,
+      error: this.withOutput(
+        `The NightVision CLI did not start a scan within ${seconds} seconds and was stopped. ` +
+        'The most common cause is a failed connection to the NightVision relay, which is ' +
+        'required for targets that are not reachable from the internet.'
+      ),
+      isFinal: true,
+    });
+  }
+
   handleClose(code: number | null, signal: string | null) {
     if (this.scanStarted || this.reportedFailure) {
       super.handleClose(code, signal);
@@ -137,12 +166,17 @@ export default class Scan extends Command {
   }
 
   private failureMessage(code: number | null, signal: string | null): string {
-    const reason = signal
-      ? `The NightVision CLI was terminated by ${signal} before the scan started.`
-      : `The NightVision CLI exited with code ${code ?? 'unknown'} without starting a scan.`;
+    return this.withOutput(
+      signal
+        ? `The NightVision CLI was terminated by ${signal} before the scan started.`
+        : `The NightVision CLI exited with code ${code ?? 'unknown'} without starting a scan.`
+    );
+  }
 
+  // Appends whatever the CLI managed to say, which is usually the only thing
+  // that explains the failure.
+  private withOutput(reason: string): string {
     const output = this.output.trim();
-
     return output ? `${reason}\n\n${output}` : reason;
   }
 }

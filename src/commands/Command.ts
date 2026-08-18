@@ -31,6 +31,9 @@ export default class Command {
   protected cwd?: string;
   protected async: boolean;
   protected timeoutMs?: number;
+  protected didTimeout = false;
+  private timeoutHandle?: NodeJS.Timeout;
+  private child?: cp.ChildProcess;
 
   constructor({
     command, webview, requestId,
@@ -70,36 +73,54 @@ export default class Command {
       ...(flags ?? []),
     ], { cwd: this.cwd });
 
-    let didTimeout = false;
-    let timeoutHandle: NodeJS.Timeout | undefined;
+    this.child = child;
+
     if (this.timeoutMs && this.timeoutMs > 0) {
-      timeoutHandle = setTimeout(() => {
-        didTimeout = true;
-        try { child.kill(); } catch { /* ignore */ }
+      this.timeoutHandle = setTimeout(() => {
+        this.didTimeout = true;
+        this.killChild();
         this.handleTimeout();
       }, this.timeoutMs);
     }
 
     child.stdout.on('data', (data) => {
-      if (didTimeout) return;
+      if (this.didTimeout) return;
       this.handleOutput(data);
     });
     child.stderr.on('data', (data) => {
-      if (didTimeout) return;
+      if (this.didTimeout) return;
       this.handleOutput(data);
     });
     child.on('close', (code, signal) => {
-      if (timeoutHandle) clearTimeout(timeoutHandle);
-      if (didTimeout) return;
+      this.cancelTimeout();
+      if (this.didTimeout) return;
       this.handleClose(code, signal);
     });
     child.on('error', (err) => {
-      if (timeoutHandle) clearTimeout(timeoutHandle);
-      if (didTimeout) return;
+      this.cancelTimeout();
+      if (this.didTimeout) return;
       this.handleError(err);
     });
 
     return child;
+  }
+
+  // Stops the deadline without stopping the command. A subclass calls this once
+  // the output proves the command is making progress, so the timeout can cover
+  // just the part of the run that is expected to be quick.
+  protected cancelTimeout() {
+    if (this.timeoutHandle) {
+      clearTimeout(this.timeoutHandle);
+      this.timeoutHandle = undefined;
+    }
+  }
+
+  protected killChild() {
+    try {
+      this.child?.kill();
+    } catch {
+      /* ignore */
+    }
   }
 
   protected handleTimeout() {

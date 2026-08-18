@@ -179,6 +179,94 @@ suite('Scan', () => {
     assert.ok(!final.error);
   });
 
+  test('reports a scan that never starts', () => {
+    const { cmd, messages } = makeScan();
+
+    // The CLI reached the relay step and then hung, producing no scan id.
+    cmd.handleOutput('[2026-08-06 18:07:36] INFO Performing a Web Scan\n');
+    (cmd as any).handleTimeout();
+
+    const final = messages[messages.length - 1];
+    assert.ok(final.error, 'expected an error to be reported');
+    assert.ok(final.error.includes('did not start a scan within'));
+    assert.ok(final.error.includes('Performing a Web Scan'));
+    assert.strictEqual(final.isFinal, true);
+  });
+
+  test('applies a startup deadline', () => {
+    const { instance } = makeScan();
+
+    assert.ok(instance.timeoutMs > 0, 'expected a startup deadline');
+  });
+
+  test('cancels the startup deadline once the scan is running', () => {
+    const { cmd, instance } = makeScan();
+    let cancelled = false;
+    instance.cancelTimeout = () => { cancelled = true; };
+
+    cmd.handleOutput(scanDetails);
+
+    assert.ok(cancelled, 'deadline should not limit the scan itself');
+  });
+
+  test('cancels the deadline even when the scan id cannot be read', () => {
+    const { cmd, instance } = makeScan();
+    let cancelled = false;
+    instance.cancelTimeout = () => { cancelled = true; };
+
+    // Killing the CLI here would cancel the scan server-side, so an
+    // unparseable record must not leave the deadline armed.
+    cmd.handleOutput('[2026-08-18 12:00:00] INFO Scan Details:\n');
+
+    assert.ok(cancelled, 'a started scan should never be killed by the deadline');
+  });
+
+  // These two spawn a real process, because the point is whether the timer
+  // actually fires against a live child, not whether a stub was called.
+  function runStandIn(instance: any, script: string) {
+    instance.command = '/bin/sh';
+    instance.flags = [{ flag: '-c' }, { flag: script }];
+    instance.timeoutMs = 300;
+  }
+
+  const settle = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+  test('does not kill a scan that is running past the deadline', async function () {
+    if (process.platform === 'win32') {
+      this.skip();
+    }
+    this.timeout(10_000);
+
+    const { cmd, instance } = makeScan();
+    runStandIn(instance, "printf 'INFO Scan Details:\\n  Scan ID: abc-123\\n'; sleep 3");
+
+    const child = cmd.execute()!;
+    await settle(1500);
+
+    assert.strictEqual(child.killed, false, 'a running scan must survive the deadline');
+    assert.strictEqual(child.exitCode, null, 'child should still be running');
+    child.kill();
+  });
+
+  test('kills a CLI that never starts a scan', async function () {
+    if (process.platform === 'win32') {
+      this.skip();
+    }
+    this.timeout(10_000);
+
+    const { cmd, instance, messages } = makeScan();
+    runStandIn(instance, 'sleep 3');
+
+    const child = cmd.execute()!;
+    await settle(1500);
+
+    assert.strictEqual(child.killed, true, 'a stalled CLI should be stopped');
+    assert.ok(
+      messages.some((m) => m.error?.includes('did not start a scan within')),
+      'the timeout should be reported'
+    );
+  });
+
   test('does not add a generic failure after an expired login', () => {
     const { cmd, messages } = makeScan();
 
