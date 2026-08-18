@@ -87,7 +87,7 @@ export const Overview = () => {
       )}
       {cliVersion && isCliOutdated(cliVersion) && (
         <InstallButton
-          installText='Update NightVison CLI'
+          installText='Update NightVision CLI'
           installingText='Updating...'
           cliVersion={cliVersion}
           cliPath={cliPath}

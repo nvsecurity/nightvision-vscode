@@ -67,7 +67,7 @@ export const InstallButton = ({
           {installingText === 'Updating...' && (
             <li className='font-semibold text-red-600'>
               <span>
-                You have version {cliVersion} of the NightVison CLI, but the
+                You have version {cliVersion} of the NightVision CLI, but the
                 plugin requires version {process.env.CLI_VERSION} to be fully
                 operational.
               </span>
