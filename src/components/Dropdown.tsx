@@ -35,19 +35,34 @@ export const Dropdown = <T extends IdAndName,>({
   loading = false,
 }: DropdownProps<T>) => {
   useEffect(() => {
-    if (optional || loading) {
+    if (loading) {
+      return;
+    }
+
+    const selectionIsListed =
+      !!selectedItem && items.some((item) => item.id === selectedItem.id);
+
+    if (optional) {
+      // An optional dropdown renders the placeholder whenever the selection is
+      // not among the items, so keeping a stale selection in state makes the
+      // caller act on a value the user cannot see. Clearing it the way picking
+      // the placeholder does keeps the two in step (NV-4827).
+      if (selectedItem && !selectionIsListed) {
+        // The onChange path below already passes undefined when the placeholder
+        // is picked; the prop type does not model that.
+        handleChange(undefined as unknown as IdAndName);
+      }
       return;
     }
 
     if (items.length === 0) {
       handleChange({ id: '', name: '' });
-    } else if (
-      !selectedItem ||
-      !items.some((item) => item.id === selectedItem.id)
-    ) {
+    } else if (!selectionIsListed) {
       handleChange(items[0]);
     }
-  }, [selectedItem, loading]);
+    // `items` matters: switching project replaces the list without changing the
+    // selection, which is exactly when a stale selection needs reconciling.
+  }, [selectedItem, items, loading]);
 
   return (
     <div className='flex flex-nowrap items-center space-x-2'>
