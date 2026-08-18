@@ -223,22 +223,26 @@ suite('Scan', () => {
 
   // These two spawn a real process, because the point is whether the timer
   // actually fires against a live child, not whether a stub was called.
+  //
+  // The stand-in is node, which keeps the test off any platform-specific
+  // shell. It is named rather than given as a path because Command splits its
+  // command on spaces, and every candidate absolute path here contains one.
   function runStandIn(instance: any, script: string) {
-    instance.command = '/bin/sh';
-    instance.flags = [{ flag: '-c' }, { flag: script }];
+    instance.command = 'node';
+    instance.flags = [{ flag: '-e' }, { flag: script }];
     instance.timeoutMs = 300;
   }
 
   const settle = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
   test('does not kill a scan that is running past the deadline', async function () {
-    if (process.platform === 'win32') {
-      this.skip();
-    }
     this.timeout(10_000);
 
     const { cmd, instance } = makeScan();
-    runStandIn(instance, "printf 'INFO Scan Details:\\n  Scan ID: abc-123\\n'; sleep 3");
+    runStandIn(
+      instance,
+      "process.stdout.write('INFO Scan Details:\\n  Scan ID: abc-123\\n'); setTimeout(() => {}, 3000);"
+    );
 
     const child = cmd.execute()!;
     await settle(1500);
@@ -249,13 +253,10 @@ suite('Scan', () => {
   });
 
   test('kills a CLI that never starts a scan', async function () {
-    if (process.platform === 'win32') {
-      this.skip();
-    }
     this.timeout(10_000);
 
     const { cmd, instance, messages } = makeScan();
-    runStandIn(instance, 'sleep 3');
+    runStandIn(instance, 'setTimeout(() => {}, 3000);');
 
     const child = cmd.execute()!;
     await settle(1500);
