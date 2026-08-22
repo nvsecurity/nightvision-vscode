@@ -1,5 +1,29 @@
 # Changelog
 
+## [1.0.8]
+
+### Fixed
+- A CLI newer than the version the extension requires is no longer reported as outdated: the comparison stops at the first segment that settles it, and a pre-release suffix such as `0.15.3-beta` reads as `0.15.3`
+
+### Changed
+- `uuid`, `webpack-dev-server` and `react-router` upgraded to close their remaining advisories; the repository now reports no npm advisories at any severity
+- GitHub Actions moved off the deprecated Node 20 runtime
+
+## [1.0.7]
+
+### Fixed
+- A scan that fails to start reports the CLI's own reason, instead of leaving "Starting scan, please wait..." on screen and reporting nothing
+- A CLI that hangs before starting a scan is given a bounded period to report one, so the panel no longer waits indefinitely
+- Switching project on the scan page no longer keeps the authentication chosen for the previous project, which left the panel showing no credential while the scan still sent one and was rejected
+- A target whose name contains a space is passed to the CLI as one argument, instead of being split so that the wrong target was looked up
+- The install and update prompts spell NightVision correctly
+- The scan status line no longer renders at the smaller, de-emphasised size used for muted labels
+
+### Changed
+- The minimum CLI version is 0.15.0, the oldest observed to complete a scan of a target that is not reachable from the internet
+- The CLI update prompt names the binary the extension resolved, since the extension's own copy takes precedence on `PATH`
+- Non-breaking dependency security updates, and test coverage for Windows CLI paths and scan deadlines
+
 ## [1.0.6]
 
 ### Added
