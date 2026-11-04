@@ -11,6 +11,7 @@ import { AbortModal, DeleteModal, IssueCard } from './components';
 import { ErrorIcon, ExtraLinkIcon, LoadingIcon, StopIcon, TrashIcon } from './assets';
 import { TargetTypeEnum } from '@types_/target';
 import { getScanByIdWithIssuesStat } from '@queries/scansQueries';
+import { APP_URL } from '@constants/GlobalConstants';
 
 export const Scan = () => {
   const { scanId } = useParams();
@@ -120,7 +121,7 @@ export const Scan = () => {
             <div className='flex items-center justify-between'>
               <div className='flex items-center gap-2'>
                 <a
-                  href={`https://app.nightvision.net/scans/${scanId}/findings`}
+                  href={`${APP_URL}/scans/${scanId}/findings`}
                   title='View in Browser'
                 >
                   <ExtraLinkIcon />
@@ -208,7 +209,7 @@ export const Scan = () => {
                 handleClick={() => {}}
                 renderItem={(listItem) => (
                   <a
-                    href={`https://app.nightvision.net/scans/${scanId}/findings/${listItem.kind_id}`}
+                    href={`${APP_URL}/scans/${scanId}/findings/${listItem.kind_id}`}
                     title='View in Browser'
                   >
                     <span className='block max-w-full truncate'>
