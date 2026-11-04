@@ -74,7 +74,7 @@ The extension requires a valid NightVision CLI login. The extension reads the AP
 
 1. `NIGHTVISION_API_URL` environment variable
 2. `api-url` from `~/.nightvision/nightvision.yml` (written by `nightvision login`)
-3. `https://api.nightvision.net` (default)
+3. `https://api.nightviz.ai` (default)
 
 Just run `nightvision login` and the extension will automatically use the same environment:
 
@@ -82,7 +82,8 @@ Just run `nightvision login` and the extension will automatically use the same e
 # Production
 nightvision login
 
-# Staging
+# Test (stays on nightvision.net until the CLI derives its environment
+# from nightviz.ai hosts; NV-6111)
 nightvision login --api-url https://api.test.nightvision.net/api/v1/
 ```
 
