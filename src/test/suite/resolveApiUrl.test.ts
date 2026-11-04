@@ -29,7 +29,25 @@ suite('resolveApiUrl', () => {
 
   test('should return default URL when no env var or config exists', () => {
     const url = resolveApiUrl(configPath);
+    assert.strictEqual(url, 'https://api.nightviz.ai');
+  });
+
+  test('should keep a nightvision.net URL from the config file', () => {
+    fs.writeFileSync(configPath, 'api-url: https://api.nightvision.net/api/v1/\n');
+    const url = resolveApiUrl(configPath);
     assert.strictEqual(url, 'https://api.nightvision.net');
+  });
+
+  test('should read a nightviz.ai URL from the config file', () => {
+    fs.writeFileSync(configPath, 'api-url: https://api.test.nightviz.ai/api/v1/\n');
+    const url = resolveApiUrl(configPath);
+    assert.strictEqual(url, 'https://api.test.nightviz.ai');
+  });
+
+  test('should strip /api/v1/ suffix from a nightviz.ai env var', () => {
+    process.env.NIGHTVISION_API_URL = 'https://api.nightviz.ai/api/v1/';
+    const url = resolveApiUrl(configPath);
+    assert.strictEqual(url, 'https://api.nightviz.ai');
   });
 
   test('should prefer env var over config file', () => {

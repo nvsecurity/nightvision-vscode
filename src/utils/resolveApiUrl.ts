@@ -2,14 +2,13 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
-
-const DEFAULT_API_URL = 'https://api.nightvision.net';
+import { DEFAULT_API_URL } from '@utils/nightvisionHosts';
 
 /**
  * Resolves the NightVision API URL using the same precedence as the CLI:
  * 1. NIGHTVISION_API_URL environment variable
  * 2. api-url from ~/.nightvision/nightvision.yml
- * 3. https://api.nightvision.net (default)
+ * 3. https://api.nightviz.ai (default)
  *
  * The api-url from the config file includes /api/v1/ suffix which is stripped
  * to return the base URL.

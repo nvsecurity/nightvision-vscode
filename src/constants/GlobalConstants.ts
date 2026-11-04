@@ -1,9 +1,10 @@
 import { SpecStatusEnum } from "@types_/target";
+import { DEFAULT_API_URL } from "@utils/nightvisionHosts";
 
 export const NIGHTVISION = 'nightvision';
 export const API_URL: string =
   (typeof window !== 'undefined' && (window as any).__NV_API_URL__) ||
-  'https://api.nightvision.net';
+  DEFAULT_API_URL;
 export const API_ERROR_TYPES = ['client_error', 'validation_error', 'server_error'];
 export const CONTACT_EMAIL = 'support@nightviz.ai';
 
