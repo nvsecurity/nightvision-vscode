@@ -62,23 +62,25 @@ suite('compareCliVersions', () => {
 
 suite('isCliOutdated', () => {
   test('prompts a CLI below the floor', () => {
-    withFloor('0.15.0', () => {
-      assert.strictEqual(isCliOutdated('0.14.9'), true);
+    withFloor('0.26.0', () => {
+      assert.strictEqual(isCliOutdated('0.25.9'), true);
+      assert.strictEqual(isCliOutdated('0.15.0'), true);
       assert.strictEqual(isCliOutdated('0.9.15'), true);
     });
   });
 
   test('leaves a CLI at or above the floor alone', () => {
-    withFloor('0.15.0', () => {
-      assert.strictEqual(isCliOutdated('0.15.0'), false);
-      assert.strictEqual(isCliOutdated('0.16.1'), false);
+    withFloor('0.26.0', () => {
+      assert.strictEqual(isCliOutdated('0.26.0'), false);
+      assert.strictEqual(isCliOutdated('0.26.1'), false);
+      assert.strictEqual(isCliOutdated('0.27.0'), false);
     });
   });
 
   test('does not prompt a newer major whose minor is below the floor', () => {
     // No 1.x CLI has shipped yet, so this is the case that wakes up on the
-    // first one: 1.2.3 is newer than 0.15.0 and was reported as outdated.
-    withFloor('0.15.0', () => {
+    // first one: 1.2.3 is newer than 0.26.0 and was reported as outdated.
+    withFloor('0.26.0', () => {
       assert.strictEqual(isCliOutdated('1.0.0'), false);
       assert.strictEqual(isCliOutdated('1.2.3'), false);
       assert.strictEqual(isCliOutdated('2.0.1'), false);
@@ -99,7 +101,7 @@ suite('isCliOutdated', () => {
   });
 
   test('does not prompt an unknown version', () => {
-    withFloor('0.15.0', () => {
+    withFloor('0.26.0', () => {
       assert.strictEqual(isCliOutdated(''), false);
       assert.strictEqual(isCliOutdated('   '), false);
       // Defensive: CliVersion.ts only posts a version matching
@@ -107,7 +109,7 @@ suite('isCliOutdated', () => {
       // today. Read as 0.0.0 it would sit below every floor and prompt an
       // update the user cannot act on.
       assert.strictEqual(isCliOutdated('unknown'), false);
-      assert.strictEqual(isCliOutdated('v0.15.0'), false);
+      assert.strictEqual(isCliOutdated('v0.26.0'), false);
     });
   });
 });

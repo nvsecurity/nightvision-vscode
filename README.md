@@ -11,7 +11,7 @@ Leverage [NightVision](https://nightviz.ai/) to document APIs, run [DAST](https:
 
 ## Getting Started
 
-In order to use this extension you must have a **NightVision account**. Additionally, it will be required to install the NightVision CLI, that can be done either through this extension or [manually](https://docs.nightviz.ai/welcome/tutorials-and-guides/installing-the-cli/). It is available for all platforms: Windows, Linux and MacOS.
+In order to use this extension you must have a **NightVision account**. Additionally, it will be required to install the NightVision CLI **0.26.0 or newer**, that can be done either through this extension or [manually](https://docs.nightviz.ai/welcome/tutorials-and-guides/installing-the-cli/). It is available for all platforms: Windows, Linux and MacOS.
 
 ### Main page
 

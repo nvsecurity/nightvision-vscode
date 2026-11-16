@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.1.0]
+
+### Changed
+- NV-6111 Default API requests to `api.nightviz.ai`; configured URLs are preserved
+- NV-6111 Raise the minimum CLI from 0.15.0 to 0.26.0 for `nightviz.ai` support
+- NV-4884 Restore automatic release drafting with the current Release Drafter configuration
+
+### Fixed
+- NV-6111 Open scan and finding links in the app matching the API domain and environment
+
 ## [1.0.8]
 
 ### Fixed
