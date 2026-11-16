@@ -34,7 +34,6 @@ export const Scan = () => {
 
   useEffect(() => {
     let interval: NodeJS.Timeout | undefined;
-    clearInterval(interval);
     interval = setInterval(() => {
       setCurrentTime(new Date());
     }, 500);
@@ -49,7 +48,6 @@ export const Scan = () => {
   useEffect(() => {
     let ignore = false;
     let interval: NodeJS.Timeout | undefined;
-    clearInterval(interval);
 
     const getAndSetScan = async () => {
       try {
