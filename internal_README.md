@@ -2,7 +2,7 @@
 
 ### Prerequisites
 
-- [NightVision CLI](https://docs.nightviz.ai/welcome/tutorials-and-guides/installing-the-cli/)
+- [NightVision CLI](https://docs.nightviz.ai/welcome/tutorials-and-guides/installing-the-cli/) 0.26.0 or newer
 - Visual Studio Code (VSCode) version 1.75.0 or greater
 - [Node.js](https://nodejs.org)
 
