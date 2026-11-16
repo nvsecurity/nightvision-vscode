@@ -48,6 +48,11 @@ const config = [
           use: [
             {
               loader: 'ts-loader',
+              options: {
+                // Preserve browser ES modules for webpack; the extension host
+                // and test runner continue using CommonJS from tsconfig.json.
+                compilerOptions: { module: 'esnext' },
+              },
             },
           ],
         },
