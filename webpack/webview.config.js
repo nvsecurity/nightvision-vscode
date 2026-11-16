@@ -85,9 +85,6 @@ const config = [
       port: process.env.PORT,
       hot: true,
       allowedHosts: 'all',
-      // devMiddleware: {
-      //   writeToDisk: true,
-      // },
       headers: {
         'Access-Control-Allow-Origin': '*',
       },
